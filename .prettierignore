@@ -1,0 +1,9 @@
+pnpm-lock.yaml
+PLAN_CODEX_ANIMATEMAP_STUDIO.md
+CODEX_START_PROMPT.md
+data/
+node_modules/
+dist/
+.local/
+test-results/
+playwright-report/

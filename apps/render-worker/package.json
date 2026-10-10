@@ -1,0 +1,10 @@
+{
+  "name": "@animatemap/render-worker",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@animatemap/project-schema": "workspace:*",
+    "playwright": "1.58.2"
+  }
+}

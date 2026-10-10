@@ -1,0 +1,26 @@
+{
+  "name": "@animatemap/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@animatemap/project-schema": "workspace:*",
+    "@animatemap/animation-core": "workspace:*",
+    "@animatemap/map-engine": "workspace:*",
+    "@animatemap/ui": "workspace:*",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zustand": "5.0.8",
+    "idb-keyval": "6.2.2",
+    "lucide-react": "0.468.0",
+    "maplibre-gl": "5.14.0"
+  },
+  "devDependencies": {
+    "vite": "7.2.2",
+    "@vitejs/plugin-react": "5.1.1"
+  }
+}

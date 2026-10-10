@@ -1,0 +1,37 @@
+{
+  "name": "animatemap-studio",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"pnpm --filter @animatemap/api dev\" \"pnpm --filter @animatemap/web dev\"",
+    "build": "pnpm --filter @animatemap/web build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "render": "tsx apps/render-worker/src/cli.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@playwright/test": "1.58.2",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/geojson": "7946.0.16",
+    "concurrently": "9.2.1",
+    "eslint": "9.39.1",
+    "globals": "16.5.0",
+    "prettier": "3.7.4",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.48.1",
+    "vitest": "3.2.4"
+  }
+}

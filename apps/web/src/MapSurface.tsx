@@ -1,0 +1,104 @@
+import { useEffect, useRef, useState } from 'react';
+import { MapRenderer, type Countries } from '@animatemap/map-engine';
+import type { Camera, Project } from '@animatemap/project-schema';
+import 'maplibre-gl/dist/maplibre-gl.css';
+export function MapSurface({
+  project,
+  camera,
+  onCountry,
+  onCamera,
+  onPoint,
+  onReady,
+}: {
+  project: Project;
+  camera: Camera;
+  onCountry?: (code: string) => void;
+  onCamera?: (camera: Camera) => void;
+  onPoint?: (point: [number, number]) => void;
+  onReady?: (renderer: MapRenderer) => void;
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const renderer = useRef<MapRenderer | null>(null);
+  const current = useRef({
+    project,
+    camera,
+    onCountry,
+    onCamera,
+    onPoint,
+    onReady,
+  });
+  current.current = { project, camera, onCountry, onCamera, onPoint, onReady };
+  const [status, setStatus] = useState('Loading country geography…');
+  useEffect(() => {
+    let disposed = false;
+    const abort = new AbortController();
+    let resize: ResizeObserver | undefined;
+    void (async () => {
+      const response = await fetch('/data/countries.geojson', {
+        signal: abort.signal,
+      });
+      if (!response.ok)
+        throw new Error(`Country data unavailable (${response.status})`);
+      const countries = (await response.json()) as Countries;
+      if (disposed || !container.current) return;
+      const r = new MapRenderer(
+        container.current,
+        countries,
+        current.current.camera,
+        (c) => current.current.onCountry?.(c),
+        (c) => current.current.onCamera?.(c),
+        (p) => current.current.onPoint?.(p),
+      );
+      renderer.current = r;
+      await r.ready();
+      if (disposed) return;
+      r.apply(
+        current.current.project,
+        current.current.camera,
+        current.current.project.scenes[0]!.layers,
+      );
+      await r.ready();
+      setStatus('');
+      current.current.onReady?.(r);
+      resize = new ResizeObserver(() => {
+        r.map.resize();
+        r.apply(
+          current.current.project,
+          current.current.camera,
+          current.current.project.scenes[0]!.layers,
+          false,
+        );
+      });
+      resize.observe(container.current);
+    })().catch((error: unknown) => {
+      if (!disposed)
+        setStatus(
+          error instanceof Error ? error.message : 'Map initialization failed',
+        );
+    });
+    return () => {
+      disposed = true;
+      abort.abort();
+      resize?.disconnect();
+      renderer.current?.destroy();
+      renderer.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    renderer.current?.apply(project, camera, project.scenes[0]!.layers);
+  }, [project, camera]);
+  return (
+    <div className="map-surface" data-testid="map-surface">
+      <div
+        className="map-host"
+        ref={container}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+      {status && (
+        <div className="map-status" role="status">
+          {status}
+        </div>
+      )}
+    </div>
+  );
+}

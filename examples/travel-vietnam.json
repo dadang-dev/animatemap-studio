@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-travel",
+  "name": "Vietnam · A journey south",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "durationSeconds": 12,
+  "map": {
+    "providerId": "natural-earth",
+    "styleId": "dark",
+    "attribution": ["Natural Earth · Public domain"]
+  },
+  "metadata": {
+    "dataSource": "Natural Earth Admin 0 Countries",
+    "dataVersion": "5.1.2",
+    "license": "Public domain"
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Opening",
+      "startSeconds": 0,
+      "durationSeconds": 12,
+      "camera": {
+        "keyframes": [
+          {
+            "time": 0,
+            "value": {
+              "lng": 108,
+              "lat": 16,
+              "zoom": 4,
+              "bearing": 0,
+              "pitch": 0
+            },
+            "easing": "easeInOut"
+          },
+          {
+            "time": 5,
+            "value": {
+              "lng": 106.5,
+              "lat": 18.5,
+              "zoom": 5,
+              "bearing": 8,
+              "pitch": 20
+            },
+            "easing": "easeInOut"
+          },
+          {
+            "time": 12,
+            "value": {
+              "lng": 107,
+              "lat": 12,
+              "zoom": 5,
+              "bearing": -5,
+              "pitch": 15
+            },
+            "easing": "easeInOut"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "id": "highlight-vn",
+          "name": "Vietnam",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "countryHighlight",
+          "countryCodes": ["VNM"],
+          "style": {
+            "color": "#307e72",
+            "stroke": "#75d9bd",
+            "width": 1.5,
+            "dimOutside": 0.2
+          }
+        },
+        {
+          "id": "route-1",
+          "name": "Hanoi → Ho Chi Minh City",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": [
+              {
+                "time": 0,
+                "value": 0,
+                "easing": "linear"
+              },
+              {
+                "time": 10,
+                "value": 1,
+                "easing": "easeInOut"
+              }
+            ]
+          },
+          "type": "route",
+          "coordinates": [
+            [105.85, 21.03],
+            [108.2, 16.06],
+            [106.7, 10.82]
+          ],
+          "style": {
+            "color": "#ffd087",
+            "width": 5,
+            "dash": false,
+            "arrow": true
+          }
+        },
+        {
+          "id": "marker-0",
+          "name": "Hà Nội",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "marker",
+          "anchor": {
+            "type": "map",
+            "coordinates": [105.85, 21.03]
+          },
+          "label": "Hà Nội",
+          "style": {
+            "color": "#ffd087",
+            "size": 18,
+            "icon": "pin"
+          }
+        },
+        {
+          "id": "marker-1",
+          "name": "Đà Nẵng",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "marker",
+          "anchor": {
+            "type": "map",
+            "coordinates": [108.2, 16.06]
+          },
+          "label": "Đà Nẵng",
+          "style": {
+            "color": "#ffd087",
+            "size": 18,
+            "icon": "pin"
+          }
+        },
+        {
+          "id": "marker-2",
+          "name": "TP. Hồ Chí Minh",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "marker",
+          "anchor": {
+            "type": "map",
+            "coordinates": [106.7, 10.82]
+          },
+          "label": "TP. Hồ Chí Minh",
+          "style": {
+            "color": "#ffd087",
+            "size": 18,
+            "icon": "pin"
+          }
+        },
+        {
+          "id": "title-1",
+          "name": "Opening title",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "text",
+          "anchor": {
+            "type": "screen",
+            "x": 0.07,
+            "y": 0.14
+          },
+          "text": "VIETNAM\nA journey south",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 52,
+            "fontWeight": "bold",
+            "align": "left"
+          }
+        }
+      ]
+    }
+  ]
+}

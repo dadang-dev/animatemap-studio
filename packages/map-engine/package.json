@@ -1,0 +1,11 @@
+{
+  "name": "@animatemap/map-engine",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@animatemap/project-schema": "workspace:*",
+    "@animatemap/animation-core": "workspace:*",
+    "maplibre-gl": "5.14.0"
+  }
+}

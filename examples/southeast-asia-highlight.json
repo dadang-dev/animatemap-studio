@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-highlight",
+  "name": "Southeast Asia · In focus",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "durationSeconds": 12,
+  "map": {
+    "providerId": "natural-earth",
+    "styleId": "dark",
+    "attribution": ["Natural Earth · Public domain"]
+  },
+  "metadata": {
+    "dataSource": "Natural Earth Admin 0 Countries",
+    "dataVersion": "5.1.2",
+    "license": "Public domain"
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Opening",
+      "startSeconds": 0,
+      "durationSeconds": 12,
+      "camera": {
+        "keyframes": [
+          {
+            "time": 0,
+            "value": {
+              "lng": 108,
+              "lat": 16,
+              "zoom": 4,
+              "bearing": 0,
+              "pitch": 0
+            },
+            "easing": "easeInOut"
+          },
+          {
+            "time": 5,
+            "value": {
+              "lng": 106.5,
+              "lat": 18.5,
+              "zoom": 5,
+              "bearing": 8,
+              "pitch": 20
+            },
+            "easing": "easeInOut"
+          },
+          {
+            "time": 12,
+            "value": {
+              "lng": 107,
+              "lat": 12,
+              "zoom": 5,
+              "bearing": -5,
+              "pitch": 15
+            },
+            "easing": "easeInOut"
+          }
+        ]
+      },
+      "layers": [
+        {
+          "id": "highlight-vn",
+          "name": "Vietnam",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "countryHighlight",
+          "countryCodes": ["VNM", "THA"],
+          "style": {
+            "color": "#307e72",
+            "stroke": "#75d9bd",
+            "width": 1.5,
+            "dimOutside": 0.2
+          }
+        },
+        {
+          "id": "title-1",
+          "name": "Opening title",
+          "visible": true,
+          "locked": false,
+          "timeRange": {
+            "start": 0,
+            "end": 12
+          },
+          "opacity": 1,
+          "transform": {
+            "scale": 1,
+            "rotation": 0,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "tracks": {
+            "opacity": [],
+            "reveal": []
+          },
+          "type": "text",
+          "anchor": {
+            "type": "screen",
+            "x": 0.07,
+            "y": 0.14
+          },
+          "text": "SOUTHEAST ASIA",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 52,
+            "fontWeight": "bold",
+            "align": "left"
+          }
+        }
+      ]
+    }
+  ]
+}

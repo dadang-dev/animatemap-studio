@@ -1,0 +1,10 @@
+{
+  "source": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_admin_0_countries.geojson",
+  "release": "5.1.2",
+  "license": "Public domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "sourceSha256": "239eec57ac17f100a11e2536cffc56752c318b50ae765b0918ff7aab4ce8f255",
+  "bundledSha256": "34d12f112299ba90aee7a2088d10c1e90efa1341ed54d7fb445047d8ed278de0",
+  "features": 258,
+  "transformation": "Properties reduced; geometry unchanged. ISO_A3 falls back to ADM0_A3 for non-ISO features."
+}
