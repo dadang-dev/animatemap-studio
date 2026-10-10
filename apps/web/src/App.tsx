@@ -444,6 +444,7 @@ export function App() {
                 project={s.project}
                 camera={s.camera}
                 layers={state.layers}
+                blend={state.blend}
                 onCountry={chooseCountry}
                 onLayer={(id) => {
                   if (useEditor.getState().tool === 'select')

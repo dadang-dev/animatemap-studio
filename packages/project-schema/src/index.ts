@@ -131,90 +131,145 @@ export const layerSchema = z.discriminatedUnion('type', [
   }),
 ]);
 export type Layer = z.infer<typeof layerSchema>;
+const projectV1Base = z.object({
+  schemaVersion: z.literal(1),
+  id,
+  name: z.string().min(1).max(200),
+  canvas: z.object({
+    width: z.number().int().min(256).max(3840),
+    height: z.number().int().min(256).max(3840),
+    fps: z.union([z.literal(24), z.literal(30)]),
+  }),
+  durationSeconds: finite.min(1).max(300),
+  map: z.object({
+    providerId: z.literal('natural-earth'),
+    styleId: z.enum(['light', 'dark', 'muted']),
+    attribution: z.array(z.string().max(500)).min(1).max(10),
+  }),
+  metadata: z.object({
+    dataSource: z.string().max(500),
+    dataVersion: z.string().max(100),
+    license: z.string().max(500),
+  }),
+  scenes: z
+    .array(
+      z.object({
+        id,
+        name: z.string().max(200),
+        startSeconds: finite.min(0),
+        durationSeconds: finite.min(0.01),
+        camera: z.object({ keyframes: cameraTrackSchema }),
+        layers: z.array(layerSchema).max(100),
+      }),
+    )
+    .min(1)
+    .max(20),
+});
+function validateTiming(
+  project: Pick<z.infer<typeof projectV1Base>, 'scenes' | 'durationSeconds'>,
+  ctx: z.RefinementCtx,
+) {
+  const ids = new Set<string>();
+  let previousEnd = 0;
+  project.scenes.forEach((scene, s) => {
+    const issue = (message: string, path: (string | number)[]) =>
+      ctx.addIssue({ code: 'custom', message, path: ['scenes', s, ...path] });
+    if (ids.has(scene.id)) issue('Duplicate identifier', ['id']);
+    ids.add(scene.id);
+    if (
+      scene.startSeconds < previousEnd ||
+      scene.startSeconds + scene.durationSeconds > project.durationSeconds
+    )
+      issue('Scenes must not overlap or exceed project duration', [
+        'startSeconds',
+      ]);
+    previousEnd = scene.startSeconds + scene.durationSeconds;
+    scene.camera.keyframes.forEach((k, i) => {
+      if (k.time > scene.durationSeconds)
+        issue('Keyframe exceeds scene duration', ['camera', 'keyframes', i]);
+    });
+    scene.layers.forEach((layer, l) => {
+      if (ids.has(layer.id)) issue('Duplicate identifier', ['layers', l, 'id']);
+      ids.add(layer.id);
+      if (layer.timeRange.end > scene.durationSeconds)
+        issue('Layer exceeds scene duration', ['layers', l, 'timeRange']);
+      for (const property of ['opacity', 'reveal'] as const)
+        layer.tracks[property].forEach((k, i) => {
+          if (k.time > scene.durationSeconds)
+            issue('Keyframe exceeds scene duration', [
+              'layers',
+              l,
+              'tracks',
+              property,
+              i,
+            ]);
+        });
+    });
+  });
+}
+export const projectV1Schema = projectV1Base.superRefine(validateTiming);
+export const transitionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('cut') }),
+  z.object({
+    type: z.literal('crossfade'),
+    durationSeconds: finite.min(0.1).max(5),
+  }),
+]);
+const sceneV2Schema = projectV1Base.shape.scenes.element.extend({
+  transition: transitionSchema.default({ type: 'cut' }),
+});
+export const CURRENT_SCHEMA_VERSION = 2;
 export const projectSchema = z
   .object({
-    schemaVersion: z.literal(1),
-    id,
-    name: z.string().min(1).max(200),
-    canvas: z.object({
-      width: z.number().int().min(256).max(3840),
-      height: z.number().int().min(256).max(3840),
-      fps: z.union([z.literal(24), z.literal(30)]),
-    }),
-    durationSeconds: finite.min(1).max(300),
-    map: z.object({
-      providerId: z.literal('natural-earth'),
-      styleId: z.enum(['light', 'dark', 'muted']),
-      attribution: z.array(z.string().max(500)).min(1).max(10),
-    }),
-    metadata: z.object({
-      dataSource: z.string().max(500),
-      dataVersion: z.string().max(100),
-      license: z.string().max(500),
-    }),
-    scenes: z
-      .array(
-        z.object({
-          id,
-          name: z.string().max(200),
-          startSeconds: finite.min(0),
-          durationSeconds: finite.min(0.01),
-          camera: z.object({ keyframes: cameraTrackSchema }),
-          layers: z.array(layerSchema).max(100),
-        }),
-      )
-      .min(1)
-      .max(20),
+    ...projectV1Base.shape,
+    schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+    scenes: z.array(sceneV2Schema).min(1).max(20),
   })
+  .superRefine(validateTiming)
   .superRefine((project, ctx) => {
-    const ids = new Set<string>();
-    let previousEnd = 0;
-    project.scenes.forEach((scene, s) => {
-      const issue = (message: string, path: (string | number)[]) =>
-        ctx.addIssue({ code: 'custom', message, path: ['scenes', s, ...path] });
-      if (ids.has(scene.id)) issue('Duplicate identifier', ['id']);
-      ids.add(scene.id);
+    project.scenes.forEach((scene, index) => {
+      if (scene.transition.type !== 'crossfade') return;
+      const previous = project.scenes[index - 1];
       if (
-        scene.startSeconds < previousEnd ||
-        scene.startSeconds + scene.durationSeconds > project.durationSeconds
+        !previous ||
+        Math.abs(
+          previous.startSeconds + previous.durationSeconds - scene.startSeconds,
+        ) > 1e-8 ||
+        scene.transition.durationSeconds > scene.durationSeconds
       )
-        issue('Scenes must not overlap or exceed project duration', [
-          'startSeconds',
-        ]);
-      previousEnd = scene.startSeconds + scene.durationSeconds;
-      scene.camera.keyframes.forEach((k, i) => {
-        if (k.time > scene.durationSeconds)
-          issue('Keyframe exceeds scene duration', ['camera', 'keyframes', i]);
-      });
-      scene.layers.forEach((layer, l) => {
-        if (ids.has(layer.id))
-          issue('Duplicate identifier', ['layers', l, 'id']);
-        ids.add(layer.id);
-        if (layer.timeRange.end > scene.durationSeconds)
-          issue('Layer exceeds scene duration', ['layers', l, 'timeRange']);
-        for (const property of ['opacity', 'reveal'] as const)
-          layer.tracks[property].forEach((k, i) => {
-            if (k.time > scene.durationSeconds)
-              issue('Keyframe exceeds scene duration', [
-                'layers',
-                l,
-                'tracks',
-                property,
-                i,
-              ]);
-          });
-      });
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Crossfade requires an adjacent previous scene and cannot exceed scene duration',
+          path: ['scenes', index, 'transition'],
+        });
     });
   });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
 export function migrateProject(input: unknown): Project {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 1
+  ) {
+    const legacy = projectV1Schema.parse(input);
+    return projectSchema.parse({
+      ...legacy,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      scenes: legacy.scenes.map((scene) => ({
+        ...scene,
+        transition: { type: 'cut' },
+      })),
+    });
+  }
   return projectSchema.parse(input);
 }
 export const healthResponseSchema = z.object({
   status: z.literal('ok'),
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
 });
 export const jobSchema = z.object({
   id,
@@ -243,7 +298,7 @@ export function createDemo(kind: 'travel' | 'highlight' = 'travel'): Project {
     tracks: { opacity: [], reveal: [] },
   };
   return projectSchema.parse({
-    schemaVersion: 1,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     id: `demo-${kind}`,
     name:
       kind === 'travel'

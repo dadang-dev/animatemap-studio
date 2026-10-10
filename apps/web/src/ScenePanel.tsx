@@ -71,6 +71,50 @@ export function ScenePanel({ sceneId }: { sceneId: string }) {
           s.sceneOperation({ type: 'resize', id: sceneId, duration })
         }
       />
+      <label className="field">
+        Transition into scene
+        <select
+          aria-label="Scene transition"
+          value={scene.transition.type}
+          disabled={index === 0}
+          onChange={(event) =>
+            s.edit((project) => {
+              const target = project.scenes.find(
+                (item) => item.id === sceneId,
+              )!;
+              target.transition =
+                event.target.value === 'cut'
+                  ? { type: 'cut' }
+                  : {
+                      type: 'crossfade',
+                      durationSeconds: Math.min(1, target.durationSeconds),
+                    };
+            })
+          }
+        >
+          <option value="cut">Cut</option>
+          <option value="crossfade" disabled={scene.durationSeconds < 0.1}>
+            Crossfade from final frame
+          </option>
+        </select>
+      </label>
+      {scene.transition.type === 'crossfade' && (
+        <NumberField
+          label="Crossfade duration"
+          value={scene.transition.durationSeconds}
+          min={0.1}
+          max={Math.min(5, scene.durationSeconds)}
+          onChange={(duration) =>
+            s.edit((project) => {
+              const target = project.scenes.find(
+                (item) => item.id === sceneId,
+              )!;
+              if (target.transition.type === 'crossfade')
+                target.transition.durationSeconds = duration;
+            })
+          }
+        />
+      )}
       <div className="scene-controls">
         <button
           aria-label="Move scene earlier"
@@ -98,7 +142,7 @@ export function ScenePanel({ sceneId }: { sceneId: string }) {
         </button>
       </div>
       <p className="muted scene-hint">
-        Cut transitions · {s.project.durationSeconds.toFixed(2)}s total
+        Cut / crossfade · {s.project.durationSeconds.toFixed(2)}s total
       </p>
     </section>
   );

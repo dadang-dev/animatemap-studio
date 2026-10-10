@@ -21,7 +21,7 @@ export function createApp(directory = resolve('.local/projects')) {
       return reply.code(403).send({ error: 'Untrusted origin' });
     reply.header('X-Content-Type-Options', 'nosniff');
   });
-  app.get('/api/health', async () => ({ status: 'ok', schemaVersion: 1 }));
+  app.get('/api/health', async () => ({ status: 'ok', schemaVersion: 2 }));
   const repository = new JsonRepository(directory);
   const jobs = new JobQueue(join(dirname(directory), 'renders'));
   app.addHook('onClose', async () => {

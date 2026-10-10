@@ -15,6 +15,7 @@ function reflow(project: Project) {
     scene.startSeconds = start;
     start += scene.durationSeconds;
   }
+  project.scenes[0]!.transition = { type: 'cut' };
   project.durationSeconds = start;
   if (start > 300)
     throw new Error('Project duration cannot exceed 300 seconds');
@@ -44,6 +45,7 @@ export function applySceneOperation(
         ],
       },
       layers: [],
+      transition: { type: 'cut' },
     };
     project.scenes.push(scene);
     reflow(project);
@@ -83,6 +85,11 @@ export function applySceneOperation(
       scene.startSeconds + duration,
     ).camera;
     scene.durationSeconds = duration;
+    if (scene.transition.type === 'crossfade')
+      scene.transition.durationSeconds = Math.min(
+        scene.transition.durationSeconds,
+        duration,
+      );
     scene.camera.keyframes = scene.camera.keyframes.filter(
       (key) => key.time <= duration,
     );

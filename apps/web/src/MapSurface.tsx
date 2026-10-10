@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { MapRenderer, type Countries } from '@animatemap/map-engine';
 import type { Camera, Project, Layer } from '@animatemap/project-schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { SceneBlend } from '@animatemap/animation-core';
 export function MapSurface({
   project,
   camera,
   layers = project.scenes[0]!.layers,
+  blend,
   onCountry,
   onCamera,
   onPoint,
@@ -16,6 +18,7 @@ export function MapSurface({
   project: Project;
   camera: Camera;
   layers?: Layer[];
+  blend?: SceneBlend;
   onCountry?: (code: string) => void;
   onCamera?: (camera: Camera) => void;
   onPoint?: (point: [number, number]) => void;
@@ -29,6 +32,7 @@ export function MapSurface({
     project,
     camera,
     layers,
+    blend,
     onCountry,
     onCamera,
     onPoint,
@@ -40,6 +44,7 @@ export function MapSurface({
     project,
     camera,
     layers,
+    blend,
     onCountry,
     onCamera,
     onPoint,
@@ -81,6 +86,8 @@ export function MapSurface({
         current.current.project,
         current.current.camera,
         current.current.layers,
+        true,
+        current.current.blend,
       );
       await r.ready();
       setStatus('');
@@ -93,6 +100,7 @@ export function MapSurface({
             current.current.camera,
             current.current.layers,
             true,
+            current.current.blend,
           );
         } catch (error) {
           const e =
@@ -125,14 +133,14 @@ export function MapSurface({
   useEffect(() => {
     if (!renderer.current) return;
     try {
-      renderer.current.apply(project, camera, layers);
+      renderer.current.apply(project, camera, layers, true, blend);
       setStatus('');
     } catch (error) {
       const e = error instanceof Error ? error : new Error('Map update failed');
       setStatus(e.message);
       current.current.onError?.(e);
     }
-  }, [project, camera, layers]);
+  }, [project, camera, layers, blend]);
   return (
     <div className="map-surface" data-testid="map-surface">
       <div

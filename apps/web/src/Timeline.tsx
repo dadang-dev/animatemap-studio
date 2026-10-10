@@ -169,7 +169,7 @@ export function Timeline() {
             ))}
           </div>
           <div className="track">
-            <span>Scenes · Cut</span>
+            <span>Scenes</span>
             <div className="track-body scene-track">
               {s.project.scenes.map((item, index) => (
                 <button
@@ -177,7 +177,7 @@ export function Timeline() {
                   className={`scene-clip ${item.id === scene.id ? 'active' : ''}`}
                   aria-label={`Jump to scene ${index + 1}: ${item.name}`}
                   aria-pressed={item.id === scene.id}
-                  title={`${item.name} · ${item.startSeconds.toFixed(2)}–${(item.startSeconds + item.durationSeconds).toFixed(2)}s · Cut`}
+                  title={`${item.name} · ${item.startSeconds.toFixed(2)}–${(item.startSeconds + item.durationSeconds).toFixed(2)}s · ${item.transition.type}`}
                   style={{
                     left: `${(item.startSeconds / s.project.durationSeconds) * 100}%`,
                     width: `${(item.durationSeconds / s.project.durationSeconds) * 100}%`,
@@ -188,6 +188,7 @@ export function Timeline() {
                   }}
                 >
                   {index + 1} · {item.name}
+                  {item.transition.type === 'crossfade' ? ' ◐' : ''}
                 </button>
               ))}
             </div>

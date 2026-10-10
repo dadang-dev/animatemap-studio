@@ -47,7 +47,7 @@ export function RenderView() {
         )
           throw new Error('Frame index outside project');
         const state = evaluateProjectAt(p, index / p.canvas.fps);
-        r.apply(p, state.camera, state.layers);
+        r.apply(p, state.camera, state.layers, true, state.blend);
         await r.ready();
         return state;
       },
@@ -74,6 +74,7 @@ export function RenderView() {
           project={project}
           camera={state.camera}
           layers={state.layers}
+          blend={state.blend}
           onError={(error) => {
             rejectLoad.current?.(error);
             rejectLoad.current = null;

@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { Camera, Layer, Project } from '@animatemap/project-schema';
-import { wrap } from '@animatemap/animation-core';
+import { wrap, type SceneBlend } from '@animatemap/animation-core';
 export type Countries = FeatureCollection<
   Polygon | MultiPolygon,
   { code: string; name: string; labelLng: number; labelLat: number }
@@ -71,6 +71,9 @@ export class MapRenderer {
   private layers: Layer[] = [];
   private error?: string;
   private destroyed = false;
+  private blend?: SceneBlend;
+  private outgoing?: MapRenderer;
+  private outgoingHost?: HTMLDivElement;
   constructor(
     container: HTMLElement,
     readonly countries: Countries,
@@ -139,6 +142,7 @@ export class MapRenderer {
     });
   }
   async ready(timeoutMs = 15000) {
+    if (this.destroyed) throw new Error('Renderer disposed');
     if (this.error) throw new Error(this.error);
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
@@ -159,6 +163,7 @@ export class MapRenderer {
     const start = performance.now();
     await new Promise<void>((resolve, reject) => {
       const check = () => {
+        if (this.destroyed) return reject(new Error('Renderer disposed'));
         if (this.error) return reject(new Error(this.error));
         if (this.map.loaded() && this.map.areTilesLoaded()) return resolve();
         if (performance.now() - start > timeoutMs)
@@ -170,11 +175,27 @@ export class MapRenderer {
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
     );
+    if (this.outgoing && this.blend && this.project) {
+      await this.outgoing.ready(timeoutMs);
+      this.outgoing.apply(
+        this.project,
+        this.blend.outgoing.camera,
+        this.blend.outgoing.layers,
+      );
+      await this.outgoing.ready(timeoutMs);
+    }
   }
-  apply(project: Project, camera: Camera, layers: Layer[], jump = true) {
+  apply(
+    project: Project,
+    camera: Camera,
+    layers: Layer[],
+    jump = true,
+    blend?: SceneBlend,
+  ) {
     if (this.error) throw new Error(this.error);
     this.project = project;
     this.layers = layers;
+    this.blend = blend;
     if (!this.map.getLayer('countries-fill')) return;
     const p = palettes[project.map.styleId];
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
@@ -332,6 +353,72 @@ export class MapRenderer {
             this.map.moveLayer(`ams-${layer.id}-${suffix}`);
     }
     this.drawOverlays();
+    this.applyBlend();
+  }
+  private applyBlend() {
+    if (!this.blend || !this.project) {
+      this.outgoing?.destroy();
+      this.outgoing = undefined;
+      this.outgoingHost?.remove();
+      this.outgoingHost = undefined;
+      return;
+    }
+    if (!this.outgoing) {
+      const host = document.createElement('div');
+      host.dataset.crossfade = 'outgoing';
+      host.inert = true;
+      Object.assign(host.style, {
+        position: 'absolute',
+        inset: '0',
+        pointerEvents: 'none',
+      });
+      this.map.getContainer().append(host);
+      this.outgoingHost = host;
+      this.outgoing = new MapRenderer(
+        host,
+        this.countries,
+        this.blend.outgoing.camera,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        (error) => {
+          this.error = error.message;
+          this.onFailure?.(error);
+        },
+      );
+      // Newly created sources must receive their state after style readiness.
+      const outgoing = this.outgoing;
+      void outgoing
+        .ready()
+        .then(() => {
+          if (
+            !this.destroyed &&
+            this.blend &&
+            this.project &&
+            this.outgoing === outgoing
+          )
+            outgoing.apply(
+              this.project,
+              this.blend.outgoing.camera,
+              this.blend.outgoing.layers,
+            );
+        })
+        .catch((error: unknown) => {
+          if (!this.destroyed && this.outgoing === outgoing) {
+            this.error =
+              error instanceof Error ? error.message : 'Crossfade map failed';
+            this.onFailure?.(new Error(this.error));
+          }
+        });
+    }
+    this.outgoingHost!.style.opacity = `${1 - this.blend.incomingWeight}`;
+    this.outgoing.map.resize();
+    this.outgoing.apply(
+      this.project,
+      this.blend.outgoing.camera,
+      this.blend.outgoing.layers,
+    );
   }
   private drawOverlays() {
     if (!this.project) return;
@@ -478,6 +565,8 @@ export class MapRenderer {
   }
   destroy() {
     this.destroyed = true;
+    this.outgoing?.destroy();
+    this.outgoingHost?.remove();
     this.overlays.remove();
     this.map.remove();
   }

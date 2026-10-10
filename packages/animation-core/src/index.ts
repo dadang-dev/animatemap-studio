@@ -95,11 +95,18 @@ export function trimRoute(
     output.length === 1 ? [output[0]!, output[0]!] : output,
   );
 }
+export type SceneRenderState = {
+  sceneId: string;
+  camera: Camera;
+  layers: Layer[];
+};
+export type SceneBlend = { incomingWeight: number; outgoing: SceneRenderState };
 export type RenderState = {
   time: number;
   sceneId: string | null;
   camera: Camera;
   layers: Layer[];
+  blend?: SceneBlend;
 };
 export function evaluateProjectAt(
   project: Project,
@@ -117,7 +124,35 @@ export function evaluateProjectAt(
   const fallback = project.scenes[0]!.camera.keyframes[0]!.value;
   if (!scene)
     return { time, sceneId: null, camera: { ...fallback }, layers: [] };
+  const state = evaluateSceneAt(project, scene, time);
   const local = time - scene.startSeconds;
+  const previous = project.scenes[project.scenes.indexOf(scene) - 1];
+  if (
+    previous &&
+    scene.transition.type === 'crossfade' &&
+    local < scene.transition.durationSeconds
+  ) {
+    const finalVisibleTime =
+      previous.startSeconds +
+      Math.max(0, previous.durationSeconds - 1 / project.canvas.fps);
+    return {
+      time,
+      ...state,
+      blend: {
+        incomingWeight: clamp(local / scene.transition.durationSeconds, 0, 1),
+        outgoing: evaluateSceneAt(project, previous, finalVisibleTime),
+      },
+    };
+  }
+  return { time, ...state };
+}
+function evaluateSceneAt(
+  project: Project,
+  scene: Project['scenes'][number],
+  time: number,
+): SceneRenderState {
+  const local = time - scene.startSeconds;
+  const fallback = project.scenes[0]!.camera.keyframes[0]!.value;
   const camera = sample(
     scene.camera.keyframes,
     local,
@@ -142,5 +177,5 @@ export function evaluateProjectAt(
       );
     return result;
   });
-  return { time, sceneId: scene.id, camera: { ...camera }, layers };
+  return { sceneId: scene.id, camera: { ...camera }, layers };
 }
