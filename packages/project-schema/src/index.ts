@@ -80,7 +80,7 @@ const common = {
     })
     .default({ opacity: [], reveal: [] }),
 };
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV1Schema = z.discriminatedUnion('type', [
   z.object({
     ...common,
     type: z.literal('countryHighlight'),
@@ -130,7 +130,6 @@ export const layerSchema = z.discriminatedUnion('type', [
     }),
   }),
 ]);
-export type Layer = z.infer<typeof layerSchema>;
 const projectV1Base = z.object({
   schemaVersion: z.literal(1),
   id,
@@ -159,7 +158,7 @@ const projectV1Base = z.object({
         startSeconds: finite.min(0),
         durationSeconds: finite.min(0.01),
         camera: z.object({ keyframes: cameraTrackSchema }),
-        layers: z.array(layerSchema).max(100),
+        layers: z.array(layerV1Schema).max(100),
       }),
     )
     .min(1)
@@ -193,8 +192,8 @@ function validateTiming(
       ids.add(layer.id);
       if (layer.timeRange.end > scene.durationSeconds)
         issue('Layer exceeds scene duration', ['layers', l, 'timeRange']);
-      for (const property of ['opacity', 'reveal'] as const)
-        layer.tracks[property].forEach((k, i) => {
+      for (const [property, keys] of Object.entries(layer.tracks))
+        keys.forEach((k, i) => {
           if (k.time > scene.durationSeconds)
             issue('Keyframe exceeds scene duration', [
               'layers',
@@ -218,32 +217,114 @@ export const transitionSchema = z.discriminatedUnion('type', [
 const sceneV2Schema = projectV1Base.shape.scenes.element.extend({
   transition: transitionSchema.default({ type: 'cut' }),
 });
-export const CURRENT_SCHEMA_VERSION = 2;
+const projectV2Base = z.object({
+  ...projectV1Base.shape,
+  schemaVersion: z.literal(2),
+  scenes: z.array(sceneV2Schema).min(1).max(20),
+});
+function validateTransitions(
+  project: Pick<z.infer<typeof projectV2Base>, 'scenes'>,
+  ctx: z.RefinementCtx,
+) {
+  project.scenes.forEach((scene, index) => {
+    if (scene.transition.type !== 'crossfade') return;
+    const previous = project.scenes[index - 1];
+    if (
+      !previous ||
+      Math.abs(
+        previous.startSeconds + previous.durationSeconds - scene.startSeconds,
+      ) > 1e-8 ||
+      scene.transition.durationSeconds > scene.durationSeconds
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Crossfade requires an adjacent previous scene and cannot exceed scene duration',
+        path: ['scenes', index, 'transition'],
+      });
+  });
+}
+export const projectV2Schema = projectV2Base
+  .superRefine(validateTiming)
+  .superRefine(validateTransitions);
+export const scalarProperties = [
+  'opacity',
+  'reveal',
+  'scale',
+  'rotation',
+  'offsetX',
+  'offsetY',
+] as const;
+export type ScalarProperty = (typeof scalarProperties)[number];
+export const scalarLimits: Record<ScalarProperty, readonly [number, number]> = {
+  opacity: [0, 1],
+  reveal: [0, 1],
+  scale: [0.01, 10],
+  rotation: [-360, 360],
+  offsetX: [-4000, 4000],
+  offsetY: [-4000, 4000],
+};
+const tracksV3Schema = z
+  .object({
+    opacity: scalarTrack.default([]),
+    reveal: scalarTrack.default([]),
+    scale: track(finite.min(0.01).max(10)).default([]),
+    rotation: track(finite.min(-360).max(360)).default([]),
+    offsetX: track(finite.min(-4000).max(4000)).default([]),
+    offsetY: track(finite.min(-4000).max(4000)).default([]),
+  })
+  .default({
+    opacity: [],
+    reveal: [],
+    scale: [],
+    rotation: [],
+    offsetX: [],
+    offsetY: [],
+  });
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV1Schema.options[0].extend({ tracks: tracksV3Schema }),
+  layerV1Schema.options[1].extend({ tracks: tracksV3Schema }),
+  layerV1Schema.options[2].extend({ tracks: tracksV3Schema }),
+  layerV1Schema.options[3].extend({ tracks: tracksV3Schema }),
+]);
+export type Layer = z.infer<typeof layerSchema>;
+export function propertiesForLayer(layer: Layer): ScalarProperty[] {
+  return layer.type === 'marker' || layer.type === 'text'
+    ? ['opacity', 'scale', 'rotation', 'offsetX', 'offsetY']
+    : layer.type === 'route'
+      ? ['opacity', 'reveal']
+      : ['opacity'];
+}
+export const CURRENT_SCHEMA_VERSION = 3;
 export const projectSchema = z
   .object({
-    ...projectV1Base.shape,
+    ...projectV2Base.shape,
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
-    scenes: z.array(sceneV2Schema).min(1).max(20),
+    scenes: z
+      .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+      .min(1)
+      .max(20),
   })
   .superRefine(validateTiming)
+  .superRefine(validateTransitions)
   .superRefine((project, ctx) => {
-    project.scenes.forEach((scene, index) => {
-      if (scene.transition.type !== 'crossfade') return;
-      const previous = project.scenes[index - 1];
-      if (
-        !previous ||
-        Math.abs(
-          previous.startSeconds + previous.durationSeconds - scene.startSeconds,
-        ) > 1e-8 ||
-        scene.transition.durationSeconds > scene.durationSeconds
-      )
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'Crossfade requires an adjacent previous scene and cannot exceed scene duration',
-          path: ['scenes', index, 'transition'],
-        });
-    });
+    project.scenes.forEach((scene, s) =>
+      scene.layers.forEach((layer, l) => {
+        if (layer.type === 'marker' || layer.type === 'text') return;
+        for (const property of [
+          'scale',
+          'rotation',
+          'offsetX',
+          'offsetY',
+        ] as const)
+          if (layer.tracks[property].length)
+            ctx.addIssue({
+              code: 'custom',
+              message: 'Transform tracks require a marker or text overlay',
+              path: ['scenes', s, 'layers', l, 'tracks', property],
+            });
+      }),
+    );
   });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
@@ -253,16 +334,18 @@ export function migrateProject(input: unknown): Project {
     input &&
     typeof input === 'object' &&
     'schemaVersion' in input &&
-    input.schemaVersion === 1
+    (input.schemaVersion === 1 || input.schemaVersion === 2)
   ) {
-    const legacy = projectV1Schema.parse(input);
+    const legacy =
+      input.schemaVersion === 1
+        ? projectV2Schema.parse({
+            ...projectV1Schema.parse(input),
+            schemaVersion: 2,
+          })
+        : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,
-      scenes: legacy.scenes.map((scene) => ({
-        ...scene,
-        transition: { type: 'cut' },
-      })),
     });
   }
   return projectSchema.parse(input);

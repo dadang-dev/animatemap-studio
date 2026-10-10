@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useEditor } from './store';
 import { evaluateProjectAt } from '@animatemap/animation-core';
-import type { Easing, Project } from '@animatemap/project-schema';
+import {
+  propertiesForLayer,
+  scalarLimits,
+  type ScalarProperty,
+  type Easing,
+  type Project,
+} from '@animatemap/project-schema';
 export function Timeline() {
   const s = useEditor();
   const [zoom, setZoom] = useState(1);
@@ -27,9 +33,7 @@ export function Timeline() {
   }, []);
   const [snap, setSnap] = useState(true);
   const [height, setHeight] = useState(270);
-  const [property, setProperty] = useState<'camera' | 'opacity' | 'reveal'>(
-    'camera',
-  );
+  const [property, setProperty] = useState<'camera' | ScalarProperty>('camera');
   const [keyTime, setKeyTime] = useState<number | null>(null);
   const [keyScope, setKeyScope] = useState('');
   const scene =
@@ -45,11 +49,15 @@ export function Timeline() {
   const key =
     scope === keyScope ? keys.find((k) => k.time === keyTime) : undefined;
   useEffect(() => {
-    if (property === 'reveal' && layer?.type !== 'route') {
+    if (
+      property !== 'camera' &&
+      layer &&
+      !propertiesForLayer(layer).includes(property)
+    ) {
       setProperty('opacity');
       setKeyTime(null);
     }
-  }, [property, layer?.type]);
+  }, [property, layer]);
   function seekKey(time: number) {
     const end = scene.startSeconds + scene.durationSeconds;
     const global = time + scene.startSeconds;
@@ -95,7 +103,18 @@ export function Timeline() {
       if (!keys.some((k) => k.time === time)) {
         (
           keys as Project['scenes'][number]['layers'][number]['tracks']['opacity']
-        ).push({ time, value: 1, easing: 'linear' });
+        ).push({
+          time,
+          value:
+            property === 'camera' ||
+            property === 'opacity' ||
+            property === 'reveal'
+              ? 1
+              : evaluateProjectAt(s.project, s.time).layers.find(
+                  (item) => item.id === layer.id,
+                )!.transform[property],
+          easing: 'linear',
+        });
         keys.sort((a, b) => a.time - b.time);
       }
     });
@@ -246,7 +265,7 @@ export function Timeline() {
                 >
                   {l.type}
                 </div>
-                {(['opacity', 'reveal'] as const).flatMap((prop) =>
+                {propertiesForLayer(l).flatMap((prop) =>
                   l.tracks[prop].map((k) => (
                     <button
                       key={`${prop}-${k.time}`}
@@ -281,9 +300,12 @@ export function Timeline() {
           }}
         >
           <option value="camera">Camera</option>
-          <option value="opacity">Layer opacity</option>
-          {layer?.type === 'route' && (
-            <option value="reveal">Route reveal</option>
+          {(layer ? propertiesForLayer(layer) : (['opacity'] as const)).map(
+            (prop) => (
+              <option key={prop} value={prop}>
+                {prop === 'reveal' ? 'Route reveal' : `Layer ${prop}`}
+              </option>
+            ),
           )}
         </select>
         <button
@@ -308,8 +330,8 @@ export function Timeline() {
               <input
                 aria-label="Keyframe value"
                 type="number"
-                min="0"
-                max="1"
+                min={property === 'camera' ? 0 : scalarLimits[property][0]}
+                max={property === 'camera' ? 1 : scalarLimits[property][1]}
                 step="0.1"
                 value={key.value}
                 onChange={(e) =>

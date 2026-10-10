@@ -1,8 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from 'vitest';
-import { createDemo, migrateProject, projectV1Schema } from './index';
+import {
+  createDemo,
+  migrateProject,
+  projectV1Schema,
+  projectV2Schema,
+} from './index';
 
-test('real v1 fixtures migrate to v2 with cuts and unchanged content', async () => {
+test('real v1 fixtures migrate to v3 with cuts and unchanged content', async () => {
   for (const name of ['travel-vietnam', 'southeast-asia-highlight']) {
     const input = JSON.parse(
       await readFile(
@@ -13,7 +18,7 @@ test('real v1 fixtures migrate to v2 with cuts and unchanged content', async () 
     const original = JSON.stringify(input);
     const legacy = projectV1Schema.parse(input);
     const migrated = migrateProject(input);
-    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.schemaVersion).toBe(3);
     expect(
       migrated.scenes.every((scene) => scene.transition.type === 'cut'),
     ).toBe(true);
@@ -43,5 +48,28 @@ test('crossfade rejects first scene, gaps, oversized durations, and future schem
   input.durationSeconds = 24;
   second.transition = { type: 'crossfade', durationSeconds: 13 };
   expect(() => migrateProject(input)).toThrow();
-  expect(() => migrateProject({ ...createDemo(), schemaVersion: 3 })).toThrow();
+  expect(() => migrateProject({ ...createDemo(), schemaVersion: 4 })).toThrow();
+});
+
+test('v2 migration preserves crossfade and base transforms while adding empty scalar tracks', () => {
+  const input = createDemo();
+  const second = structuredClone(input.scenes[0]!);
+  second.id = 'second';
+  second.startSeconds = 12;
+  second.transition = { type: 'crossfade', durationSeconds: 1 };
+  second.layers.forEach((layer) => {
+    layer.id = `second-${layer.id}`;
+    layer.transform = { scale: 2, rotation: 30, offsetX: 40, offsetY: -60 };
+  });
+  input.scenes.push(second);
+  input.durationSeconds = 24;
+  const legacy = projectV2Schema.parse({ ...input, schemaVersion: 2 });
+  const before = JSON.stringify(legacy);
+  const migrated = migrateProject(legacy);
+  expect(migrated.schemaVersion).toBe(3);
+  expect(projectV2Schema.parse({ ...migrated, schemaVersion: 2 })).toEqual(
+    legacy,
+  );
+  expect(migrated.scenes[1]!.layers[0]!.tracks.scale).toEqual([]);
+  expect(JSON.stringify(legacy)).toBe(before);
 });

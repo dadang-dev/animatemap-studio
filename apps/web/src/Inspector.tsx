@@ -2,6 +2,7 @@ import { useEditor } from './store';
 import type { Camera } from '@animatemap/project-schema';
 import { cameraSchema } from '@animatemap/project-schema';
 import { CameraPresets } from './CameraPresets';
+import { AnimationStyles } from './AnimationStyles';
 export function NumberField({
   label,
   value,
@@ -408,44 +409,47 @@ export function Inspector({ country }: { country: string }) {
               </label>
             </>
           )}
-          <div className="camera-grid">
-            <NumberField
-              label="Scale"
-              value={layer.transform.scale}
-              onChange={(v) =>
-                patch((l) => {
-                  l.transform.scale = v;
-                })
-              }
-            />
-            <NumberField
-              label="Rotation"
-              value={layer.transform.rotation}
-              onChange={(v) =>
-                patch((l) => {
-                  l.transform.rotation = v;
-                })
-              }
-            />
-            <NumberField
-              label="Offset X"
-              value={layer.transform.offsetX}
-              onChange={(v) =>
-                patch((l) => {
-                  l.transform.offsetX = v;
-                })
-              }
-            />
-            <NumberField
-              label="Offset Y"
-              value={layer.transform.offsetY}
-              onChange={(v) =>
-                patch((l) => {
-                  l.transform.offsetY = v;
-                })
-              }
-            />
-          </div>
+          {(layer.type === 'marker' || layer.type === 'text') && (
+            <div className="camera-grid">
+              <NumberField
+                label="Scale"
+                value={layer.transform.scale}
+                onChange={(v) =>
+                  patch((l) => {
+                    l.transform.scale = v;
+                  })
+                }
+              />
+              <NumberField
+                label="Rotation"
+                value={layer.transform.rotation}
+                onChange={(v) =>
+                  patch((l) => {
+                    l.transform.rotation = v;
+                  })
+                }
+              />
+              <NumberField
+                label="Offset X"
+                value={layer.transform.offsetX}
+                onChange={(v) =>
+                  patch((l) => {
+                    l.transform.offsetX = v;
+                  })
+                }
+              />
+              <NumberField
+                label="Offset Y"
+                value={layer.transform.offsetY}
+                onChange={(v) =>
+                  patch((l) => {
+                    l.transform.offsetY = v;
+                  })
+                }
+              />
+            </div>
+          )}
+          <AnimationStyles layer={layer} />
         </fieldset>
       )}
       <label className="field">

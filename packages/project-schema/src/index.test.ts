@@ -11,7 +11,7 @@ describe('Project boundaries', () => {
     },
   );
   test('rejects future versions, invalid coordinates, duplicate IDs, out-of-scene and unordered keys', () => {
-    const future = { ...createDemo(), schemaVersion: 3 };
+    const future = { ...createDemo(), schemaVersion: 4 };
     expect(projectSchema.safeParse(future).success).toBe(false);
     const p = createDemo();
     p.scenes[0]!.camera.keyframes[0]!.value.lng = 181;

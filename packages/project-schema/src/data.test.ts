@@ -27,5 +27,5 @@ test('bundled data checksum and example contracts match provenance', async () =>
           await readFile(new URL(`examples/${file}.json`, root), 'utf8'),
         ),
       ).schemaVersion,
-    ).toBe(2);
+    ).toBe(3);
 });

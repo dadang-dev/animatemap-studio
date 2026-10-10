@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { dirname, join } from 'node:path';
 import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
+import { CURRENT_SCHEMA_VERSION } from '@animatemap/project-schema';
 export function createApp(directory = resolve('.local/projects')) {
   const app = Fastify({ bodyLimit: 5 * 1024 * 1024 });
   app.addHook('onRequest', async (request, reply) => {
@@ -21,7 +22,10 @@ export function createApp(directory = resolve('.local/projects')) {
       return reply.code(403).send({ error: 'Untrusted origin' });
     reply.header('X-Content-Type-Options', 'nosniff');
   });
-  app.get('/api/health', async () => ({ status: 'ok', schemaVersion: 2 }));
+  app.get('/api/health', async () => ({
+    status: 'ok',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+  }));
   const repository = new JsonRepository(directory);
   const jobs = new JobQueue(join(dirname(directory), 'renders'));
   app.addHook('onClose', async () => {

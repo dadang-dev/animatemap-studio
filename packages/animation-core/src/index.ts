@@ -1,5 +1,10 @@
 import { distance, bearing, destination } from '@turf/turf';
 export {
+  animationStylesFor,
+  createAnimationStyle,
+  type AnimationStyleKind,
+} from './animationStyles';
+export {
   createCameraPreset,
   cameraPresetKinds,
   type CameraPresetKind,
@@ -169,6 +174,16 @@ function evaluateSceneAt(
       ...layer,
       visible: active,
       opacity: layer.opacity * scalarAt(layer.tracks.opacity, local, 1),
+      transform: {
+        scale: scalarAt(layer.tracks.scale, local, layer.transform.scale),
+        rotation: scalarAt(
+          layer.tracks.rotation,
+          local,
+          layer.transform.rotation,
+        ),
+        offsetX: scalarAt(layer.tracks.offsetX, local, layer.transform.offsetX),
+        offsetY: scalarAt(layer.tracks.offsetY, local, layer.transform.offsetY),
+      },
     };
     if (result.type === 'route')
       result.coordinates = trimRoute(

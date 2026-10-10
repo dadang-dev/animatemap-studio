@@ -20,6 +20,8 @@ The Scenes panel adds blank scenes, duplicates complete scenes with independent 
 
 Project → Template library provides travel, country highlight, portrait and two-scene starter projects. Search, save the current project as a local template, or delete a saved template. New instances have independent identifiers and support Undo back to the previous project. The library stores at most 30 templates/10 MB on this device, using atomic IndexedDB transactions. Inspector camera presets generate editable orbit, sweep, zoom bounce and fly-to keyframes for the current scene. Presets replace camera keys in one undoable operation and use the same evaluator during export.
 
+Inspector animation styles create fade in/out keys for all layers, draw keys for routes, and pop/slide keys for marker/text overlays. Timeline exposes opacity, reveal and supported scale/rotation/offset properties. Transform keys are absolute values in project pixels; opacity keys multiply base opacity. Presets replace only their affected tracks and respect layer time ranges, history and locking. Schema v3 adds empty transform tracks when migrating v1/v2 projects.
+
 Export → MP4 or current-frame PNG → Start export. Progress, cancellation, retry and download are real worker operations. H.264 uses even dimensions, yuv420p, and fixed timestamps; source attribution remains in output. For CLI use:
 
 ```sh

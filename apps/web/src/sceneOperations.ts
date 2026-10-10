@@ -1,5 +1,9 @@
 import { evaluateProjectAt } from '@animatemap/animation-core';
-import type { Camera, Project } from '@animatemap/project-schema';
+import {
+  scalarProperties,
+  type Camera,
+  type Project,
+} from '@animatemap/project-schema';
 
 export type Scene = Project['scenes'][number];
 export type SceneOperation =
@@ -104,12 +108,10 @@ export function applySceneOperation(
         layer.timeRange.end === oldDuration
           ? duration
           : Math.min(layer.timeRange.end, duration);
-      layer.tracks.opacity = layer.tracks.opacity.filter(
-        (key) => key.time <= duration,
-      );
-      layer.tracks.reveal = layer.tracks.reveal.filter(
-        (key) => key.time <= duration,
-      );
+      for (const property of scalarProperties)
+        layer.tracks[property] = layer.tracks[property].filter(
+          (key) => key.time <= duration,
+        );
     }
   }
   reflow(project);
