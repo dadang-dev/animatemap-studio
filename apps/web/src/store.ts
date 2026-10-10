@@ -35,7 +35,7 @@ interface EditorState {
   redo: () => void;
   patchLayer: (change: (layer: Layer) => void) => void;
   addLayer: (
-    type: Layer['type'],
+    type: Exclude<Layer['type'], 'image'>,
     point?: [number, number],
     code?: string,
   ) => void;

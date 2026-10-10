@@ -1,0 +1,21 @@
+{
+  "retrieved": "2026-10-10",
+  "assets": [
+    {
+      "file": "vnm.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg",
+      "licensePage": "https://commons.wikimedia.org/w/index.php?title=File:Flag_of_Vietnam.svg&oldid=1254205846",
+      "license": "Public domain (PD-common property; no original authorship)",
+      "author": "Wikimedia Commons file contributors; see retained source history",
+      "sha256": "175120e06bb95dda22133758395f352acb46433ff81eee449326db54e78af2c4"
+    },
+    {
+      "file": "tha.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Flag_of_Thailand.svg",
+      "licensePage": "https://commons.wikimedia.org/w/index.php?title=File:Flag_of_Thailand.svg&oldid=1278665795",
+      "license": "Public domain (PD-simple geometry / PD-common property)",
+      "author": "Zscout370 / Wikimedia Commons file contributors",
+      "sha256": "f137bb494e00c3c29e9d03fbf4d15c2650d82f2a8f02cf51341f6a4557117db9"
+    }
+  ]
+}

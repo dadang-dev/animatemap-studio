@@ -4,6 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { Camera, Project } from '@animatemap/project-schema';
+import { ImageResources } from './images';
 import {
   wrap,
   type RenderLayer,
@@ -18,6 +19,30 @@ export const palettes = {
   light: { ocean: '#dae8ee', land: '#f5f2e9', border: '#b3c1bd' },
   muted: { ocean: '#24262e', land: '#44434b', border: '#6f6c76' },
 };
+async function resourceReady<T>(
+  operation: Promise<T>,
+  label: string,
+  timeoutMs: number,
+) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`${label} resources timed out`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } catch (error) {
+    throw new Error(
+      `${label} resources failed: ${error instanceof Error ? error.message : 'unknown resource error'}`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
 export function makeStyle(
   style: Project['map']['styleId'],
   countries: Countries,
@@ -78,6 +103,23 @@ export class MapRenderer {
   private blend?: SceneBlend;
   private outgoing?: MapRenderer;
   private outgoingHost?: HTMLDivElement;
+  private images = new ImageResources(
+    () => {
+      if (!this.destroyed && this.project && !this.error)
+        this.apply(
+          this.project,
+          readCamera(this.map, this.project.canvas.width),
+          this.layers,
+          false,
+          this.blend,
+        );
+    },
+    (error) => {
+      this.error = error.message;
+      this.onFailure?.(error);
+    },
+  );
+  private patternImages = new Map<string, { dataUrl: string; ratio: number }>();
   constructor(
     container: HTMLElement,
     readonly countries: Countries,
@@ -148,6 +190,31 @@ export class MapRenderer {
   async ready(timeoutMs = 15000) {
     if (this.destroyed) throw new Error('Renderer disposed');
     if (this.error) throw new Error(this.error);
+    await resourceReady(this.images.ready(), 'Image', timeoutMs);
+    // Cloned image elements must also finish decoding before a screenshot.
+    await resourceReady(
+      Promise.all(
+        Array.from(this.overlays.querySelectorAll('img')).map((image) =>
+          image.decode(),
+        ),
+      ),
+      'Image overlay',
+      timeoutMs,
+    );
+    await resourceReady(
+      Promise.all(
+        [400, 700].map(async (weight) => {
+          const faces = await document.fonts.load(
+            `${weight} 16px "Noto Sans"`,
+            'AnimateMap Việt Nam',
+          );
+          if (!faces.length || faces.some((face) => face.status !== 'loaded'))
+            throw new Error(`Noto Sans ${weight} font resources unavailable`);
+        }),
+      ),
+      'Font',
+      timeoutMs,
+    );
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
         () => reject(new Error('Font resources timed out')),
@@ -201,6 +268,54 @@ export class MapRenderer {
     this.layers = layers;
     this.blend = blend;
     if (!this.map.getLayer('countries-fill')) return;
+    const references = new Set(
+      layers.flatMap((layer) => {
+        if (!layer.visible || layer.opacity === 0) return [];
+        return layer.type === 'image'
+          ? [layer.assetId]
+          : layer.type === 'countryHighlight' && layer.textureAssetId
+            ? [layer.textureAssetId]
+            : [];
+      }),
+    );
+    this.images.use(project.assets.filter((asset) => references.has(asset.id)));
+    const ratio = project.canvas.width / this.map.getContainer().clientWidth;
+    for (const [id, applied] of this.patternImages) {
+      const asset = project.assets.find((asset) => asset.id === id);
+      if (
+        !references.has(id) ||
+        applied.ratio !== ratio ||
+        applied.dataUrl !== asset?.dataUrl
+      ) {
+        for (const layerId of this.layerIds)
+          if (this.map.getLayer(`ams-${layerId}-fill`))
+            this.map.setPaintProperty(
+              `ams-${layerId}-fill`,
+              'fill-pattern',
+              undefined,
+            );
+        this.map.removeImage(`ams-image-${id}`);
+        this.patternImages.delete(id);
+      }
+    }
+    for (const layer of layers) {
+      if (
+        layer.type !== 'countryHighlight' ||
+        !layer.textureAssetId ||
+        !references.has(layer.textureAssetId)
+      )
+        continue;
+      const asset = project.assets.find(
+        (asset) => asset.id === layer.textureAssetId,
+      )!;
+      const image = this.images.get(asset.id);
+      if (image && !this.patternImages.has(asset.id)) {
+        this.map.addImage(`ams-image-${asset.id}`, image, {
+          pixelRatio: ratio,
+        });
+        this.patternImages.set(asset.id, { dataUrl: asset.dataUrl, ratio });
+      }
+    }
     const p = palettes[project.map.styleId];
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
     this.map.setPaintProperty('countries-fill', 'fill-color', p.land);
@@ -292,6 +407,13 @@ export class MapRenderer {
           `ams-${layer.id}-fill`,
           'fill-opacity',
           opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-pattern',
+          layer.textureAssetId && this.patternImages.has(layer.textureAssetId)
+            ? `ams-image-${layer.textureAssetId}`
+            : undefined,
         );
         this.map.setPaintProperty(
           `ams-${layer.id}-line`,
@@ -478,7 +600,9 @@ export class MapRenderer {
       if (
         !layer.visible ||
         layer.opacity === 0 ||
-        (layer.type !== 'text' && layer.type !== 'marker')
+        (layer.type !== 'text' &&
+          layer.type !== 'marker' &&
+          layer.type !== 'image')
       )
         continue;
       const el = document.createElement('div');
@@ -516,7 +640,7 @@ export class MapRenderer {
         left: `${x}px`,
         top: `${y}px`,
         opacity: `${layer.opacity}`,
-        color: layer.style.color,
+        color: layer.type === 'image' ? undefined : layer.style.color,
         transform: `translate(${layer.transform.offsetX * scale}px, ${layer.transform.offsetY * scale}px) rotate(${layer.transform.rotation}deg) scale(${layer.transform.scale})`,
         whiteSpace: 'pre-wrap',
       });
@@ -529,6 +653,19 @@ export class MapRenderer {
           lineHeight: '1.25',
           textShadow: `0 ${2 * scale}px ${8 * scale}px #0008`,
         });
+      } else if (layer.type === 'image') {
+        const decoded = this.images.get(layer.assetId);
+        if (!decoded) continue;
+        const image = decoded.cloneNode() as HTMLImageElement;
+        image.alt = layer.name;
+        image.draggable = false;
+        Object.assign(image.style, {
+          width: `${layer.style.width * scale}px`,
+          height: `${layer.style.height * scale}px`,
+          objectFit: layer.style.fit,
+          display: 'block',
+        });
+        el.append(image);
       } else {
         const pin = document.createElementNS(
           'http://www.w3.org/2000/svg',
@@ -581,12 +718,28 @@ export class MapRenderer {
     }
     const credit = document.createElement('div');
     credit.className = 'map-credit';
-    credit.textContent = 'Natural Earth · Public domain';
+    const credits = new Set<string>();
+    for (const layer of this.layers) {
+      if (!layer.visible || layer.opacity === 0) continue;
+      const reference =
+        layer.type === 'image'
+          ? layer.assetId
+          : layer.type === 'countryHighlight'
+            ? layer.textureAssetId
+            : undefined;
+      const asset = this.project.assets.find((asset) => asset.id === reference);
+      if (asset) credits.add(asset.provenance.credit);
+    }
+    credit.textContent = ['Natural Earth · Public domain', ...credits].join(
+      ' · ',
+    );
+    credit.style.maxWidth = '90%';
     credit.style.fontSize = `${16 * scale}px`;
     this.overlays.append(credit);
   }
   destroy() {
     this.destroyed = true;
+    this.images.dispose();
     this.outgoing?.destroy();
     this.outgoingHost?.remove();
     this.overlays.remove();

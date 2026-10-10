@@ -4,6 +4,6 @@ test('health endpoint returns the schema contract', async () => {
   const app = createApp();
   const result = await app.inject({ method: 'GET', url: '/api/health' });
   expect(result.statusCode).toBe(200);
-  expect(result.json()).toEqual({ status: 'ok', schemaVersion: 5 });
+  expect(result.json()).toEqual({ status: 'ok', schemaVersion: 6 });
   await app.close();
 });

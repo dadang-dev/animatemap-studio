@@ -40,7 +40,7 @@ test('crossfade composes both real scenes, repeats seeks, cleans maps and restor
   page,
 }) => {
   const project = await build(page);
-  expect(project.schemaVersion).toBe(5);
+  expect(project.schemaVersion).toBe(6);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(
     page.getByLabel('Scene transition', { exact: true }),

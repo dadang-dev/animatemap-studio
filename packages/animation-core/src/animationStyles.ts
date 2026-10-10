@@ -21,7 +21,9 @@ export function animationStylesFor(layer: Layer): AnimationStyleKind[] {
     ...(layer.type === 'route' || layer.type === 'shape'
       ? ['draw' as const]
       : []),
-    ...(layer.type === 'marker' || layer.type === 'text'
+    ...(layer.type === 'marker' ||
+    layer.type === 'text' ||
+    layer.type === 'image'
       ? ['pop' as const, 'slideUp' as const]
       : []),
   ];

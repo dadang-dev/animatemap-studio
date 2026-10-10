@@ -60,22 +60,24 @@ export function Inspector({ country }: { country: string }) {
               }
             />
           </label>
-          <label className="field">
-            Color
-            <div className="color-field">
-              <input
-                aria-label="Layer color"
-                type="color"
-                value={layer.style.color}
-                onChange={(e) =>
-                  patch((l) => {
-                    l.style.color = e.target.value;
-                  })
-                }
-              />
-              <span>{layer.style.color.toUpperCase()}</span>
-            </div>
-          </label>
+          {layer.type !== 'image' && (
+            <label className="field">
+              Color
+              <div className="color-field">
+                <input
+                  aria-label="Layer color"
+                  type="color"
+                  value={layer.style.color}
+                  onChange={(e) =>
+                    patch((l) => {
+                      if (l.type !== 'image') l.style.color = e.target.value;
+                    })
+                  }
+                />
+                <span>{layer.style.color.toUpperCase()}</span>
+              </div>
+            </label>
+          )}
           <NumberField
             label="Opacity"
             value={layer.opacity}
@@ -109,6 +111,30 @@ export function Inspector({ country }: { country: string }) {
           </div>
           {layer.type === 'countryHighlight' && (
             <>
+              <label className="field">
+                Country texture
+                <select
+                  aria-label="Country texture"
+                  value={layer.textureAssetId ?? ''}
+                  onChange={(event) =>
+                    patch((target) => {
+                      if (target.type === 'countryHighlight')
+                        target.textureAssetId = event.target.value || undefined;
+                    })
+                  }
+                >
+                  <option value="">Solid color</option>
+                  {s.project.assets
+                    .filter(
+                      (asset) => asset.width <= 512 && asset.height <= 512,
+                    )
+                    .map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
               <label className="field">
                 Country codes
                 <input
@@ -314,21 +340,25 @@ export function Inspector({ country }: { country: string }) {
               </button>
             </>
           )}
-          {(layer.type === 'marker' || layer.type === 'text') && (
+          {(layer.type === 'marker' ||
+            layer.type === 'text' ||
+            layer.type === 'image') && (
             <>
-              <label className="field">
-                {layer.type === 'text' ? 'Text' : 'Marker label'}
-                <textarea
-                  aria-label={layer.type === 'text' ? 'Text' : 'Marker label'}
-                  value={layer.type === 'text' ? layer.text : layer.label}
-                  onChange={(e) =>
-                    patch((l) => {
-                      if (l.type === 'text') l.text = e.target.value;
-                      if (l.type === 'marker') l.label = e.target.value;
-                    })
-                  }
-                />
-              </label>
+              {layer.type !== 'image' && (
+                <label className="field">
+                  {layer.type === 'text' ? 'Text' : 'Marker label'}
+                  <textarea
+                    aria-label={layer.type === 'text' ? 'Text' : 'Marker label'}
+                    value={layer.type === 'text' ? layer.text : layer.label}
+                    onChange={(e) =>
+                      patch((l) => {
+                        if (l.type === 'text') l.text = e.target.value;
+                        if (l.type === 'marker') l.label = e.target.value;
+                      })
+                    }
+                  />
+                </label>
+              )}
               <label className="field">
                 Anchor
                 <select
@@ -336,7 +366,11 @@ export function Inspector({ country }: { country: string }) {
                   value={layer.anchor.type}
                   onChange={(e) =>
                     patch((l) => {
-                      if (l.type === 'text' || l.type === 'marker')
+                      if (
+                        l.type === 'text' ||
+                        l.type === 'marker' ||
+                        l.type === 'image'
+                      )
                         l.anchor =
                           e.target.value === 'screen'
                             ? { type: 'screen', x: 0.5, y: 0.5 }
@@ -365,7 +399,9 @@ export function Inspector({ country }: { country: string }) {
                       onChange={(v) =>
                         patch((l) => {
                           if (
-                            (l.type === 'marker' || l.type === 'text') &&
+                            (l.type === 'marker' ||
+                              l.type === 'text' ||
+                              l.type === 'image') &&
                             l.anchor.type === 'map'
                           )
                             l.anchor.coordinates[i] = v;
@@ -388,7 +424,9 @@ export function Inspector({ country }: { country: string }) {
                       onChange={(v) =>
                         patch((l) => {
                           if (
-                            (l.type === 'marker' || l.type === 'text') &&
+                            (l.type === 'marker' ||
+                              l.type === 'text' ||
+                              l.type === 'image') &&
                             l.anchor.type === 'screen'
                           )
                             l.anchor[key] = v;
@@ -398,6 +436,78 @@ export function Inspector({ country }: { country: string }) {
                   ))}
                 </div>
               )}
+            </>
+          )}
+          {layer.type === 'image' && (
+            <>
+              <label className="field">
+                Image asset
+                <select
+                  aria-label="Image asset"
+                  value={layer.assetId}
+                  onChange={(event) =>
+                    patch((target) => {
+                      if (target.type === 'image')
+                        target.assetId = event.target.value;
+                    })
+                  }
+                >
+                  {s.project.assets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <NumberField
+                label="Image width"
+                min={1}
+                max={3840}
+                value={layer.style.width}
+                onChange={(value) =>
+                  patch((target) => {
+                    if (target.type === 'image') target.style.width = value;
+                  })
+                }
+              />
+              <NumberField
+                label="Image height"
+                min={1}
+                max={3840}
+                value={layer.style.height}
+                onChange={(value) =>
+                  patch((target) => {
+                    if (target.type === 'image') target.style.height = value;
+                  })
+                }
+              />
+              <label className="field">
+                Image fit
+                <select
+                  aria-label="Image fit"
+                  value={layer.style.fit}
+                  onChange={(event) =>
+                    patch((target) => {
+                      if (target.type === 'image')
+                        target.style.fit = event.target.value as
+                          | 'contain'
+                          | 'cover';
+                    })
+                  }
+                >
+                  <option value="contain">
+                    Contain · preserve complete image
+                  </option>
+                  <option value="cover">Cover · crop to frame</option>
+                </select>
+              </label>
+              <p className="hint">
+                Top-left anchor. Width/height are project pixels.{' '}
+                {
+                  s.project.assets.find((asset) => asset.id === layer.assetId)
+                    ?.provenance.credit
+                }
+              </p>
             </>
           )}
           {layer.type === 'text' && (
@@ -481,7 +591,9 @@ export function Inspector({ country }: { country: string }) {
               </label>
             </>
           )}
-          {(layer.type === 'marker' || layer.type === 'text') && (
+          {(layer.type === 'marker' ||
+            layer.type === 'text' ||
+            layer.type === 'image') && (
             <div className="camera-grid">
               <NumberField
                 label="Scale"

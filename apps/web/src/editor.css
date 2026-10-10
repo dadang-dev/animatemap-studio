@@ -281,3 +281,15 @@ fieldset:disabled {
   margin-top: 20px;
   padding-top: 5px;
 }
+.asset-dialog fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.asset-preview {
+  width: 160px;
+  height: 100px;
+  object-fit: contain;
+  background: repeating-conic-gradient(#263542 0% 25%, #17232e 0% 50%) 0 / 16px
+    16px;
+}

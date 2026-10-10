@@ -22,6 +22,7 @@ import { ScenePanel } from './ScenePanel';
 import { Timeline } from './Timeline';
 import { ProjectMenu } from './ProjectMenu';
 import { ExportPanel } from './ExportPanel';
+import { AssetLibrary } from './AssetLibrary';
 import { api, useAutosave } from './persistence';
 declare global {
   interface Window {
@@ -61,6 +62,7 @@ export function App() {
   );
   const [country, setCountry] = useState('VNM');
   const [search, setSearch] = useState('');
+  const [assetsOpen, setAssetsOpen] = useState(false);
   const [leftWidth, setLeftWidth] = useState(240);
   const [rightWidth, setRightWidth] = useState(280);
   const renderer = useRef<MapRenderer | null>(null);
@@ -200,6 +202,13 @@ export function App() {
             Dismiss
           </button>
         </div>
+      )}
+      {assetsOpen && (
+        <AssetLibrary
+          sceneId={scene.id}
+          country={country}
+          onClose={() => setAssetsOpen(false)}
+        />
       )}
       <div
         className="workspace"
@@ -361,6 +370,9 @@ export function App() {
               </button>
             ))}
           </div>
+          <button onClick={() => setAssetsOpen(true)}>
+            Image assets / logo
+          </button>
           {s.tool !== 'select' && (
             <div className="tool-notice">
               {s.tool === 'route' || s.tool === 'shape'
@@ -417,7 +429,12 @@ export function App() {
                   onClick={() => useEditor.setState({ selected: l.id })}
                 >
                   <span>{l.name}</span>
-                  <i style={{ background: l.style.color }} />
+                  <i
+                    style={{
+                      background:
+                        l.type === 'image' ? '#a8b8cc' : l.style.color,
+                    }}
+                  />
                 </button>
                 <div className="layer-actions">
                   <button

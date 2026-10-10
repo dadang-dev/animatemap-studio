@@ -8,7 +8,7 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 - [x] 6D: animation styles, scalar overlay transform tracks, v1/v2 migration.
 - [x] 6E: real 4K/60 FPS, WebM and GIF export, format validation and frame parity.
 - [x] 6F: line/arrow/Bezier shapes and curve editing, geographic dateline tests.
-- [ ] 6G: image/logo overlays, licensed flag/texture assets, bounded local asset ingestion and readiness.
+- [x] 6G: image/logo overlays, licensed flag/texture assets, bounded local asset ingestion and readiness.
 - [ ] 6H: deterministic label collision policy shared by preview/export.
 - [ ] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
 - [ ] 6J: licensed Admin 1 boundaries and selection/highlighting.

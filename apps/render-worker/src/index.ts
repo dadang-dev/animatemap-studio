@@ -127,6 +127,11 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          assetSources: project.assets.map(({ id, name, provenance }) => ({
+            id,
+            name,
+            ...provenance,
+          })),
           format,
           pipeline: `Chromium fixed-frame → ${format === 'png' ? 'PNG' : `FFmpeg ${format}`}`,
         },

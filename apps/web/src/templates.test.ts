@@ -23,7 +23,9 @@ test('every bundled template validates, retains attribution and has isolated ins
     ];
     expect(ids(a).some((id) => ids(b).includes(id))).toBe(false);
     expect(a.map.attribution).toEqual(template.project.map.attribution);
-    a.scenes[0]!.layers[0]!.style.color = '#000000';
+    a.scenes[0]!.layers.find(
+      (layer) => layer.type === 'countryHighlight',
+    )!.style.color = '#000000';
     expect(JSON.stringify(template.project)).toBe(snapshot);
   }
   expect(

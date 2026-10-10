@@ -21,8 +21,12 @@ test('duplicates preserve local animation with isolated layers and unique IDs', 
   expect(evaluateProjectAt(project, 15).camera).toEqual(
     evaluateProjectAt(project, 3).camera,
   );
-  copy.layers[0]!.style.color = '#ff0000';
-  expect(first.layers[0]!.style.color).toBe('#307e72');
+  copy.layers.find((layer) => layer.type === 'countryHighlight')!.style.color =
+    '#ff0000';
+  expect(
+    first.layers.find((layer) => layer.type === 'countryHighlight')!.style
+      .color,
+  ).toBe('#307e72');
   expect(copy.camera.keyframes).not.toBe(first.camera.keyframes);
 });
 

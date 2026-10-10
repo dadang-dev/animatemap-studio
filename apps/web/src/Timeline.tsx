@@ -259,8 +259,8 @@ export function Timeline() {
                     position: 'absolute',
                     left: `${((scene.startSeconds + l.timeRange.start) / s.project.durationSeconds) * 100}%`,
                     width: `${((l.timeRange.end - l.timeRange.start) / s.project.durationSeconds) * 100}%`,
-                    background: `${l.style.color}35`,
-                    borderColor: l.style.color,
+                    background: `${l.type === 'image' ? '#a8b8cc' : l.style.color}35`,
+                    borderColor: l.type === 'image' ? '#a8b8cc' : l.style.color,
                   }}
                 >
                   {l.type}

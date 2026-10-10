@@ -29,3 +29,19 @@ test('bundled data checksum and example contracts match provenance', async () =>
       ).schemaVersion,
     ).toBe(CURRENT_SCHEMA_VERSION);
 });
+test('bundled flag source bytes retain licensed provenance and pinned checksums', async () => {
+  const root = new URL(
+    '../../../apps/web/public/assets/flags/',
+    import.meta.url,
+  );
+  const manifest = JSON.parse(
+    await readFile(new URL('PROVENANCE.json', root), 'utf8'),
+  );
+  for (const asset of manifest.assets) {
+    const bytes = await readFile(new URL(asset.file, root));
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.sha256);
+    expect(asset.license).toContain('Public domain');
+    expect(asset.licensePage).toMatch(/^https:\/\/commons.wikimedia.org\//);
+    expect(bytes.toString()).not.toMatch(/<script|href=|onload=/i);
+  }
+});
