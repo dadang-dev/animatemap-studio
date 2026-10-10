@@ -5,7 +5,7 @@ test('real map selects Vietnam, styles preserve camera, and anchors stay project
   await page.goto('/');
   await page.waitForFunction(() => !!window.studio);
   const point = await page.evaluate(() => {
-    const p = window.studio!.renderer.map.project([105.85, 21.03]);
+    const p = window.studio!.renderer.map.project([106.4, 18.4]);
     return { x: p.x, y: p.y };
   });
   await page.getByTestId('map-surface').click({ position: point });

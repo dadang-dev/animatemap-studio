@@ -66,6 +66,7 @@ export class MapRenderer {
     onCountry?: (code: string) => void,
     onCamera?: (camera: Camera) => void,
     onPoint?: (point: [number, number]) => void,
+    private onLayer?: (id: string) => void,
   ) {
     this.map = new maplibregl.Map({
       container,
@@ -94,11 +95,13 @@ export class MapRenderer {
       if (e.originalEvent) onCamera?.(readCamera(this.map));
     });
     this.map.on('click', (e) => {
-      onPoint?.([((e.lngLat.lng + 540) % 360) - 180, e.lngLat.lat]);
       const f = this.map.queryRenderedFeatures(e.point, {
         layers: ['countries-fill'],
       })[0];
       if (f?.properties?.code) onCountry?.(String(f.properties.code));
+      const hit = this.map.queryRenderedFeatures(e.point).find((feature) => this.layerIds.some((id) => feature.layer.id === `${id}-line` || feature.layer.id === `${id}-fill`));
+      if (hit) { const id = this.layerIds.find((id) => hit.layer.id === `${id}-line` || hit.layer.id === `${id}-fill`); if (id) this.onLayer?.(id); }
+      onPoint?.([((e.lngLat.lng + 540) % 360) - 180, e.lngLat.lat]);
     });
   }
   async ready(timeoutMs = 15000) {
@@ -121,7 +124,7 @@ export class MapRenderer {
   apply(project: Project, camera: Camera, layers: Layer[], jump = true) {
     this.project = project;
     this.layers = layers;
-    if (!this.map.isStyleLoaded()) return;
+    if (!this.map.getLayer('countries-fill')) return;
     const p = palettes[project.map.styleId];
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
     this.map.setPaintProperty('countries-fill', 'fill-color', p.land);
@@ -245,6 +248,15 @@ export class MapRenderer {
     const scale = container.clientWidth / this.project.canvas.width;
     this.overlays.replaceChildren();
     for (const layer of this.layers) {
+      if (layer.type === 'route' && layer.visible && layer.style.arrow) {
+        const end = layer.coordinates.at(-1)!, previous = layer.coordinates.at(-2)!;
+        if (end[0] !== previous[0] || end[1] !== previous[1]) {
+          const a = this.map.project(previous), b = this.map.project(end);
+          const arrow = document.createElement('div'); arrow.textContent = '▶'; arrow.dataset.layerId = layer.id;
+          arrow.addEventListener('click', (event) => { event.stopPropagation(); this.onLayer?.(layer.id); });
+          Object.assign(arrow.style, { position: 'absolute', left: `${b.x}px`, top: `${b.y}px`, fontSize: `${20*scale}px`, color: layer.style.color, opacity: `${layer.opacity}`, transform: `translate(-50%,-50%) rotate(${Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI}deg)` }); this.overlays.append(arrow);
+        }
+      }
       if (
         !layer.visible ||
         layer.opacity === 0 ||
@@ -253,6 +265,7 @@ export class MapRenderer {
         continue;
       const el = document.createElement('div');
       el.dataset.layerId = layer.id;
+      el.addEventListener('click', (event) => { event.stopPropagation(); this.onLayer?.(layer.id); });
       let x: number, y: number;
       if (layer.anchor.type === 'map') {
         const [lng, lat] = layer.anchor.coordinates;

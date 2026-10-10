@@ -1,47 +1,142 @@
-import { useState, useRef } from 'react';
-import {
-  createDemo,
-  type Camera,
-  type Project,
-} from '@animatemap/project-schema';
-import { MapSurface } from './MapSurface';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { evaluateProjectAt } from '@animatemap/animation-core';
+import type { Project } from '@animatemap/project-schema';
 import type { MapRenderer } from '@animatemap/map-engine';
 import {
-  Layers,
-  MapPin,
-  Route,
-  Type,
   Globe2,
   Undo2,
   Redo2,
   Download,
-  SlidersHorizontal,
-  Plus,
-  Play,
+  Layers,
+  MapPin,
+  Route,
+  Type,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
 } from 'lucide-react';
+import { MapSurface } from './MapSurface';
+import { useEditor } from './store';
+import { Inspector, NumberField } from './Inspector';
+import { Timeline } from './Timeline';
+import { ProjectMenu } from './ProjectMenu';
+import { api, useAutosave } from './persistence';
 declare global {
   interface Window {
-    studio?: { renderer: MapRenderer; getProject: () => Project };
+    studio?: {
+      renderer: MapRenderer;
+      getProject: () => Project;
+      seek: (time: number) => void;
+      evaluate: (time: number) => ReturnType<typeof evaluateProjectAt>;
+    };
   }
 }
 export function App() {
-  const [project, setProject] = useState(createDemo);
-  const current = useRef(project);
-  current.current = project;
-  const [camera, setCamera] = useState<Camera>(
-    project.scenes[0]!.camera.keyframes[0]!.value,
+  const s = useEditor();
+  const autosave = useAutosave();
+  const state = useMemo(
+    () => evaluateProjectAt(s.project, s.time),
+    [s.project, s.time],
   );
-  const [selected, setSelected] = useState('highlight-vn');
   const [country, setCountry] = useState('VNM');
+  const [search, setSearch] = useState('');
   const [leftWidth, setLeftWidth] = useState(240);
-  const [rightWidth, setRightWidth] = useState(260);
-  const layer = project.scenes[0]!.layers.find((l) => l.id === selected);
-  function color(value: string) {
-    setProject((p) => {
-      const next = structuredClone(p);
-      const l = next.scenes[0]!.layers.find((l) => l.id === selected);
-      if (l) l.style.color = value;
-      return next;
+  const [rightWidth, setRightWidth] = useState(280);
+  const renderer = useRef<MapRenderer | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const scene =
+    s.project.scenes.find((v) => v.id === state.sceneId) ??
+    s.project.scenes[0]!;
+  useEffect(() => {
+    if (!s.playing) return;
+    const initial = useEditor.getState().time,
+      start = performance.now();
+    let frame: number;
+    const tick = () => {
+      const next = Math.min(
+        s.project.durationSeconds,
+        initial + (performance.now() - start) / 1000,
+      );
+      useEditor.getState().seek(next);
+      if (next === s.project.durationSeconds)
+        useEditor.setState({ playing: false });
+      else frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [s.playing, s.project.durationSeconds]);
+  useEffect(() => {
+    const handle = (e: KeyboardEvent) => {
+      if (
+        (e.target as HTMLElement).closest(
+          'input,textarea,select,[contenteditable]',
+        )
+      )
+        return;
+      const editor = useEditor.getState();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) editor.redo();
+        else editor.undo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        void api('/projects', {
+          method: 'POST',
+          body: JSON.stringify(editor.project),
+        }).catch((e: Error) => useEditor.setState({ error: e.message }));
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        if (editor.time === editor.project.durationSeconds) editor.seek(0);
+        useEditor.setState({ playing: !editor.playing });
+      } else if (e.key.toLowerCase() === 'k') editor.addCameraKey();
+      else if (e.key === 'Delete') editor.deleteLayer();
+      else if (e.key === 'Escape')
+        useEditor.setState({ tool: 'select', points: [] });
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, []);
+  function moveLayer(id: string, amount: number) {
+    s.edit((p) => {
+      const layers = p.scenes.find((v) => v.id === scene.id)!.layers;
+      const index = layers.findIndex((l) => l.id === id);
+      if (layers[index]?.locked) return;
+      const target = index + amount;
+      if (target >= 0 && target < layers.length)
+        [layers[index], layers[target]] = [layers[target]!, layers[index]!];
+    });
+  }
+  function chooseCountry(code: string) {
+    const editor = useEditor.getState();
+    if (editor.tool !== 'select') return;
+    setCountry(code);
+    const existing = editor.project.scenes
+      .flatMap((v) => v.layers)
+      .find(
+        (l) => l.type === 'countryHighlight' && l.countryCodes.includes(code),
+      );
+    if (existing) useEditor.setState({ selected: existing.id });
+  }
+  function trimScene(value: number) {
+    s.edit((p) => {
+      const target = p.scenes.find((v) => v.id === scene.id)!;
+      target.durationSeconds = value;
+      for (const layer of target.layers) {
+        layer.timeRange.end = Math.min(layer.timeRange.end, value);
+        layer.tracks.opacity = layer.tracks.opacity.filter(
+          (k) => k.time <= value,
+        );
+        layer.tracks.reveal = layer.tracks.reveal.filter(
+          (k) => k.time <= value,
+        );
+      }
+      target.camera.keyframes = target.camera.keyframes.filter(
+        (k) => k.time <= value,
+      );
+      p.durationSeconds = Math.max(
+        ...p.scenes.map((v) => v.startSeconds + v.durationSeconds),
+      );
     });
   }
   return (
@@ -53,17 +148,31 @@ export function App() {
             AnimateMap <span>Studio</span>
           </h1>
         </div>
+        <ProjectMenu />
         <div className="project-title">
-          {project.name}
+          {s.project.name}
           <span className="badge">LOCAL</span>
         </div>
-        <button title="Undo (Phase 3)" disabled>
+        <button
+          aria-label="Undo"
+          title="Undo · Ctrl+Z"
+          disabled={!s.past.length}
+          onClick={s.undo}
+        >
           <Undo2 size={17} />
         </button>
-        <button title="Redo (Phase 3)" disabled>
+        <button
+          aria-label="Redo"
+          title="Redo · Ctrl+Shift+Z"
+          disabled={!s.future.length}
+          onClick={s.redo}
+        >
           <Redo2 size={17} />
         </button>
-        <span className="spec">1920 × 1080 · 30 FPS</span>
+        <span className="spec">
+          {s.project.canvas.width} × {s.project.canvas.height} ·{' '}
+          {s.project.canvas.fps} FPS
+        </span>
         <button
           className="primary"
           disabled
@@ -72,6 +181,14 @@ export function App() {
           <Download size={16} /> Export
         </button>
       </header>
+      {s.error && (
+        <div className="error-banner" role="alert">
+          {s.error.slice(0, 600)}
+          <button onClick={() => useEditor.setState({ error: '' })}>
+            Dismiss
+          </button>
+        </div>
+      )}
       <div
         className="workspace"
         style={{
@@ -79,21 +196,15 @@ export function App() {
         }}
       >
         <aside className="left-panel panel">
-          <div className="panel-heading">
-            PROJECT <SlidersHorizontal size={14} />
-          </div>
+          <div className="panel-heading">PROJECT</div>
           <label className="field">
             Map style
             <select
               aria-label="Map style"
-              value={project.map.styleId}
+              value={s.project.map.styleId}
               onChange={(e) =>
-                setProject({
-                  ...project,
-                  map: {
-                    ...project.map,
-                    styleId: e.target.value as Project['map']['styleId'],
-                  },
+                s.edit((p) => {
+                  p.map.styleId = e.target.value as Project['map']['styleId'];
                 })
               }
             >
@@ -102,42 +213,215 @@ export function App() {
               <option value="muted">Slate</option>
             </select>
           </label>
-          <div className="panel-heading">
-            SCENES <Plus size={14} />
-          </div>
-          <div className="scene-card">
-            <span className="scene-thumb">
-              <Globe2 />
-            </span>
-            <div>
-              Opening<small>12.00 seconds</small>
-            </div>
-            <span className="badge">01</span>
-          </div>
-          <div className="panel-heading">
+          <label className="field">
+            Canvas
+            <select
+              aria-label="Canvas preset"
+              value={`${s.project.canvas.width}x${s.project.canvas.height}`}
+              onChange={(e) =>
+                s.edit((p) => {
+                  const [width, height] = e.target.value.split('x').map(Number);
+                  p.canvas.width = width!;
+                  p.canvas.height = height!;
+                })
+              }
+            >
+              <option value="1920x1080">16:9 · 1920 × 1080</option>
+              <option value="1080x1920">9:16 · 1080 × 1920</option>
+              <option value="1080x1080">1:1 · 1080 × 1080</option>
+            </select>
+          </label>
+          <label className="field">
+            FPS
+            <select
+              aria-label="FPS"
+              value={s.project.canvas.fps}
+              onChange={(e) =>
+                s.edit((p) => {
+                  p.canvas.fps = Number(e.target.value) as 24 | 30;
+                })
+              }
+            >
+              <option>24</option>
+              <option>30</option>
+            </select>
+          </label>
+          <label className="field">
+            Find country
+            <input
+              aria-label="Find country"
+              placeholder="Vietnam, Thailand…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          {search &&
+            renderer.current?.countries.features
+              .filter(
+                (f) =>
+                  f.properties.name
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                  f.properties.code.toLowerCase() === search.toLowerCase(),
+              )
+              .slice(0, 8)
+              .map((f) => (
+                <button
+                  className="saved-project"
+                  key={f.properties.code}
+                  onClick={() => {
+                    setCountry(f.properties.code);
+                    useEditor.setState({
+                      camera: {
+                        ...s.camera,
+                        lng: f.properties.labelLng,
+                        lat: f.properties.labelLat,
+                        zoom: 4.5,
+                      },
+                    });
+                    setSearch('');
+                  }}
+                >
+                  {f.properties.name} · {f.properties.code}
+                </button>
+              ))}
+          <div className="panel-heading section-heading">SCENES</div>
+          {s.project.scenes.map((v, i) => (
+            <button
+              className="scene-card"
+              key={v.id}
+              onClick={() => s.seek(v.startSeconds)}
+            >
+              <span className="scene-thumb">
+                <Globe2 />
+              </span>
+              <span>
+                {v.name}
+                <small>{v.durationSeconds.toFixed(2)} seconds</small>
+              </span>
+              <span className="badge">{String(i + 1).padStart(2, '0')}</span>
+            </button>
+          ))}
+          <NumberField
+            label="Scene duration"
+            value={scene.durationSeconds}
+            min={1}
+            max={300}
+            onChange={trimScene}
+          />
+          <div className="panel-heading section-heading">
             LAYERS <Layers size={14} />
           </div>
-          <div className="layer-list">
-            {project.scenes[0]!.layers.map((l) => (
+          <div className="tool-row">
+            <button
+              aria-label="Draw route"
+              title="Click at least two map points, then Finish route"
+              className={s.tool === 'route' ? 'active' : ''}
+              onClick={() => useEditor.setState({ tool: 'route', points: [] })}
+            >
+              <Route size={16} />
+            </button>
+            <button
+              aria-label="Add marker"
+              title="Click map to place marker"
+              className={s.tool === 'marker' ? 'active' : ''}
+              onClick={() => useEditor.setState({ tool: 'marker' })}
+            >
+              <MapPin size={16} />
+            </button>
+            <button aria-label="Add text" onClick={() => s.addLayer('text')}>
+              <Type size={16} />
+            </button>
+            <button
+              aria-label="Add highlight"
+              onClick={() => s.addLayer('countryHighlight', undefined, country)}
+            >
+              <Globe2 size={16} />
+            </button>
+          </div>
+          {s.tool !== 'select' && (
+            <div className="tool-notice">
+              {s.tool === 'route'
+                ? `${s.points.length} points · Click map to add`
+                : 'Click map to place marker'}
+              {s.tool === 'route' && (
+                <button
+                  disabled={s.points.length < 2}
+                  onClick={() => s.addLayer('route')}
+                >
+                  Finish route
+                </button>
+              )}
               <button
-                key={l.id}
-                className={`layer-row ${selected === l.id ? 'selected' : ''}`}
-                onClick={() => setSelected(l.id)}
+                onClick={() =>
+                  useEditor.setState({ tool: 'select', points: [] })
+                }
               >
-                {l.type === 'route' ? (
-                  <Route size={16} />
-                ) : l.type === 'text' ? (
-                  <Type size={16} />
-                ) : l.type === 'marker' ? (
-                  <MapPin size={16} />
-                ) : (
-                  <Globe2 size={16} />
-                )}
-                <span>{l.name}</span>
-                <i style={{ background: l.style.color }} />
+                Cancel tool
               </button>
+            </div>
+          )}
+          <div className="layer-list">
+            {scene.layers.map((l, i) => (
+              <div
+                className={`layer-item ${s.selected === l.id ? 'selected' : ''}`}
+                key={l.id}
+              >
+                <button
+                  className="layer-row"
+                  onClick={() => useEditor.setState({ selected: l.id })}
+                >
+                  <span>{l.name}</span>
+                  <i style={{ background: l.style.color }} />
+                </button>
+                <div className="layer-actions">
+                  <button
+                    aria-label={`Toggle visibility ${l.name}`}
+                    onClick={() =>
+                      s.edit((p) => {
+                        const v = p.scenes
+                          .find((v) => v.id === scene.id)!
+                          .layers.find((v) => v.id === l.id)!;
+                        if (!v.locked) v.visible = !v.visible;
+                      })
+                    }
+                  >
+                    {l.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                  </button>
+                  <button
+                    aria-label={`Toggle lock ${l.name}`}
+                    onClick={() =>
+                      s.edit((p) => {
+                        const v = p.scenes
+                          .find((v) => v.id === scene.id)!
+                          .layers.find((v) => v.id === l.id)!;
+                        v.locked = !v.locked;
+                      })
+                    }
+                  >
+                    {l.locked ? <Lock size={12} /> : <Unlock size={12} />}
+                  </button>
+                  <button
+                    aria-label={`Move up ${l.name}`}
+                    disabled={i === 0 || l.locked}
+                    onClick={() => moveLayer(l.id, -1)}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    aria-label={`Move down ${l.name}`}
+                    disabled={i === scene.layers.length - 1 || l.locked}
+                    onClick={() => moveLayer(l.id, 1)}
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
+          <button disabled={!s.selected} onClick={s.deleteLayer}>
+            Delete selected layer
+          </button>
           <div className="panel-foot">
             <label className="field">
               Panel width
@@ -152,176 +436,85 @@ export function App() {
             </label>
             COUNTRY DATA
             <small>
-              Natural Earth · 1:10m
+              Natural Earth · Public domain
               <br />
-              Bundled locally · No API key
+              {autosave}
             </small>
           </div>
         </aside>
         <section className="viewport">
           <div className="viewport-toolbar">
             <span>
-              <span className="live-dot" /> MAP PREVIEW
+              <span className="live-dot" />
+              MAP PREVIEW
             </span>
-            <span>16:9 / Fit</span>
+            <span>
+              {s.project.canvas.width} × {s.project.canvas.height} / Fit
+            </span>
           </div>
           <div className="canvas-wrap">
             <div
               className="composition"
               style={{
-                aspectRatio: `${project.canvas.width}/${project.canvas.height}`,
+                aspectRatio: `${s.project.canvas.width}/${s.project.canvas.height}`,
+                width: `min(100%, ${(s.project.canvas.width / s.project.canvas.height) * 55}vh)`,
               }}
             >
               <MapSurface
-                project={project}
-                camera={camera}
-                onCamera={setCamera}
-                onCountry={(code) => {
-                  setCountry(code);
-                  setSelected('highlight-vn');
+                project={s.project}
+                camera={s.camera}
+                layers={state.layers}
+                onCountry={chooseCountry}
+                onLayer={(id) => { if (useEditor.getState().tool === 'select') useEditor.setState({ selected: id }); }}
+                onCamera={(camera) => useEditor.setState({ camera })}
+                onPoint={(point) => {
+                  const editor = useEditor.getState();
+                  if (editor.tool === 'route')
+                    useEditor.setState({ points: [...editor.points, point] });
+                  else if (editor.tool === 'marker')
+                    editor.addLayer('marker', point);
                 }}
-                onReady={(renderer) => {
+                onReady={(r) => {
+                  renderer.current = r;
+                  setMapReady(true);
                   window.studio = {
-                    renderer,
-                    getProject: () => current.current,
+                    renderer: r,
+                    getProject: () => useEditor.getState().project,
+                    seek: (t) => useEditor.getState().seek(t),
+                    evaluate: (t) =>
+                      evaluateProjectAt(useEditor.getState().project, t),
                   };
                 }}
               />
             </div>
           </div>
           <div className="viewport-footer">
-            <span>Drag to pan · Scroll to zoom · Right-drag to rotate</span>
             <span>
-              WGS84 · {camera.lng.toFixed(3)}, {camera.lat.toFixed(3)}
+              {mapReady
+                ? 'Drag to pan · Scroll to zoom · Right-drag to rotate'
+                : 'Loading map…'}
+            </span>
+            <span>
+              WGS84 · {s.camera.lng.toFixed(3)}, {s.camera.lat.toFixed(3)}
             </span>
           </div>
         </section>
         <aside className="right-panel panel">
+          <Inspector country={country} />
           <label className="field">
             Panel width
             <input
               aria-label="Inspector panel width"
               type="range"
               min="230"
-              max="350"
+              max="360"
               value={rightWidth}
               onChange={(e) => setRightWidth(Number(e.target.value))}
             />
           </label>
-          <div className="panel-heading">
-            INSPECTOR <SlidersHorizontal size={14} />
-          </div>
-          <h2>{layer?.name ?? 'Camera'}</h2>
-          <span className="type-label">{layer?.type}</span>
-          {layer && (
-            <>
-              <label className="field">
-                Color
-                <div className="color-field">
-                  <input
-                    aria-label="Layer color"
-                    type="color"
-                    value={layer.style.color}
-                    onChange={(e) => color(e.target.value)}
-                  />
-                  <span>{layer.style.color.toUpperCase()}</span>
-                </div>
-              </label>
-              <label className="field">
-                Selected country
-                <input value={country} readOnly aria-label="Selected country" />
-              </label>
-              {layer.type === 'countryHighlight' && (
-                <button
-                  onClick={() =>
-                    setProject((p) => ({
-                      ...p,
-                      scenes: p.scenes.map((s) => ({
-                        ...s,
-                        layers: s.layers.map((l) =>
-                          l.id === selected && l.type === 'countryHighlight'
-                            ? { ...l, countryCodes: [country] }
-                            : l,
-                        ),
-                      })),
-                    }))
-                  }
-                >
-                  Highlight {country}
-                </button>
-              )}
-            </>
-          )}
-          <div className="panel-heading section-heading">CAMERA</div>
-          <div className="camera-grid">
-            {(['lng', 'lat', 'zoom', 'bearing', 'pitch'] as const).map(
-              (key) => (
-                <label key={key} className="field">
-                  {key}
-                  <input
-                    aria-label={`Camera ${key}`}
-                    type="number"
-                    step="0.1"
-                    value={Number(camera[key].toFixed(3))}
-                    onChange={(e) =>
-                      setCamera({ ...camera, [key]: Number(e.target.value) })
-                    }
-                  />
-                </label>
-              ),
-            )}
-          </div>
-          <p className="hint">
-            Changes update the map immediately. Camera animation arrives in
-            Phase 2.
-          </p>
         </aside>
       </div>
-      <section className="timeline">
-        <div className="timeline-toolbar">
-          <button disabled title="Playback arrives in Phase 2">
-            <Play size={17} />
-          </button>
-          <strong>00:00.000</strong>
-          <span className="muted">/ 00:12.000</span>
-          <span className="timeline-title">TIMELINE</span>
-          <span className="badge">30 FPS</span>
-        </div>
-        <div className="timeline-ruler">
-          <span>TRACKS</span>
-          {[0, 2, 4, 6, 8, 10, 12].map((t) => (
-            <span key={t}>{t}s</span>
-          ))}
-        </div>
-        <div className="track">
-          <span>◈ Camera</span>
-          <div className="track-body">
-            {[0, 5, 12].map((t) => (
-              <i
-                className="keyframe"
-                key={t}
-                style={{ left: `${(t / 12) * 97}%` }}
-              />
-            ))}
-          </div>
-        </div>
-        {project.scenes[0]!.layers.slice(0, 3).map((l) => (
-          <div className="track" key={l.id}>
-            <span>{l.name}</span>
-            <div className="track-body">
-              <div
-                className="clip"
-                style={{
-                  background: `${l.style.color}35`,
-                  borderColor: l.style.color,
-                }}
-              >
-                {l.type}
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
+      <Timeline />
     </div>
   );
 }

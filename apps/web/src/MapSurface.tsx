@@ -1,33 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapRenderer, type Countries } from '@animatemap/map-engine';
-import type { Camera, Project } from '@animatemap/project-schema';
+import type { Camera, Project, Layer } from '@animatemap/project-schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
 export function MapSurface({
   project,
   camera,
+  layers = project.scenes[0]!.layers,
   onCountry,
   onCamera,
   onPoint,
   onReady,
+  onLayer,
 }: {
   project: Project;
   camera: Camera;
+  layers?: Layer[];
   onCountry?: (code: string) => void;
   onCamera?: (camera: Camera) => void;
   onPoint?: (point: [number, number]) => void;
   onReady?: (renderer: MapRenderer) => void;
+  onLayer?: (id: string) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const renderer = useRef<MapRenderer | null>(null);
   const current = useRef({
     project,
     camera,
+    layers,
     onCountry,
     onCamera,
     onPoint,
     onReady,
+    onLayer,
   });
-  current.current = { project, camera, onCountry, onCamera, onPoint, onReady };
+  current.current = {
+    project,
+    camera,
+    layers,
+    onCountry,
+    onCamera,
+    onPoint,
+    onReady,
+    onLayer,
+  };
   const [status, setStatus] = useState('Loading country geography…');
   useEffect(() => {
     let disposed = false;
@@ -48,6 +63,7 @@ export function MapSurface({
         (c) => current.current.onCountry?.(c),
         (c) => current.current.onCamera?.(c),
         (p) => current.current.onPoint?.(p),
+        (id) => current.current.onLayer?.(id),
       );
       renderer.current = r;
       await r.ready();
@@ -55,7 +71,7 @@ export function MapSurface({
       r.apply(
         current.current.project,
         current.current.camera,
-        current.current.project.scenes[0]!.layers,
+        current.current.layers,
       );
       await r.ready();
       setStatus('');
@@ -65,7 +81,7 @@ export function MapSurface({
         r.apply(
           current.current.project,
           current.current.camera,
-          current.current.project.scenes[0]!.layers,
+          current.current.layers,
           false,
         );
       });
@@ -85,8 +101,8 @@ export function MapSurface({
     };
   }, []);
   useEffect(() => {
-    renderer.current?.apply(project, camera, project.scenes[0]!.layers);
-  }, [project, camera]);
+    renderer.current?.apply(project, camera, layers);
+  }, [project, camera, layers]);
   return (
     <div className="map-surface" data-testid="map-surface">
       <div
