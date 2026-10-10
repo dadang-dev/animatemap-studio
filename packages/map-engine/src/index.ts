@@ -1,9 +1,10 @@
-import maplibregl, {
-  type GeoJSONSource,
-  type StyleSpecification,
-} from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { Camera, Layer, Project } from '@animatemap/project-schema';
+import { wrap } from '@animatemap/animation-core';
 export type Countries = FeatureCollection<
   Polygon | MultiPolygon,
   { code: string; name: string; labelLng: number; labelLat: number }
@@ -43,12 +44,21 @@ export function makeStyle(
     ],
   };
 }
-export function readCamera(map: maplibregl.Map): Camera {
+export function readCamera(
+  map: maplibregl.Map,
+  canvasWidth = map.getContainer().clientWidth,
+): Camera {
   const c = map.getCenter();
   return {
-    lng: ((c.lng + 540) % 360) - 180,
+    lng: wrap(c.lng),
     lat: c.lat,
-    zoom: map.getZoom(),
+    zoom: Math.max(
+      0,
+      Math.min(
+        18,
+        map.getZoom() - Math.log2(map.getContainer().clientWidth / canvasWidth),
+      ),
+    ),
     bearing: map.getBearing(),
     pitch: map.getPitch(),
   };
@@ -66,8 +76,9 @@ export class MapRenderer {
     camera: Camera,
     onCountry?: (code: string) => void,
     onCamera?: (camera: Camera) => void,
-    onPoint?: (point: [number, number]) => void,
+    private onPoint?: (point: [number, number]) => void,
     private onLayer?: (id: string) => void,
+    private onFailure?: (error: Error) => void,
   ) {
     this.map = new maplibregl.Map({
       container,
@@ -78,6 +89,7 @@ export class MapRenderer {
       pitch: camera.pitch,
       maxPitch: 60,
       maxZoom: 18,
+      minZoom: -4,
       attributionControl: false,
       canvasContextAttributes: { preserveDrawingBuffer: true },
       fadeDuration: 0,
@@ -87,13 +99,16 @@ export class MapRenderer {
     container.append(this.overlays);
     this.map.on('error', (e) => {
       this.error = e.error.message;
+      this.onFailure?.(new Error(this.error));
     });
     this.map.getCanvas().addEventListener('webglcontextlost', () => {
       this.error = 'WebGL context lost. Reload to restore the map.';
+      this.onFailure?.(new Error(this.error));
     });
     this.map.on('move', () => this.drawOverlays());
     this.map.on('moveend', (e) => {
-      if (e.originalEvent) onCamera?.(readCamera(this.map));
+      if (e.originalEvent)
+        onCamera?.(readCamera(this.map, this.project?.canvas.width));
     });
     this.map.on('click', (e) => {
       const f = this.map.queryRenderedFeatures(e.point, {
@@ -105,22 +120,38 @@ export class MapRenderer {
         .find((feature) =>
           this.layerIds.some(
             (id) =>
-              feature.layer.id === `${id}-line` ||
-              feature.layer.id === `${id}-fill`,
+              feature.layer.id === `ams-${id}-line` ||
+              feature.layer.id === `ams-${id}-fill`,
           ),
         );
       if (hit) {
         const id = this.layerIds.find(
           (id) =>
-            hit.layer.id === `${id}-line` || hit.layer.id === `${id}-fill`,
+            hit.layer.id === `ams-${id}-line` ||
+            hit.layer.id === `ams-${id}-fill`,
         );
         if (id) this.onLayer?.(id);
       }
-      onPoint?.([((e.lngLat.lng + 540) % 360) - 180, e.lngLat.lat]);
+      onPoint?.([wrap(e.lngLat.lng), e.lngLat.lat]);
     });
   }
   async ready(timeoutMs = 15000) {
-    await document.fonts.ready;
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error('Font resources timed out')),
+        timeoutMs,
+      );
+      void document.fonts.ready.then(
+        () => {
+          clearTimeout(timer);
+          resolve();
+        },
+        (error: unknown) => {
+          clearTimeout(timer);
+          reject(error);
+        },
+      );
+    });
     const start = performance.now();
     await new Promise<void>((resolve, reject) => {
       const check = () => {
@@ -144,10 +175,17 @@ export class MapRenderer {
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
     this.map.setPaintProperty('countries-fill', 'fill-color', p.land);
     this.map.setPaintProperty('countries-border', 'line-color', p.border);
+    this.map.setPaintProperty(
+      'countries-border',
+      'line-width',
+      (0.7 * this.map.getContainer().clientWidth) / project.canvas.width,
+    );
     if (jump)
       this.map.jumpTo({
         center: [camera.lng, camera.lat],
-        zoom: camera.zoom,
+        zoom:
+          camera.zoom +
+          Math.log2(this.map.getContainer().clientWidth / project.canvas.width),
         bearing: camera.bearing,
         pitch: camera.pitch,
       });
@@ -156,9 +194,9 @@ export class MapRenderer {
       .map((l) => l.id);
     for (const id of this.layerIds.filter((id) => !ids.includes(id))) {
       for (const suffix of ['fill', 'line'])
-        if (this.map.getLayer(`${id}-${suffix}`))
-          this.map.removeLayer(`${id}-${suffix}`);
-      if (this.map.getSource(id)) this.map.removeSource(id);
+        if (this.map.getLayer(`ams-${id}-${suffix}`))
+          this.map.removeLayer(`ams-${id}-${suffix}`);
+      if (this.map.getSource(`ams-${id}`)) this.map.removeSource(`ams-${id}`);
     }
     this.layerIds = ids;
     const dim = layers.reduce(
@@ -168,19 +206,36 @@ export class MapRenderer {
           : max,
       0,
     );
-    this.map.setPaintProperty('countries-fill', 'fill-opacity', 1 - dim);
+    const darken = (hex: string) =>
+      '#' +
+      [1, 3, 5]
+        .map((start) =>
+          Math.round(parseInt(hex.slice(start, start + 2), 16) * (1 - dim))
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('');
+    this.map.setPaintProperty('ocean', 'background-color', darken(p.ocean));
+    this.map.setPaintProperty('countries-fill', 'fill-color', darken(p.land));
+    this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
       if (layer.type === 'countryHighlight') {
-        if (!this.map.getLayer(`${layer.id}-fill`)) {
+        const unknown = layer.countryCodes.find(
+          (code) =>
+            !this.countries.features.some((f) => f.properties.code === code),
+        );
+        if (unknown)
+          throw new Error(`Country ${unknown} is not in the bundled dataset`);
+        if (!this.map.getLayer(`ams-${layer.id}-fill`)) {
           this.map.addLayer({
-            id: `${layer.id}-fill`,
+            id: `ams-${layer.id}-fill`,
             type: 'fill',
             source: 'countries',
             paint: { 'fill-color': layer.style.color },
           });
           this.map.addLayer({
-            id: `${layer.id}-line`,
+            id: `ams-${layer.id}-line`,
             type: 'line',
             source: 'countries',
             paint: { 'line-color': layer.style.stroke },
@@ -192,24 +247,33 @@ export class MapRenderer {
           ['literal', layer.countryCodes],
         ];
         for (const suffix of ['fill', 'line'])
-          this.map.setFilter(`${layer.id}-${suffix}`, filter);
+          this.map.setFilter(`ams-${layer.id}-${suffix}`, filter);
         this.map.setPaintProperty(
-          `${layer.id}-fill`,
+          `ams-${layer.id}-fill`,
           'fill-color',
           layer.style.color,
         );
-        this.map.setPaintProperty(`${layer.id}-fill`, 'fill-opacity', opacity);
         this.map.setPaintProperty(
-          `${layer.id}-line`,
+          `ams-${layer.id}-fill`,
+          'fill-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
           'line-color',
           layer.style.stroke,
         );
         this.map.setPaintProperty(
-          `${layer.id}-line`,
+          `ams-${layer.id}-line`,
           'line-width',
-          layer.style.width,
+          (layer.style.width * this.map.getContainer().clientWidth) /
+            project.canvas.width,
         );
-        this.map.setPaintProperty(`${layer.id}-line`, 'line-opacity', opacity);
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-opacity',
+          opacity,
+        );
       }
       if (layer.type === 'route') {
         const data: FeatureCollection = {
@@ -222,38 +286,45 @@ export class MapRenderer {
             },
           ],
         };
-        if (!this.map.getSource(layer.id)) {
-          this.map.addSource(layer.id, { type: 'geojson', data });
+        if (!this.map.getSource(`ams-${layer.id}`)) {
+          this.map.addSource(`ams-${layer.id}`, { type: 'geojson', data });
           this.map.addLayer({
-            id: `${layer.id}-line`,
+            id: `ams-${layer.id}-line`,
             type: 'line',
-            source: layer.id,
+            source: `ams-${layer.id}`,
             layout: { 'line-cap': 'round', 'line-join': 'round' },
             paint: { 'line-color': layer.style.color },
           });
-        } else (this.map.getSource(layer.id) as GeoJSONSource).setData(data);
+        } else
+          (this.map.getSource(`ams-${layer.id}`) as GeoJSONSource).setData(
+            data,
+          );
         this.map.setPaintProperty(
-          `${layer.id}-line`,
+          `ams-${layer.id}-line`,
           'line-color',
           layer.style.color,
         );
         this.map.setPaintProperty(
-          `${layer.id}-line`,
+          `ams-${layer.id}-line`,
           'line-width',
           (layer.style.width * this.map.getContainer().clientWidth) /
             project.canvas.width,
         );
-        this.map.setPaintProperty(`${layer.id}-line`, 'line-opacity', opacity);
         this.map.setPaintProperty(
-          `${layer.id}-line`,
+          `ams-${layer.id}-line`,
+          'line-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
           'line-dasharray',
           layer.style.dash ? [3, 2] : [1, 0],
         );
       }
       if (layer.type === 'route' || layer.type === 'countryHighlight')
         for (const suffix of ['fill', 'line'])
-          if (this.map.getLayer(`${layer.id}-${suffix}`))
-            this.map.moveLayer(`${layer.id}-${suffix}`);
+          if (this.map.getLayer(`ams-${layer.id}-${suffix}`))
+            this.map.moveLayer(`ams-${layer.id}-${suffix}`);
     }
     this.drawOverlays();
   }
@@ -267,8 +338,10 @@ export class MapRenderer {
         const end = layer.coordinates.at(-1)!,
           previous = layer.coordinates.at(-2)!;
         if (end[0] !== previous[0] || end[1] !== previous[1]) {
-          const a = this.map.project(previous),
-            b = this.map.project(end);
+          const shift =
+            360 * Math.round((this.map.getCenter().lng - end[0]) / 360);
+          const a = this.map.project([previous[0] + shift, previous[1]]),
+            b = this.map.project([end[0] + shift, end[1]]);
           const arrow = document.createElement('div');
           arrow.textContent = '▶';
           arrow.dataset.layerId = layer.id;
@@ -299,6 +372,16 @@ export class MapRenderer {
       el.addEventListener('click', (event) => {
         event.stopPropagation();
         this.onLayer?.(layer.id);
+        if (layer.type === 'marker' && layer.anchor.type === 'map')
+          this.onPoint?.(layer.anchor.coordinates);
+        else {
+          const box = this.map.getContainer().getBoundingClientRect();
+          const point = this.map.unproject([
+            event.clientX - box.left,
+            event.clientY - box.top,
+          ]);
+          this.onPoint?.([wrap(point.lng), point.lat]);
+        }
       });
       let x: number, y: number;
       if (layer.anchor.type === 'map') {
@@ -330,27 +413,62 @@ export class MapRenderer {
           fontWeight: layer.style.fontWeight,
           textAlign: layer.style.align,
           lineHeight: '1.25',
-          textShadow: '0 2px 8px #0008',
+          textShadow: `0 ${2 * scale}px ${8 * scale}px #0008`,
         });
       } else {
-        const pin = document.createElement('span');
-        pin.textContent = layer.style.icon === 'plane' ? '✈' : '●';
-        pin.style.fontSize = `${layer.style.size * scale}px`;
-        pin.style.display = 'block';
-        pin.style.textAlign = 'center';
+        const pin = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg',
+        );
+        pin.setAttribute('viewBox', '0 0 24 24');
+        pin.setAttribute('width', `${layer.style.size * scale}`);
+        pin.setAttribute('height', `${layer.style.size * scale}`);
+        pin.classList.add('marker-icon');
+        const shape = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          layer.style.icon === 'circle' ? 'circle' : 'path',
+        );
+        if (layer.style.icon === 'circle') {
+          shape.setAttribute('cx', '12');
+          shape.setAttribute('cy', '12');
+          shape.setAttribute('r', '8');
+        } else
+          shape.setAttribute(
+            'd',
+            layer.style.icon === 'pin'
+              ? 'M12 23C12 23 3 14 3 9A9 9 0 1 1 21 9C21 14 12 23 12 23Z'
+              : 'M12 2L15 10L22 14L22 17L14 15L14 20L17 22L17 24L12 22L7 24L7 22L10 20L10 15L2 17L2 14L9 10Z',
+          );
+        shape.setAttribute('fill', layer.style.color);
+        pin.append(shape);
+        Object.assign(pin.style, {
+          position: 'absolute',
+          left: '0',
+          top: '0',
+          transform:
+            layer.style.icon === 'pin'
+              ? 'translate(-50%,-100%)'
+              : 'translate(-50%,-50%)',
+        });
         const label = document.createElement('span');
         label.textContent = layer.label;
         label.style.fontSize = `${22 * scale}px`;
-        label.style.textShadow = '0 1px 4px #000';
+        label.style.textShadow = `0 ${scale}px ${4 * scale}px #000`;
+        Object.assign(label.style, {
+          position: 'absolute',
+          left: '0',
+          top: `${(layer.style.size * scale) / 2}px`,
+          transform: 'translateX(-50%)',
+          whiteSpace: 'nowrap',
+        });
         el.append(pin, label);
-        el.style.translate = '-50% -50%';
       }
       this.overlays.append(el);
     }
     const credit = document.createElement('div');
     credit.className = 'map-credit';
     credit.textContent = 'Natural Earth · Public domain';
-    credit.style.fontSize = `${Math.max(8, 16 * scale)}px`;
+    credit.style.fontSize = `${16 * scale}px`;
     this.overlays.append(credit);
   }
   destroy() {

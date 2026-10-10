@@ -11,6 +11,7 @@ export function MapSurface({
   onPoint,
   onReady,
   onLayer,
+  onError,
 }: {
   project: Project;
   camera: Camera;
@@ -20,6 +21,7 @@ export function MapSurface({
   onPoint?: (point: [number, number]) => void;
   onReady?: (renderer: MapRenderer) => void;
   onLayer?: (id: string) => void;
+  onError?: (error: Error) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const renderer = useRef<MapRenderer | null>(null);
@@ -32,6 +34,7 @@ export function MapSurface({
     onPoint,
     onReady,
     onLayer,
+    onError,
   });
   current.current = {
     project,
@@ -42,6 +45,7 @@ export function MapSurface({
     onPoint,
     onReady,
     onLayer,
+    onError,
   };
   const [status, setStatus] = useState('Loading country geography…');
   useEffect(() => {
@@ -64,6 +68,10 @@ export function MapSurface({
         (c) => current.current.onCamera?.(c),
         (p) => current.current.onPoint?.(p),
         (id) => current.current.onLayer?.(id),
+        (error) => {
+          setStatus(error.message);
+          current.current.onError?.(error);
+        },
       );
       renderer.current = r;
       await r.ready();
@@ -82,15 +90,21 @@ export function MapSurface({
           current.current.project,
           current.current.camera,
           current.current.layers,
-          false,
+          true,
         );
       });
       resize.observe(container.current);
     })().catch((error: unknown) => {
-      if (!disposed)
+      if (!disposed) {
         setStatus(
           error instanceof Error ? error.message : 'Map initialization failed',
         );
+        current.current.onError?.(
+          error instanceof Error
+            ? error
+            : new Error('Map initialization failed'),
+        );
+      }
     });
     return () => {
       disposed = true;
@@ -101,7 +115,15 @@ export function MapSurface({
     };
   }, []);
   useEffect(() => {
-    renderer.current?.apply(project, camera, layers);
+    if (!renderer.current) return;
+    try {
+      renderer.current.apply(project, camera, layers);
+      setStatus('');
+    } catch (error) {
+      const e = error instanceof Error ? error : new Error('Map update failed');
+      setStatus(e.message);
+      current.current.onError?.(e);
+    }
   }, [project, camera, layers]);
   return (
     <div className="map-surface" data-testid="map-surface">

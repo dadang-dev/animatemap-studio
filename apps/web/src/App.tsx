@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { evaluateProjectAt } from '@animatemap/animation-core';
 import type { Project } from '@animatemap/project-schema';
 import type { MapRenderer } from '@animatemap/map-engine';
@@ -35,6 +35,25 @@ declare global {
 export function App() {
   const s = useEditor();
   const autosave = useAutosave();
+  const canvasWrap = useRef<HTMLDivElement>(null);
+  const [canvasSpace, setCanvasSpace] = useState({ width: 600, height: 400 });
+  useLayoutEffect(() => {
+    const element = canvasWrap.current;
+    if (!element) return;
+    const update = () =>
+      setCanvasSpace({
+        width: Math.max(1, element.clientWidth - 44),
+        height: Math.max(1, element.clientHeight - 44),
+      });
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    update();
+    return () => observer.disconnect();
+  }, []);
+  const canvasWidth = Math.min(
+    canvasSpace.width,
+    (canvasSpace.height * s.project.canvas.width) / s.project.canvas.height,
+  );
   const state = useMemo(
     () => evaluateProjectAt(s.project, s.time),
     [s.project, s.time],
@@ -123,6 +142,10 @@ export function App() {
       const target = p.scenes.find((v) => v.id === scene.id)!;
       target.durationSeconds = value;
       for (const layer of target.layers) {
+        layer.timeRange.start = Math.min(
+          layer.timeRange.start,
+          value - 1 / p.canvas.fps,
+        );
         layer.timeRange.end = Math.min(layer.timeRange.end, value);
         layer.tracks.opacity = layer.tracks.opacity.filter(
           (k) => k.time <= value,
@@ -141,6 +164,10 @@ export function App() {
   }
   return (
     <div className="studio">
+      <div className="desktop-notice">
+        AnimateMap Studio needs a desktop viewport of at least 1000 pixels.
+        Expand your window for the full editor.
+      </div>
       <header className="topbar">
         <div className="brand">
           <Globe2 size={24} />
@@ -446,12 +473,15 @@ export function App() {
               {s.project.canvas.width} × {s.project.canvas.height} / Fit
             </span>
           </div>
-          <div className="canvas-wrap">
+          <div className="canvas-wrap" ref={canvasWrap}>
             <div
               className="composition"
               style={{
                 aspectRatio: `${s.project.canvas.width}/${s.project.canvas.height}`,
-                width: `min(100%, ${(s.project.canvas.width / s.project.canvas.height) * 55}vh)`,
+                width: canvasWidth,
+                height:
+                  (canvasWidth * s.project.canvas.height) /
+                  s.project.canvas.width,
               }}
             >
               <MapSurface

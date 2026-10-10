@@ -71,18 +71,21 @@ export function trimRoute(
   if (progress <= 0) return [points[0]!, points[0]!];
   for (let i = 0; i < lengths.length; i++) {
     const length = lengths[i]!;
-    if (remaining >= length) {
-      output.push(points[i + 1]!);
-      remaining -= length;
-    } else {
-      const p = destination(
-        points[i]!,
-        remaining,
-        bearing(points[i]!, points[i + 1]!),
-      ).geometry.coordinates;
+    const segment = Math.min(remaining, length),
+      steps = Math.max(1, Math.ceil(segment / 50));
+    for (let step = 1; step <= steps; step++) {
+      const p =
+        step === steps && segment === length
+          ? points[i + 1]!
+          : destination(
+              points[i]!,
+              (segment * step) / steps,
+              bearing(points[i]!, points[i + 1]!),
+            ).geometry.coordinates;
       output.push([p[0]!, p[1]!]);
-      break;
     }
+    remaining -= segment;
+    if (segment < length || remaining <= 0) break;
   }
   return unwrapCoordinates(
     output.length === 1 ? [output[0]!, output[0]!] : output,

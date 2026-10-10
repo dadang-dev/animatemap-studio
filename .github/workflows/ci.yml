@@ -12,6 +12,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm check
       - run: pnpm format:check
       - run: pnpm test:e2e

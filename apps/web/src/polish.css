@@ -1,0 +1,55 @@
+.desktop-notice {
+  display: none;
+}
+.timeline-toolbar button {
+  flex-shrink: 0;
+}
+.timeline-toolbar {
+  overflow-x: auto;
+}
+.key-editor {
+  overflow-x: auto;
+}
+.viewport-toolbar {
+  flex-shrink: 0;
+}
+.workspace {
+  min-height: 0;
+}
+.left-panel,
+.right-panel {
+  scrollbar-width: thin;
+}
+.hint {
+  font-size: 11px;
+}
+.map-surface {
+  touch-action: none;
+}
+.map-credit {
+  font-family: 'Noto Sans', sans-serif;
+}
+.map-overlays {
+  font-family: 'Noto Sans', sans-serif;
+}
+.composition {
+  flex-shrink: 0;
+}
+@media (max-width: 999px) {
+  .desktop-notice {
+    display: block;
+    background: #364438;
+    color: #dcf5df;
+    padding: 8px 16px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    font-size: 12px;
+  }
+}
+.error-banner {
+  max-height: 110px;
+  overflow: auto;
+}

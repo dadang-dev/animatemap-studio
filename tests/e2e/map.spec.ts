@@ -15,7 +15,7 @@ test('real map selects Vietnam, styles preserve camera, and anchors stay project
     .poll(() =>
       page.evaluate(() =>
         window.studio!.renderer.map.getPaintProperty(
-          'highlight-vn-fill',
+          'ams-highlight-vn-fill',
           'fill-color',
         ),
       ),

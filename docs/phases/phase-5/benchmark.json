@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-10",
+  "platform": "win32",
+  "cpu": "12th Gen Intel(R) Core(TM) i3-12100",
+  "logicalCpus": 8,
+  "memoryGB": 16,
+  "evaluationMsPerSeek": 0.007204189999999994,
+  "frames": 300,
+  "resolution": "1920x1080",
+  "renderMs": 87033.1504,
+  "framesPerSecond": 3.4469624346724785
+}

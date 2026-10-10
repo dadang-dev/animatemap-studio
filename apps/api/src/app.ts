@@ -6,6 +6,21 @@ import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
 export function createApp(directory = resolve('.local/projects')) {
   const app = Fastify({ bodyLimit: 5 * 1024 * 1024 });
+  app.addHook('onRequest', async (request, reply) => {
+    if (!['127.0.0.1', 'localhost'].includes(request.hostname))
+      return reply.code(403).send({ error: 'Local host required' });
+    const origin = request.headers.origin;
+    if (
+      origin &&
+      ![
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://127.0.0.1:3001',
+      ].includes(origin)
+    )
+      return reply.code(403).send({ error: 'Untrusted origin' });
+    reply.header('X-Content-Type-Options', 'nosniff');
+  });
   app.get('/api/health', async () => ({ status: 'ok', schemaVersion: 1 }));
   const repository = new JsonRepository(directory);
   const jobs = new JobQueue(join(dirname(directory), 'renders'));
@@ -50,8 +65,15 @@ export function createApp(directory = resolve('.local/projects')) {
     },
   );
   app.setErrorHandler((error, _request, reply) => {
-    const e = error as Error & { code?: string };
-    void reply.code(e.code === 'ENOENT' ? 404 : 400).send({ error: e.message });
+    const e = error as Error & { code?: string; statusCode?: number };
+    void reply
+      .code(
+        e.statusCode ??
+          (e.code === 'ENOENT' || e.message === 'Render job not found'
+            ? 404
+            : 400),
+      )
+      .send({ error: e.message });
   });
   app.get('/api/projects', async () => repository.list());
   app.get<{ Params: { id: string } }>('/api/projects/:id', async (request) =>

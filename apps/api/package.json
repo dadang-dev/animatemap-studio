@@ -8,6 +8,6 @@
   "dependencies": {
     "@animatemap/project-schema": "workspace:*",
     "@animatemap/render-worker": "workspace:*",
-    "fastify": "5.6.2"
+    "fastify": "5.12.5"
   }
 }

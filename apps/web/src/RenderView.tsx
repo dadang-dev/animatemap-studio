@@ -19,13 +19,15 @@ export function RenderView() {
   const snapshot = useRef<Project | null>(null);
   const renderer = useRef<MapRenderer | null>(null);
   const resolveLoad = useRef<(() => void) | null>(null);
+  const rejectLoad = useRef<((error: Error) => void) | null>(null);
   useEffect(() => {
     window.renderStudio = {
       load: async (input) => {
         const p = migrateProject(input);
         snapshot.current = p;
-        await new Promise<void>((resolve) => {
+        await new Promise<void>((resolve, reject) => {
           resolveLoad.current = resolve;
+          rejectLoad.current = reject;
           setProject(p);
         });
       },
@@ -66,6 +68,10 @@ export function RenderView() {
           project={project}
           camera={state.camera}
           layers={state.layers}
+          onError={(error) => {
+            rejectLoad.current?.(error);
+            rejectLoad.current = null;
+          }}
           onReady={(r) => {
             renderer.current = r;
             resolveLoad.current?.();

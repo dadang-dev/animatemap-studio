@@ -1,10 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEditor } from './store';
 import { evaluateProjectAt } from '@animatemap/animation-core';
 import type { Easing, Project } from '@animatemap/project-schema';
 export function Timeline() {
   const s = useEditor();
   const [zoom, setZoom] = useState(1);
+  useEffect(() => {
+    const handle = (event: KeyboardEvent) => {
+      if (
+        (event.target as HTMLElement).closest(
+          'input,textarea,select,[contenteditable]',
+        )
+      )
+        return;
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        setZoom((v) => Math.min(4, v + 0.25));
+      }
+      if (event.key === '-') {
+        event.preventDefault();
+        setZoom((v) => Math.max(1, v - 0.25));
+      }
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, []);
   const [snap, setSnap] = useState(true);
   const [height, setHeight] = useState(270);
   const [property, setProperty] = useState<'camera' | 'opacity' | 'reveal'>(

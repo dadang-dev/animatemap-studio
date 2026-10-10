@@ -98,8 +98,8 @@ export class JobQueue {
             signal: current.controller.signal,
             onProgress: (state, progress) => {
               if (!current.controller.signal.aborted) {
-                current.job.state = state;
-                current.job.progress = progress;
+                if (state !== 'completed') current.job.state = state;
+                current.job.progress = state === 'completed' ? 0.99 : progress;
               }
             },
           });
