@@ -132,6 +132,15 @@ export async function renderProject(options: RenderOptions) {
             name,
             ...provenance,
           })),
+          datasetSources: project.datasets.map(
+            ({ id, name, unit, records, provenance }) => ({
+              id,
+              name,
+              unit,
+              observations: records.length,
+              ...provenance,
+            }),
+          ),
           format,
           pipeline: `Chromium fixed-frame → ${format === 'png' ? 'PNG' : `FFmpeg ${format}`}`,
         },

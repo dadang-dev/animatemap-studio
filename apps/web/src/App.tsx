@@ -23,6 +23,7 @@ import { Timeline } from './Timeline';
 import { ProjectMenu } from './ProjectMenu';
 import { ExportPanel } from './ExportPanel';
 import { AssetLibrary } from './AssetLibrary';
+import { DataLibrary } from './DataLibrary';
 import { api, useAutosave } from './persistence';
 declare global {
   interface Window {
@@ -63,6 +64,7 @@ export function App() {
   const [country, setCountry] = useState('VNM');
   const [search, setSearch] = useState('');
   const [assetsOpen, setAssetsOpen] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
   const [leftWidth, setLeftWidth] = useState(240);
   const [rightWidth, setRightWidth] = useState(280);
   const renderer = useRef<MapRenderer | null>(null);
@@ -209,6 +211,9 @@ export function App() {
           country={country}
           onClose={() => setAssetsOpen(false)}
         />
+      )}
+      {dataOpen && (
+        <DataLibrary sceneId={scene.id} onClose={() => setDataOpen(false)} />
       )}
       <div
         className="workspace"
@@ -372,6 +377,9 @@ export function App() {
           </div>
           <button onClick={() => setAssetsOpen(true)}>
             Image assets / logo
+          </button>
+          <button onClick={() => setDataOpen(true)}>
+            Country data · CSV / Excel
           </button>
           {s.tool !== 'select' && (
             <div className="tool-notice">

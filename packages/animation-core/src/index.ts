@@ -1,4 +1,10 @@
 import { distance, bearing, destination } from '@turf/turf';
+import { evaluateChoropleth, type ChoroplethData } from './choropleth';
+export {
+  evaluateChoropleth,
+  interpolateColor,
+  type ChoroplethData,
+} from './choropleth';
 export {
   hiddenLabels,
   transformLabelBounds,
@@ -98,7 +104,10 @@ export function trimRoute(
     output.length === 1 ? [output[0]!, output[0]!] : output,
   );
 }
-export type RenderLayer = Layer & { renderCoordinates?: [number, number][] };
+export type RenderLayer = Layer & {
+  renderCoordinates?: [number, number][];
+  data?: ChoroplethData;
+};
 export type SceneRenderState = {
   sceneId: string;
   camera: Camera;
@@ -196,6 +205,17 @@ function evaluateSceneAt(
           : result.coordinates,
         scalarAt(layer.tracks.reveal, local, 1),
       );
+    if (result.type === 'choropleth') {
+      const dataset = project.datasets.find(
+        (dataset) => dataset.id === result.datasetId,
+      );
+      if (!dataset) throw new Error(`Missing dataset ${result.datasetId}`);
+      result.data = evaluateChoropleth(
+        dataset,
+        result,
+        scalarAt(layer.tracks.dataYear, local, result.dataYear),
+      );
+    }
     return result;
   });
   return { sceneId: scene.id, camera: { ...camera }, layers };

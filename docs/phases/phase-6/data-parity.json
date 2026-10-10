@@ -1,0 +1,30 @@
+{
+  "comparisons": [
+    {
+      "frame": 0,
+      "meanAbsoluteChannelError": 0.8532394547325103
+    },
+    {
+      "frame": 15,
+      "meanAbsoluteChannelError": 0.8488837448559671
+    },
+    {
+      "frame": 29,
+      "meanAbsoluteChannelError": 0.8526403356481481
+    },
+    {
+      "frame": 37,
+      "meanAbsoluteChannelError": 1.4241444830246914
+    },
+    {
+      "frame": 59,
+      "meanAbsoluteChannelError": 0.8546050347222223
+    }
+  ],
+  "png": {
+    "frame": 37,
+    "identical": true,
+    "changedChannels": 0,
+    "maximumChannelError": 0
+  }
+}

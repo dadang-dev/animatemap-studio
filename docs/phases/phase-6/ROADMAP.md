@@ -10,7 +10,7 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 - [x] 6F: line/arrow/Bezier shapes and curve editing, geographic dateline tests.
 - [x] 6G: image/logo overlays, licensed flag/texture assets, bounded local asset ingestion and readiness.
 - [x] 6H: deterministic label collision policy shared by preview/export.
-- [ ] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
+- [x] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
 - [ ] 6J: licensed Admin 1 boundaries and selection/highlighting.
 - [ ] 6K: local audio/voiceover tracks, captions and real FFmpeg mixing.
 - [ ] 6L: geocoding/routing provider adapters with quota/terms and explicit configuration errors; no public service abuse.

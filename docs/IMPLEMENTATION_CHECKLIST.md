@@ -15,4 +15,6 @@
 - [x] Phase 6G: schema v6 embedded PNG assets, licensed flags/textures, active image cache/readiness, real MP4/PNG parity and clean 36-scenario browser regression. Evidence in `docs/phases/phase-6/ASSETS.md`.
 - [x] Phase 6H: schema v7 label collision, stateless full-project-pixel priority layout, UI history/persistence and real MP4/PNG parity. 69 unit/integration and 19 relevant browser scenarios passed; evidence in `docs/phases/phase-6/LABEL_COLLISION.md`.
 
+- [x] Phase 6I: schema v8 datasets/choropleth, bounded local CSV/XLSX review/import, editable data-year tracks and fixed-domain colors/legend. 83 unit/integration and clean 41-scenario browser regression passed, followed by four affected data/golden scenarios after final review. Real MP4/PNG parity, licenses and audit recorded in `docs/phases/phase-6/DATA_IMPORT.md`.
+
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.

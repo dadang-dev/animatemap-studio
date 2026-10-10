@@ -1,7 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
-import { migrateProject, CURRENT_SCHEMA_VERSION } from './index';
+import {
+  migrateProject,
+  CURRENT_SCHEMA_VERSION,
+  countryCatalog,
+} from './index';
 test('bundled data checksum and example contracts match provenance', async () => {
   const root = new URL('../../../', import.meta.url);
   const data = await readFile(
@@ -15,6 +19,19 @@ test('bundled data checksum and example contracts match provenance', async () =>
   );
   const countries = JSON.parse(data.toString());
   expect(countries.features.length).toBe(metadata.features);
+  expect(countryCatalog).toEqual(
+    countries.features
+      .map((feature: { properties: { code: string; name: string } }) => ({
+        code: feature.properties.code,
+        name: feature.properties.name,
+      }))
+      .sort((a: { code: string }, b: { code: string }) =>
+        a.code.localeCompare(b.code),
+      ),
+  );
+  expect(new Set(countryCatalog.map((country) => country.code)).size).toBe(
+    countryCatalog.length,
+  );
   expect(
     countries.features.find(
       (f: { properties: { code: string } }) => f.properties.code === 'VNM',

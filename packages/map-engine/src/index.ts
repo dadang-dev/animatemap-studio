@@ -5,6 +5,7 @@ maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { Camera, Project } from '@animatemap/project-schema';
 import { ImageResources } from './images';
+import { dataLegend } from './dataLegend';
 import {
   wrap,
   hiddenLabels,
@@ -350,6 +351,7 @@ export class MapRenderer {
         (l) =>
           l.type === 'route' ||
           l.type === 'shape' ||
+          l.type === 'choropleth' ||
           l.type === 'countryHighlight',
       )
       .map((l) => l.id);
@@ -381,6 +383,83 @@ export class MapRenderer {
     this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
+      if (layer.type === 'choropleth') {
+        const dataset = project.datasets.find(
+          (dataset) => dataset.id === layer.datasetId,
+        )!;
+        const codes = [
+          ...new Set(dataset.records.map((record) => record.countryCode)),
+        ];
+        const unknown = codes.find(
+          (code) =>
+            !this.countries.features.some(
+              (feature) => feature.properties.code === code,
+            ),
+        );
+        if (unknown)
+          throw new Error(`Country ${unknown} is not in the bundled dataset`);
+        if (!this.map.getLayer(`ams-${layer.id}-fill`)) {
+          this.map.addLayer({
+            id: `ams-${layer.id}-fill`,
+            type: 'fill',
+            source: 'countries',
+          });
+          this.map.addLayer({
+            id: `ams-${layer.id}-line`,
+            type: 'line',
+            source: 'countries',
+          });
+        }
+        const filter: maplibregl.FilterSpecification = [
+          'in',
+          ['get', 'code'],
+          ['literal', codes],
+        ];
+        for (const suffix of ['fill', 'line'])
+          this.map.setFilter(`ams-${layer.id}-${suffix}`, filter);
+        const [first, ...remaining] = Object.entries(layer.data?.colors ?? {});
+        const expression: maplibregl.ExpressionSpecification | string = first
+          ? [
+              'match',
+              ['get', 'code'],
+              first[0],
+              first[1],
+              ...remaining.flatMap(([code, color]) => [code, color]),
+              layer.style.missingColor,
+            ]
+          : layer.style.missingColor;
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-color',
+          expression,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-pattern',
+          undefined,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-color',
+          layer.style.stroke,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-width',
+          (layer.style.width * this.map.getContainer().clientWidth) /
+            project.canvas.width,
+        );
+      }
       if (layer.type === 'countryHighlight') {
         const unknown = layer.countryCodes.find(
           (code) =>
@@ -495,6 +574,7 @@ export class MapRenderer {
       if (
         layer.type === 'route' ||
         layer.type === 'shape' ||
+        layer.type === 'choropleth' ||
         layer.type === 'countryHighlight'
       )
         for (const suffix of ['fill', 'line'])
@@ -610,6 +690,30 @@ export class MapRenderer {
     const labels: { candidate: LabelCandidate; element: HTMLElement }[] = [];
     this.overlays.replaceChildren();
     for (const layer of this.layers) {
+      if (
+        layer.type === 'choropleth' &&
+        layer.visible &&
+        layer.opacity > 0 &&
+        layer.legend.visible &&
+        layer.data
+      ) {
+        const dataset = this.project.datasets.find(
+          (dataset) => dataset.id === layer.datasetId,
+        )!;
+        const legend = dataLegend(
+          dataset,
+          layer,
+          layer.data,
+          scale,
+          container.clientWidth,
+          container.clientHeight,
+        );
+        legend.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.onLayer?.(layer.id);
+        });
+        this.overlays.append(legend);
+      }
       if (
         (layer.type === 'route' || layer.type === 'shape') &&
         layer.visible &&
@@ -828,6 +932,12 @@ export class MapRenderer {
     const credits = new Set<string>();
     for (const layer of this.layers) {
       if (!layer.visible || layer.opacity === 0) continue;
+      if (layer.type === 'choropleth') {
+        const dataset = this.project.datasets.find(
+          (dataset) => dataset.id === layer.datasetId,
+        );
+        if (dataset) credits.add(dataset.provenance.credit);
+      }
       const reference =
         layer.type === 'image'
           ? layer.assetId

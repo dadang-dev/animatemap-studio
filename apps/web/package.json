@@ -13,6 +13,8 @@
     "@animatemap/project-schema": "workspace:*",
     "@animatemap/ui": "workspace:*",
     "@fontsource/noto-sans": "5.2.8",
+    "exceljs": "4.4.0",
+    "fflate": "0.8.3",
     "idb-keyval": "6.2.2",
     "lucide-react": "0.468.0",
     "maplibre-gl": "6.4.1",

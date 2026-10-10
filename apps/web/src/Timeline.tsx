@@ -110,9 +110,14 @@ export function Timeline() {
             property === 'opacity' ||
             property === 'reveal'
               ? 1
-              : evaluateProjectAt(s.project, s.time).layers.find(
-                  (item) => item.id === layer.id,
-                )!.transform[property],
+              : property === 'dataYear'
+                ? (evaluateProjectAt(s.project, s.time).layers.find(
+                    (item) => item.id === layer.id,
+                  )?.data?.year ??
+                  (layer.type === 'choropleth' ? layer.dataYear : 1))
+                : evaluateProjectAt(s.project, s.time).layers.find(
+                    (item) => item.id === layer.id,
+                  )!.transform[property],
           easing: 'linear',
         });
         keys.sort((a, b) => a.time - b.time);
@@ -303,11 +308,13 @@ export function Timeline() {
           {(layer ? propertiesForLayer(layer) : (['opacity'] as const)).map(
             (prop) => (
               <option key={prop} value={prop}>
-                {prop === 'reveal'
-                  ? layer?.type === 'shape'
-                    ? 'Shape reveal'
-                    : 'Route reveal'
-                  : `Layer ${prop}`}
+                {prop === 'dataYear'
+                  ? 'Data year'
+                  : prop === 'reveal'
+                    ? layer?.type === 'shape'
+                      ? 'Shape reveal'
+                      : 'Route reveal'
+                    : `Layer ${prop}`}
               </option>
             ),
           )}

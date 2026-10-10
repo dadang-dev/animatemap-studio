@@ -1,4 +1,13 @@
 import { z } from 'zod';
+export { crc32 } from './checksum';
+import { datasetSchema } from './datasets';
+export {
+  countryCatalog,
+  datasetSchema,
+  dataRecordSchema,
+  defaultDataDomain,
+  type Dataset,
+} from './datasets';
 import {
   imageAssetSchema,
   MAX_ASSET_TOTAL_BYTES,
@@ -288,6 +297,7 @@ export const scalarProperties = [
   'rotation',
   'offsetX',
   'offsetY',
+  'dataYear',
 ] as const;
 export type ScalarProperty = (typeof scalarProperties)[number];
 export const scalarLimits: Record<ScalarProperty, readonly [number, number]> = {
@@ -297,6 +307,7 @@ export const scalarLimits: Record<ScalarProperty, readonly [number, number]> = {
   rotation: [-360, 360],
   offsetX: [-4000, 4000],
   offsetY: [-4000, 4000],
+  dataYear: [1, 9999],
 };
 const tracksV3Schema = z
   .object({
@@ -369,7 +380,7 @@ export const labelCollisionSchema = z
     priority: z.number().int().min(0).max(100).default(50),
   })
   .default({ mode: 'allow', priority: 50 });
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV7Schema = z.discriminatedUnion('type', [
   layerV6Schema.options[0],
   layerV6Schema.options[1],
   layerV6Schema.options[2].extend({ collision: labelCollisionSchema }),
@@ -377,15 +388,68 @@ export const layerSchema = z.discriminatedUnion('type', [
   shapeSchema,
   imageLayerSchema,
 ]);
+const tracksV8Schema = tracksV3Schema
+  .unwrap()
+  .extend({
+    dataYear: track(finite.min(1).max(9999)).default([]),
+  })
+  .default({
+    opacity: [],
+    reveal: [],
+    scale: [],
+    rotation: [],
+    offsetX: [],
+    offsetY: [],
+    dataYear: [],
+  });
+const choroplethSchema = z.object({
+  ...common,
+  tracks: tracksV8Schema,
+  type: z.literal('choropleth'),
+  datasetId: id,
+  dataYear: finite.min(1).max(9999),
+  sampling: z.enum(['linear', 'step']).default('linear'),
+  domain: z
+    .object({ min: finite, max: finite })
+    .refine(
+      (domain) => domain.max > domain.min,
+      'Domain maximum must exceed minimum',
+    ),
+  style: z.object({
+    color,
+    highColor: color,
+    missingColor: color,
+    stroke: color,
+    width: finite.min(0).max(20),
+  }),
+  legend: z
+    .object({
+      visible: z.boolean().default(true),
+      x: finite.min(0).max(1),
+      y: finite.min(0).max(1),
+    })
+    .default({ visible: true, x: 0.04, y: 0.78 }),
+});
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV7Schema.options[0].extend({ tracks: tracksV8Schema }),
+  layerV7Schema.options[1].extend({ tracks: tracksV8Schema }),
+  layerV7Schema.options[2].extend({ tracks: tracksV8Schema }),
+  layerV7Schema.options[3].extend({ tracks: tracksV8Schema }),
+  shapeSchema.safeExtend({ tracks: tracksV8Schema }),
+  imageLayerSchema.extend({ tracks: tracksV8Schema }),
+  choroplethSchema,
+]);
 export type Layer = z.infer<typeof layerSchema>;
 export function propertiesForLayer(layer: Layer): ScalarProperty[] {
   return layer.type === 'marker' ||
     layer.type === 'text' ||
     layer.type === 'image'
     ? ['opacity', 'scale', 'rotation', 'offsetX', 'offsetY']
-    : layer.type === 'route' || layer.type === 'shape'
-      ? ['opacity', 'reveal']
-      : ['opacity'];
+    : layer.type === 'choropleth'
+      ? ['opacity', 'dataYear']
+      : layer.type === 'route' || layer.type === 'shape'
+        ? ['opacity', 'reveal']
+        : ['opacity'];
 }
 const projectV3Base = z.object({
   ...projectV2Base.shape,
@@ -473,7 +537,12 @@ export const projectV6Schema = projectV6Base
   .superRefine(validateTransformTracks)
   .superRefine(validateAssetReferences);
 function validateAssetReferences(
-  project: Pick<z.infer<typeof projectV6Base>, 'assets' | 'scenes'>,
+  project: {
+    assets: z.infer<typeof imageAssetSchema>[];
+    scenes: {
+      layers: { type: string; assetId?: string; textureAssetId?: string }[];
+    }[];
+  },
   ctx: z.RefinementCtx,
 ) {
   const assets = new Set<string>();
@@ -530,10 +599,23 @@ function validateAssetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 7;
-export const projectSchema = projectV6Base
+const projectV7Base = projectV6Base.extend({
+  schemaVersion: z.literal(7),
+  scenes: z
+    .array(sceneV2Schema.extend({ layers: z.array(layerV7Schema).max(100) }))
+    .min(1)
+    .max(20),
+});
+export const projectV7Schema = projectV7Base
+  .superRefine(validateTiming)
+  .superRefine(validateTransitions)
+  .superRefine(validateTransformTracks)
+  .superRefine(validateAssetReferences);
+export const CURRENT_SCHEMA_VERSION = 8;
+export const projectSchema = projectV7Base
   .extend({
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+    datasets: z.array(datasetSchema).max(5).default([]),
     scenes: z
       .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
       .min(1)
@@ -542,7 +624,65 @@ export const projectSchema = projectV6Base
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
   .superRefine(validateTransformTracks)
-  .superRefine(validateAssetReferences);
+  .superRefine(validateAssetReferences)
+  .superRefine((project, ctx) => {
+    const ids = new Set<string>();
+    let observations = 0;
+    project.datasets.forEach((dataset, index) => {
+      if (ids.has(dataset.id))
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Duplicate dataset identifier',
+          path: ['datasets', index, 'id'],
+        });
+      ids.add(dataset.id);
+      observations += dataset.records.length;
+    });
+    if (observations > 10000)
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Project exceeds 10000 observations',
+        path: ['datasets'],
+      });
+    project.scenes.forEach((scene, s) =>
+      scene.layers.forEach((layer, l) => {
+        if (layer.type !== 'choropleth') {
+          if (layer.tracks.dataYear.length)
+            ctx.addIssue({
+              code: 'custom',
+              message: 'Data-year keys require a choropleth layer',
+              path: ['scenes', s, 'layers', l, 'tracks', 'dataYear'],
+            });
+          return;
+        }
+        const dataset = project.datasets.find(
+          (dataset) => dataset.id === layer.datasetId,
+        );
+        if (!dataset) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Missing choropleth dataset',
+            path: ['scenes', s, 'layers', l, 'datasetId'],
+          });
+          return;
+        }
+        const years = dataset.records.map((record) => record.year);
+        const min = Math.min(...years),
+          max = Math.max(...years);
+        if (
+          [
+            layer.dataYear,
+            ...layer.tracks.dataYear.map((key) => key.value),
+          ].some((year) => year < min || year > max)
+        )
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Data year must stay within observed dataset years',
+            path: ['scenes', s, 'layers', l, 'dataYear'],
+          });
+      }),
+    );
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -556,23 +696,26 @@ export function migrateProject(input: unknown): Project {
       input.schemaVersion === 3 ||
       input.schemaVersion === 4 ||
       input.schemaVersion === 5 ||
-      input.schemaVersion === 6)
+      input.schemaVersion === 6 ||
+      input.schemaVersion === 7)
   ) {
     const legacy =
-      input.schemaVersion === 6
-        ? projectV6Schema.parse(input)
-        : input.schemaVersion === 5
-          ? projectV5Schema.parse(input)
-          : input.schemaVersion === 4
-            ? projectV4Schema.parse(input)
-            : input.schemaVersion === 3
-              ? projectV3Schema.parse(input)
-              : input.schemaVersion === 1
-                ? projectV2Schema.parse({
-                    ...projectV1Schema.parse(input),
-                    schemaVersion: 2,
-                  })
-                : projectV2Schema.parse(input);
+      input.schemaVersion === 7
+        ? projectV7Schema.parse(input)
+        : input.schemaVersion === 6
+          ? projectV6Schema.parse(input)
+          : input.schemaVersion === 5
+            ? projectV5Schema.parse(input)
+            : input.schemaVersion === 4
+              ? projectV4Schema.parse(input)
+              : input.schemaVersion === 3
+                ? projectV3Schema.parse(input)
+                : input.schemaVersion === 1
+                  ? projectV2Schema.parse({
+                      ...projectV1Schema.parse(input),
+                      schemaVersion: 2,
+                    })
+                  : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

@@ -1,6 +1,6 @@
 import { Globe2 } from 'lucide-react';
 import { useEditor } from './store';
-import { NumberField } from './Inspector';
+import { NumberField } from './NumberField';
 
 export function ScenePanel({ sceneId }: { sceneId: string }) {
   const s = useEditor();

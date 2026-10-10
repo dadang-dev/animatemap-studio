@@ -1,5 +1,7 @@
 # Decisions
 
+- Phase 6I introduces schema v8 datasets/choropleth and data-year tracks, retaining v1–v7 validation/migration. Fixed global color domains preserve comparison across years; observation interpolation/hold is labeled and never extrapolates outside each country's range. Country matching uses the exact pinned bundle catalog, with no fuzzy guessing. CSV/XLSX imports require provenance and explicit review. Bounded ZIP directory/size/CRC/XML/worksheet checks precede ExcelJS loading; cached formula values are rejected, unused media excluded and a disposable worker imposes a deadline. ExcelJS's uuid dependency is scoped to 11.1.1 to resolve its advisory while preserving v4 compatibility, exercised by real workbook tests. A PNG parity failure isolated 224 changed pixels to the CSS legend gradient, maximum channel error 2; the renderer now creates an opaque fixed-pixel ramp using the evaluator's color interpolation rather than relaxing pixel equality.
+
 - English UI, Vietnamese Unicode text supported.
 - Local Natural Earth geography; no OSM Foundation tile requests. Light, dark, muted styles use identical geometry.
 - Schema v1 is the initial version; unknown versions are rejected rather than guessed.
