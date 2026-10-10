@@ -187,3 +187,43 @@
 fieldset:disabled {
   opacity: 0.5;
 }
+/* Scene editing keeps long projects scrollable inside the existing panel. */
+.scene-list {
+  max-height: 210px;
+  overflow-y: auto;
+}
+.scene-card.active {
+  border-color: #8bdcc1;
+  background: #263d3c;
+}
+.scene-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0;
+}
+.scene-controls button {
+  padding: 5px 7px;
+  font-size: 11px;
+}
+.scene-hint {
+  font-size: 10px;
+  margin: 7px 0;
+}
+.scene-clip {
+  position: absolute;
+  height: 28px;
+  top: 5px;
+  padding: 3px 7px;
+  border-radius: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  justify-content: flex-start;
+  font-size: 11px;
+  background: #30434c;
+  border-color: #52717d;
+}
+.scene-clip.active {
+  background: #285b4e;
+  border-color: #8bdcc1;
+}

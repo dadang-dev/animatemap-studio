@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { MapSurface } from './MapSurface';
 import { useEditor } from './store';
-import { Inspector, NumberField } from './Inspector';
+import { Inspector } from './Inspector';
+import { ScenePanel } from './ScenePanel';
 import { Timeline } from './Timeline';
 import { ProjectMenu } from './ProjectMenu';
 import { ExportPanel } from './ExportPanel';
@@ -131,36 +132,14 @@ export function App() {
     if (editor.tool !== 'select') return;
     setCountry(code);
     const existing = editor.project.scenes
-      .flatMap((v) => v.layers)
       .find(
+        (scene) =>
+          scene.id === evaluateProjectAt(editor.project, editor.time).sceneId,
+      )
+      ?.layers.find(
         (l) => l.type === 'countryHighlight' && l.countryCodes.includes(code),
       );
     if (existing) useEditor.setState({ selected: existing.id });
-  }
-  function trimScene(value: number) {
-    s.edit((p) => {
-      const target = p.scenes.find((v) => v.id === scene.id)!;
-      target.durationSeconds = value;
-      for (const layer of target.layers) {
-        layer.timeRange.start = Math.min(
-          layer.timeRange.start,
-          value - 1 / p.canvas.fps,
-        );
-        layer.timeRange.end = Math.min(layer.timeRange.end, value);
-        layer.tracks.opacity = layer.tracks.opacity.filter(
-          (k) => k.time <= value,
-        );
-        layer.tracks.reveal = layer.tracks.reveal.filter(
-          (k) => k.time <= value,
-        );
-      }
-      target.camera.keyframes = target.camera.keyframes.filter(
-        (k) => k.time <= value,
-      );
-      p.durationSeconds = Math.max(
-        ...p.scenes.map((v) => v.startSeconds + v.durationSeconds),
-      );
-    });
   }
   return (
     <div className="studio">
@@ -306,30 +285,7 @@ export function App() {
                   {f.properties.name} · {f.properties.code}
                 </button>
               ))}
-          <div className="panel-heading section-heading">SCENES</div>
-          {s.project.scenes.map((v, i) => (
-            <button
-              className="scene-card"
-              key={v.id}
-              onClick={() => s.seek(v.startSeconds)}
-            >
-              <span className="scene-thumb">
-                <Globe2 />
-              </span>
-              <span>
-                {v.name}
-                <small>{v.durationSeconds.toFixed(2)} seconds</small>
-              </span>
-              <span className="badge">{String(i + 1).padStart(2, '0')}</span>
-            </button>
-          ))}
-          <NumberField
-            label="Scene duration"
-            value={scene.durationSeconds}
-            min={1}
-            max={300}
-            onChange={trimScene}
-          />
+          <ScenePanel sceneId={scene.id} />
           <div className="panel-heading section-heading">
             LAYERS <Layers size={14} />
           </div>

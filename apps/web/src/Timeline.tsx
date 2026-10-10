@@ -31,6 +31,7 @@ export function Timeline() {
     'camera',
   );
   const [keyTime, setKeyTime] = useState<number | null>(null);
+  const [keyScope, setKeyScope] = useState('');
   const scene =
     s.project.scenes.find(
       (v) => v.id === evaluateProjectAt(s.project, s.time).sceneId,
@@ -40,7 +41,26 @@ export function Timeline() {
     property === 'camera'
       ? scene.camera.keyframes
       : (layer?.tracks[property] ?? []);
-  const key = keys.find((k) => k.time === keyTime);
+  const scope = `${scene.id}/${property === 'camera' ? 'camera' : s.selected}/${property}`;
+  const key =
+    scope === keyScope ? keys.find((k) => k.time === keyTime) : undefined;
+  useEffect(() => {
+    if (property === 'reveal' && layer?.type !== 'route') {
+      setProperty('opacity');
+      setKeyTime(null);
+    }
+  }, [property, layer?.type]);
+  function seekKey(time: number) {
+    const end = scene.startSeconds + scene.durationSeconds;
+    const global = time + scene.startSeconds;
+    // Keep endpoint keys editable in their own scene. At an internal cut,
+    // preview the final visible frame; ordinary seeking still selects the next scene.
+    s.seek(
+      global === end && end < s.project.durationSeconds
+        ? Math.max(scene.startSeconds, end - 1 / s.project.canvas.fps)
+        : global,
+    );
+  }
   function editKey(
     change: (
       keys:
@@ -149,6 +169,30 @@ export function Timeline() {
             ))}
           </div>
           <div className="track">
+            <span>Scenes · Cut</span>
+            <div className="track-body scene-track">
+              {s.project.scenes.map((item, index) => (
+                <button
+                  key={item.id}
+                  className={`scene-clip ${item.id === scene.id ? 'active' : ''}`}
+                  aria-label={`Jump to scene ${index + 1}: ${item.name}`}
+                  aria-pressed={item.id === scene.id}
+                  title={`${item.name} · ${item.startSeconds.toFixed(2)}–${(item.startSeconds + item.durationSeconds).toFixed(2)}s · Cut`}
+                  style={{
+                    left: `${(item.startSeconds / s.project.durationSeconds) * 100}%`,
+                    width: `${(item.durationSeconds / s.project.durationSeconds) * 100}%`,
+                  }}
+                  onClick={() => {
+                    setKeyTime(null);
+                    s.selectScene(item.id);
+                  }}
+                >
+                  {index + 1} · {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="track">
             <span>◈ Camera</span>
             <div
               className="track-body"
@@ -173,7 +217,8 @@ export function Timeline() {
                     e.stopPropagation();
                     setProperty('camera');
                     setKeyTime(k.time);
-                    s.seek(k.time + scene.startSeconds);
+                    setKeyScope(`${scene.id}/camera/camera`);
+                    seekKey(k.time);
                   }}
                 />
               ))}
@@ -214,7 +259,8 @@ export function Timeline() {
                         useEditor.setState({ selected: l.id });
                         setProperty(prop);
                         setKeyTime(k.time);
-                        s.seek(k.time + scene.startSeconds);
+                        setKeyScope(`${scene.id}/${l.id}/${prop}`);
+                        seekKey(k.time);
                       }}
                     />
                   )),

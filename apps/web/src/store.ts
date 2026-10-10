@@ -8,6 +8,7 @@ import {
   type Project,
 } from '@animatemap/project-schema';
 import { evaluateProjectAt } from '@animatemap/animation-core';
+import { applySceneOperation, type SceneOperation } from './sceneOperations';
 type Tool = 'select' | 'route' | 'marker' | 'text';
 interface EditorState {
   project: Project;
@@ -33,8 +34,18 @@ interface EditorState {
   ) => void;
   deleteLayer: () => void;
   addCameraKey: () => void;
+  selectScene: (id: string) => void;
+  sceneOperation: (operation: SceneOperation) => void;
 }
 const initial = createDemo();
+function selectionAt(project: Project, time: number, selected: string) {
+  const scene = project.scenes.find(
+    (scene) => scene.id === evaluateProjectAt(project, time).sceneId,
+  );
+  return scene?.layers.some((layer) => layer.id === selected)
+    ? selected
+    : (scene?.layers[0]?.id ?? '');
+}
 export const useEditor = create<EditorState>((set, get) => ({
   project: initial,
   past: [],
@@ -91,9 +102,57 @@ export const useEditor = create<EditorState>((set, get) => ({
     }
   },
   seek(seconds) {
-    const { project } = get();
+    const { project, selected } = get();
     const time = Math.max(0, Math.min(project.durationSeconds, seconds));
-    set({ time, camera: evaluateProjectAt(project, time).camera });
+    set({
+      time,
+      selected: selectionAt(project, time, selected),
+      camera: evaluateProjectAt(project, time).camera,
+    });
+  },
+  selectScene(id) {
+    const scene = get().project.scenes.find((scene) => scene.id === id);
+    if (!scene) return;
+    get().seek(scene.startSeconds);
+    set({
+      selected: scene.layers[0]?.id ?? '',
+      playing: false,
+      tool: 'select',
+      points: [],
+    });
+  },
+  sceneOperation(operation) {
+    const state = get();
+    const active = state.project.scenes.find(
+      (scene) =>
+        scene.id === evaluateProjectAt(state.project, state.time).sceneId,
+    );
+    const local = active ? state.time - active.startSeconds : 0;
+    let focus = '';
+    state.edit((project) => {
+      focus = applySceneOperation(project, operation);
+    });
+    if (get().project === state.project) return;
+    const scene = get().project.scenes.find((scene) => scene.id === focus)!;
+    const preserve = active?.id === focus;
+    get().seek(
+      scene.startSeconds +
+        (preserve
+          ? Math.min(
+              local,
+              Math.max(0, scene.durationSeconds - 1 / state.project.canvas.fps),
+            )
+          : 0),
+    );
+    set({
+      selected:
+        preserve && scene.layers.some((layer) => layer.id === state.selected)
+          ? state.selected
+          : (scene.layers[0]?.id ?? ''),
+      playing: false,
+      tool: 'select',
+      points: [],
+    });
   },
   undo() {
     const s = get(),
@@ -105,6 +164,7 @@ export const useEditor = create<EditorState>((set, get) => ({
         past: s.past.slice(0, -1),
         future: [s.project, ...s.future],
         time,
+        selected: selectionAt(previous, time, s.selected),
         camera: evaluateProjectAt(previous, time).camera,
         error: '',
       });
@@ -120,6 +180,7 @@ export const useEditor = create<EditorState>((set, get) => ({
         past: [...s.past, s.project],
         future: s.future.slice(1),
         time,
+        selected: selectionAt(next, time, s.selected),
         camera: evaluateProjectAt(next, time).camera,
         error: '',
       });
