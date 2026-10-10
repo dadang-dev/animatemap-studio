@@ -68,6 +68,18 @@ export function App() {
   const scene =
     s.project.scenes.find((v) => v.id === state.sceneId) ??
     s.project.scenes[0]!;
+  const selectedShape = scene.layers.find(
+    (layer) => layer.id === s.selected && layer.type === 'shape',
+  );
+  const previousScene = useRef(scene.id);
+  useEffect(() => {
+    if (
+      previousScene.current !== scene.id ||
+      (s.pointEdit && s.pointEdit.id !== s.selected)
+    )
+      useEditor.setState({ tool: 'select', points: [], pointEdit: null });
+    previousScene.current = scene.id;
+  }, [scene.id, s.selected, s.pointEdit]);
   useEffect(() => {
     if (!s.playing) return;
     const initial = useEditor.getState().time,
@@ -112,7 +124,7 @@ export function App() {
       } else if (e.key.toLowerCase() === 'k') editor.addCameraKey();
       else if (e.key === 'Delete') editor.deleteLayer();
       else if (e.key === 'Escape')
-        useEditor.setState({ tool: 'select', points: [] });
+        useEditor.setState({ tool: 'select', points: [], pointEdit: null });
     };
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
@@ -319,11 +331,43 @@ export function App() {
               <Globe2 size={16} />
             </button>
           </div>
+          <div className="tool-row shape-tools">
+            {(['line', 'arrow', 'bezier'] as const).map((kind) => (
+              <button
+                key={kind}
+                aria-label={`Draw ${kind} shape`}
+                title={
+                  kind === 'bezier'
+                    ? 'Click start, two control points, then end'
+                    : 'Click at least two map points'
+                }
+                className={
+                  s.tool === 'shape' && s.shapeKind === kind ? 'active' : ''
+                }
+                onClick={() =>
+                  useEditor.setState({
+                    tool: 'shape',
+                    shapeKind: kind,
+                    points: [],
+                    pointEdit: null,
+                  })
+                }
+              >
+                {kind === 'line'
+                  ? '╱ Line'
+                  : kind === 'arrow'
+                    ? '↗ Arrow'
+                    : '⌁ Bezier'}
+              </button>
+            ))}
+          </div>
           {s.tool !== 'select' && (
             <div className="tool-notice">
-              {s.tool === 'route'
+              {s.tool === 'route' || s.tool === 'shape'
                 ? `${s.points.length} points · Click map to add`
-                : 'Click map to place marker'}
+                : s.tool === 'shapePoint'
+                  ? `Click map to reposition point ${(s.pointEdit?.index ?? 0) + 1}`
+                  : 'Click map to place marker'}
               {s.tool === 'route' && (
                 <button
                   disabled={s.points.length < 2}
@@ -332,9 +376,30 @@ export function App() {
                   Finish route
                 </button>
               )}
+              {s.tool === 'shape' && (
+                <>
+                  {s.shapeKind === 'bezier' && (
+                    <small>Start → Control 1 → Control 2 → End</small>
+                  )}
+                  <button
+                    disabled={
+                      s.shapeKind === 'bezier'
+                        ? s.points.length !== 4
+                        : s.points.length < 2
+                    }
+                    onClick={() => s.addLayer('shape')}
+                  >
+                    Finish shape
+                  </button>
+                </>
+              )}
               <button
                 onClick={() =>
-                  useEditor.setState({ tool: 'select', points: [] })
+                  useEditor.setState({
+                    tool: 'select',
+                    points: [],
+                    pointEdit: null,
+                  })
                 }
               >
                 Cancel tool
@@ -448,6 +513,22 @@ export function App() {
                 camera={s.camera}
                 layers={state.layers}
                 blend={state.blend}
+                editCoordinates={
+                  !s.playing &&
+                  s.tool === 'select' &&
+                  s.showShapeControls &&
+                  selectedShape?.type === 'shape' &&
+                  !selectedShape.locked
+                    ? selectedShape.coordinates
+                    : undefined
+                }
+                onEditPoint={(index) => {
+                  if (selectedShape && !selectedShape.locked)
+                    useEditor.setState({
+                      tool: 'shapePoint',
+                      pointEdit: { id: selectedShape.id, index },
+                    });
+                }}
                 onCountry={chooseCountry}
                 onLayer={(id) => {
                   if (useEditor.getState().tool === 'select')
@@ -458,7 +539,24 @@ export function App() {
                   const editor = useEditor.getState();
                   if (editor.tool === 'route')
                     useEditor.setState({ points: [...editor.points, point] });
-                  else if (editor.tool === 'marker')
+                  else if (editor.tool === 'shape') {
+                    if (
+                      editor.shapeKind !== 'bezier' ||
+                      editor.points.length < 4
+                    )
+                      useEditor.setState({ points: [...editor.points, point] });
+                  } else if (editor.tool === 'shapePoint') {
+                    const target = editor.pointEdit;
+                    if (target?.id === editor.selected)
+                      editor.patchLayer((layer) => {
+                        if (
+                          layer.type === 'shape' &&
+                          layer.coordinates[target.index]
+                        )
+                          layer.coordinates[target.index] = point;
+                      });
+                    useEditor.setState({ tool: 'select', pointEdit: null });
+                  } else if (editor.tool === 'marker')
                     editor.addLayer('marker', point);
                 }}
                 onReady={(r) => {

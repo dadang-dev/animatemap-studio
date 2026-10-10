@@ -3,8 +3,12 @@ import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import type { Camera, Layer, Project } from '@animatemap/project-schema';
-import { wrap, type SceneBlend } from '@animatemap/animation-core';
+import type { Camera, Project } from '@animatemap/project-schema';
+import {
+  wrap,
+  type RenderLayer,
+  type SceneBlend,
+} from '@animatemap/animation-core';
 export type Countries = FeatureCollection<
   Polygon | MultiPolygon,
   { code: string; name: string; labelLng: number; labelLat: number }
@@ -68,7 +72,7 @@ export class MapRenderer {
   private overlays: HTMLDivElement;
   private layerIds: string[] = [];
   private project?: Project;
-  private layers: Layer[] = [];
+  private layers: RenderLayer[] = [];
   private error?: string;
   private destroyed = false;
   private blend?: SceneBlend;
@@ -188,7 +192,7 @@ export class MapRenderer {
   apply(
     project: Project,
     camera: Camera,
-    layers: Layer[],
+    layers: RenderLayer[],
     jump = true,
     blend?: SceneBlend,
   ) {
@@ -216,7 +220,12 @@ export class MapRenderer {
         pitch: camera.pitch,
       });
     const ids = layers
-      .filter((l) => l.type === 'route' || l.type === 'countryHighlight')
+      .filter(
+        (l) =>
+          l.type === 'route' ||
+          l.type === 'shape' ||
+          l.type === 'countryHighlight',
+      )
       .map((l) => l.id);
     for (const id of this.layerIds.filter((id) => !ids.includes(id))) {
       for (const suffix of ['fill', 'line'])
@@ -301,14 +310,17 @@ export class MapRenderer {
           opacity,
         );
       }
-      if (layer.type === 'route') {
+      if (layer.type === 'route' || layer.type === 'shape') {
         const data: FeatureCollection = {
           type: 'FeatureCollection',
           features: [
             {
               type: 'Feature',
               properties: {},
-              geometry: { type: 'LineString', coordinates: layer.coordinates },
+              geometry: {
+                type: 'LineString',
+                coordinates: layer.renderCoordinates ?? layer.coordinates,
+              },
             },
           ],
         };
@@ -347,7 +359,11 @@ export class MapRenderer {
           layer.style.dash ? [3, 2] : [1, 0],
         );
       }
-      if (layer.type === 'route' || layer.type === 'countryHighlight')
+      if (
+        layer.type === 'route' ||
+        layer.type === 'shape' ||
+        layer.type === 'countryHighlight'
+      )
         for (const suffix of ['fill', 'line'])
           if (this.map.getLayer(`ams-${layer.id}-${suffix}`))
             this.map.moveLayer(`ams-${layer.id}-${suffix}`);
@@ -426,9 +442,15 @@ export class MapRenderer {
     const scale = container.clientWidth / this.project.canvas.width;
     this.overlays.replaceChildren();
     for (const layer of this.layers) {
-      if (layer.type === 'route' && layer.visible && layer.style.arrow) {
-        const end = layer.coordinates.at(-1)!,
-          previous = layer.coordinates.at(-2)!;
+      if (
+        (layer.type === 'route' || layer.type === 'shape') &&
+        layer.visible &&
+        (layer.style.arrow ||
+          (layer.type === 'shape' && layer.kind === 'arrow'))
+      ) {
+        const coordinates = layer.renderCoordinates ?? layer.coordinates;
+        const end = coordinates.at(-1)!,
+          previous = coordinates.at(-2)!;
         if (end[0] !== previous[0] || end[1] !== previous[1]) {
           const shift =
             360 * Math.round((this.map.getCenter().lng - end[0]) / 360);

@@ -6,6 +6,7 @@ import {
   projectV1Schema,
   projectV2Schema,
   projectV3Schema,
+  projectV4Schema,
   CURRENT_SCHEMA_VERSION,
 } from './index';
 
@@ -93,6 +94,17 @@ test('v3 migration preserves scalar tracks and transitions without changing the 
   const before = JSON.stringify(legacy);
   const migrated = migrateProject(legacy);
   expect(projectV3Schema.parse({ ...migrated, schemaVersion: 3 })).toEqual(
+    legacy,
+  );
+  expect(JSON.stringify(legacy)).toBe(before);
+});
+test('v4 migration preserves 60 FPS and all content without adding shape layers', () => {
+  const project = createDemo();
+  project.canvas.fps = 60;
+  const legacy = projectV4Schema.parse({ ...project, schemaVersion: 4 });
+  const before = JSON.stringify(legacy);
+  const migrated = migrateProject(legacy);
+  expect(projectV4Schema.parse({ ...migrated, schemaVersion: 4 })).toEqual(
     legacy,
   );
   expect(JSON.stringify(legacy)).toBe(before);

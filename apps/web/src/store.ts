@@ -13,7 +13,7 @@ import {
   type CameraPresetKind,
 } from '@animatemap/animation-core';
 import { applySceneOperation, type SceneOperation } from './sceneOperations';
-type Tool = 'select' | 'route' | 'marker' | 'text';
+type Tool = 'select' | 'route' | 'marker' | 'text' | 'shape' | 'shapePoint';
 interface EditorState {
   project: Project;
   past: Project[];
@@ -24,6 +24,9 @@ interface EditorState {
   camera: Camera;
   tool: Tool;
   points: [number, number][];
+  shapeKind: 'line' | 'arrow' | 'bezier';
+  pointEdit: { id: string; index: number } | null;
+  showShapeControls: boolean;
   error: string;
   edit: (change: (project: Project) => void) => void;
   load: (project: unknown) => void;
@@ -62,6 +65,9 @@ export const useEditor = create<EditorState>((set, get) => ({
   camera: evaluateProjectAt(initial, 0).camera,
   tool: 'select',
   points: [],
+  shapeKind: 'line',
+  pointEdit: null,
+  showShapeControls: true,
   error: '',
   edit(change) {
     const state = get(),
@@ -101,6 +107,7 @@ export const useEditor = create<EditorState>((set, get) => ({
         camera: evaluateProjectAt(project, 0).camera,
         points: [],
         tool: 'select',
+        pointEdit: null,
         error: '',
       });
     } catch (e) {
@@ -235,7 +242,10 @@ export const useEditor = create<EditorState>((set, get) => ({
     const id = crypto.randomUUID();
     const common = {
       id,
-      name: type === 'countryHighlight' ? code : `New ${type}`,
+      name:
+        type === 'countryHighlight'
+          ? code
+          : `New ${type === 'shape' ? s.shapeKind : type}`,
       type,
       timeRange: { start: 0, end: scene.durationSeconds },
       opacity: 1,
@@ -247,10 +257,16 @@ export const useEditor = create<EditorState>((set, get) => ({
       coordinates: point ?? [s.camera.lng, s.camera.lat],
     };
     const detail =
-      type === 'route'
+      type === 'route' || type === 'shape'
         ? {
             coordinates: s.points,
-            style: { color: '#ffd087', width: 6, dash: false, arrow: true },
+            ...(type === 'shape' ? { kind: s.shapeKind } : {}),
+            style: {
+              color: '#ffd087',
+              width: 6,
+              dash: false,
+              arrow: type === 'route' || s.shapeKind === 'arrow',
+            },
             tracks: {
               opacity: [],
               reveal: [

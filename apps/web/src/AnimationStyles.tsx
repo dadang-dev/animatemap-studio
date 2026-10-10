@@ -12,7 +12,7 @@ const names: Record<AnimationStyleKind, string> = {
   fadeInOut: 'Fade in and out',
   pop: 'Pop',
   slideUp: 'Slide up',
-  draw: 'Draw route',
+  draw: 'Draw path',
 };
 export function AnimationStyles({ layer }: { layer: Layer }) {
   const [kind, setKind] = useState<AnimationStyleKind>('fadeIn');

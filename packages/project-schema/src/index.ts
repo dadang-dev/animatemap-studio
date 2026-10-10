@@ -165,7 +165,20 @@ const projectV1Base = z.object({
     .max(20),
 });
 function validateTiming(
-  project: Pick<z.infer<typeof projectV1Base>, 'scenes' | 'durationSeconds'>,
+  project: {
+    durationSeconds: number;
+    scenes: {
+      id: string;
+      startSeconds: number;
+      durationSeconds: number;
+      camera: { keyframes: { time: number }[] };
+      layers: {
+        id: string;
+        timeRange: { end: number };
+        tracks: Record<string, { time: number }[]>;
+      }[];
+    }[];
+  },
   ctx: z.RefinementCtx,
 ) {
   const ids = new Set<string>();
@@ -223,7 +236,13 @@ const projectV2Base = z.object({
   scenes: z.array(sceneV2Schema).min(1).max(20),
 });
 function validateTransitions(
-  project: Pick<z.infer<typeof projectV2Base>, 'scenes'>,
+  project: {
+    scenes: {
+      startSeconds: number;
+      durationSeconds: number;
+      transition: z.infer<typeof transitionSchema>;
+    }[];
+  },
   ctx: z.RefinementCtx,
 ) {
   project.scenes.forEach((scene, index) => {
@@ -281,17 +300,39 @@ const tracksV3Schema = z
     offsetX: [],
     offsetY: [],
   });
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV3Schema = z.discriminatedUnion('type', [
   layerV1Schema.options[0].extend({ tracks: tracksV3Schema }),
   layerV1Schema.options[1].extend({ tracks: tracksV3Schema }),
   layerV1Schema.options[2].extend({ tracks: tracksV3Schema }),
   layerV1Schema.options[3].extend({ tracks: tracksV3Schema }),
 ]);
+export const shapeSchema = z
+  .object({
+    ...common,
+    tracks: tracksV3Schema,
+    type: z.literal('shape'),
+    kind: z.enum(['line', 'arrow', 'bezier']),
+    coordinates: z.array(coordinateSchema).min(2).max(10000),
+    style: z.object({
+      color,
+      width: finite.min(1).max(40),
+      dash: z.boolean().default(false),
+      arrow: z.boolean().default(false),
+    }),
+  })
+  .refine(
+    (shape) => shape.kind !== 'bezier' || shape.coordinates.length === 4,
+    'Bezier requires exactly four control points',
+  );
+export const layerSchema = z.discriminatedUnion('type', [
+  ...layerV3Schema.options,
+  shapeSchema,
+]);
 export type Layer = z.infer<typeof layerSchema>;
 export function propertiesForLayer(layer: Layer): ScalarProperty[] {
   return layer.type === 'marker' || layer.type === 'text'
     ? ['opacity', 'scale', 'rotation', 'offsetX', 'offsetY']
-    : layer.type === 'route'
+    : layer.type === 'route' || layer.type === 'shape'
       ? ['opacity', 'reveal']
       : ['opacity'];
 }
@@ -299,12 +340,24 @@ const projectV3Base = z.object({
   ...projectV2Base.shape,
   schemaVersion: z.literal(3),
   scenes: z
-    .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+    .array(sceneV2Schema.extend({ layers: z.array(layerV3Schema).max(100) }))
     .min(1)
     .max(20),
 });
 function validateTransformTracks(
-  project: Pick<z.infer<typeof projectV3Base>, 'scenes'>,
+  project: {
+    scenes: {
+      layers: {
+        type: string;
+        tracks: {
+          scale: unknown[];
+          rotation: unknown[];
+          offsetX: unknown[];
+          offsetY: unknown[];
+        };
+      }[];
+    }[];
+  },
   ctx: z.RefinementCtx,
 ) {
   project.scenes.forEach((scene, s) =>
@@ -329,13 +382,24 @@ export const projectV3Schema = projectV3Base
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
   .superRefine(validateTransformTracks);
-export const CURRENT_SCHEMA_VERSION = 4;
-export const projectSchema = projectV3Base
+const projectV4Base = projectV3Base.extend({
+  schemaVersion: z.literal(4),
+  canvas: projectV3Base.shape.canvas.extend({
+    fps: z.union([z.literal(24), z.literal(30), z.literal(60)]),
+  }),
+});
+export const projectV4Schema = projectV4Base
+  .superRefine(validateTiming)
+  .superRefine(validateTransitions)
+  .superRefine(validateTransformTracks);
+export const CURRENT_SCHEMA_VERSION = 5;
+export const projectSchema = projectV4Base
   .extend({
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
-    canvas: projectV3Base.shape.canvas.extend({
-      fps: z.union([z.literal(24), z.literal(30), z.literal(60)]),
-    }),
+    scenes: z
+      .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+      .min(1)
+      .max(20),
   })
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
@@ -350,17 +414,20 @@ export function migrateProject(input: unknown): Project {
     'schemaVersion' in input &&
     (input.schemaVersion === 1 ||
       input.schemaVersion === 2 ||
-      input.schemaVersion === 3)
+      input.schemaVersion === 3 ||
+      input.schemaVersion === 4)
   ) {
     const legacy =
-      input.schemaVersion === 3
-        ? projectV3Schema.parse(input)
-        : input.schemaVersion === 1
-          ? projectV2Schema.parse({
-              ...projectV1Schema.parse(input),
-              schemaVersion: 2,
-            })
-          : projectV2Schema.parse(input);
+      input.schemaVersion === 4
+        ? projectV4Schema.parse(input)
+        : input.schemaVersion === 3
+          ? projectV3Schema.parse(input)
+          : input.schemaVersion === 1
+            ? projectV2Schema.parse({
+                ...projectV1Schema.parse(input),
+                schemaVersion: 2,
+              })
+            : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

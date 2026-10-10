@@ -7,7 +7,7 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 - [x] 6C: deterministic crossfade and v1→v2 migration.
 - [x] 6D: animation styles, scalar overlay transform tracks, v1/v2 migration.
 - [x] 6E: real 4K/60 FPS, WebM and GIF export, format validation and frame parity.
-- [ ] 6F: line/arrow/Bezier shapes and curve editing, geographic dateline tests.
+- [x] 6F: line/arrow/Bezier shapes and curve editing, geographic dateline tests.
 - [ ] 6G: image/logo overlays, licensed flag/texture assets, bounded local asset ingestion and readiness.
 - [ ] 6H: deterministic label collision policy shared by preview/export.
 - [ ] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
@@ -20,7 +20,7 @@ P2 modules:
 
 - [ ] 7A: 3D terrain/buildings/models with a separate validated asset pipeline, camera follow and multi-pass graphics.
 - [ ] 7B: licensed time-aware historical border import, year slider, uncertainty/source labels and topology validation before morphing.
-- [ ] 7C: actual configured AI provider proposes validated JSON, with explicit user review before applying; no invented historical polygons.
+- [ ] 7C: Codex proposes validated JSON through an actual installed/configured invocation, with explicit user review before applying; no invented historical polygons. The user selected Codex rather than a separate API provider.
 - [ ] 7D: After Effects camera/anchor interchange and executable import script, with documented projection limitations and host validation.
 - [ ] 7E: authenticated collaborative cloud persistence and concurrency/conflict handling.
 - [ ] 7F: SaaS billing with configured payment provider, verified webhooks and test-mode lifecycle.

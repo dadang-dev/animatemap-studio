@@ -18,7 +18,9 @@ export function animationStylesFor(layer: Layer): AnimationStyleKind[] {
     'fadeIn',
     'fadeOut',
     'fadeInOut',
-    ...(layer.type === 'route' ? ['draw' as const] : []),
+    ...(layer.type === 'route' || layer.type === 'shape'
+      ? ['draw' as const]
+      : []),
     ...(layer.type === 'marker' || layer.type === 'text'
       ? ['pop' as const, 'slideUp' as const]
       : []),

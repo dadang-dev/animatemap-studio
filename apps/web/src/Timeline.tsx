@@ -303,7 +303,11 @@ export function Timeline() {
           {(layer ? propertiesForLayer(layer) : (['opacity'] as const)).map(
             (prop) => (
               <option key={prop} value={prop}>
-                {prop === 'reveal' ? 'Route reveal' : `Layer ${prop}`}
+                {prop === 'reveal'
+                  ? layer?.type === 'shape'
+                    ? 'Shape reveal'
+                    : 'Route reveal'
+                  : `Layer ${prop}`}
               </option>
             ),
           )}

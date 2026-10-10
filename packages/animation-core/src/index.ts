@@ -18,6 +18,8 @@ import type {
 } from '@animatemap/project-schema';
 export const frameTime = (index: number, fps: number) => index / fps;
 import { clamp, wrap } from './numeric';
+import { unwrapCoordinates, bezierPath } from './geometry';
+export { unwrapCoordinates, bezierPath } from './geometry';
 export { clamp, wrap } from './numeric';
 export const easings: Record<Easing, (t: number) => number> = {
   linear: (t) => t,
@@ -57,16 +59,6 @@ export function interpolateCamera(a: Camera, b: Camera, t: number): Camera {
     pitch: clamp(lerp(a.pitch, b.pitch), 0, 60),
   };
 }
-export function unwrapCoordinates(
-  points: [number, number][],
-): [number, number][] {
-  const result: [number, number][] = [];
-  for (const [lng, lat] of points) {
-    const previous = result.at(-1)?.[0] ?? lng;
-    result.push([previous + wrap(lng - previous), lat]);
-  }
-  return result;
-}
 export function trimRoute(
   points: [number, number][],
   progress: number,
@@ -100,17 +92,18 @@ export function trimRoute(
     output.length === 1 ? [output[0]!, output[0]!] : output,
   );
 }
+export type RenderLayer = Layer & { renderCoordinates?: [number, number][] };
 export type SceneRenderState = {
   sceneId: string;
   camera: Camera;
-  layers: Layer[];
+  layers: RenderLayer[];
 };
 export type SceneBlend = { incomingWeight: number; outgoing: SceneRenderState };
 export type RenderState = {
   time: number;
   sceneId: string | null;
   camera: Camera;
-  layers: Layer[];
+  layers: RenderLayer[];
   blend?: SceneBlend;
 };
 export function evaluateProjectAt(
@@ -164,13 +157,13 @@ function evaluateSceneAt(
     fallback,
     interpolateCamera,
   );
-  const layers = scene.layers.map((layer): Layer => {
+  const layers = scene.layers.map((layer): RenderLayer => {
     const active =
       layer.visible &&
       local >= layer.timeRange.start &&
       (local < layer.timeRange.end ||
         (time === project.durationSeconds && local === layer.timeRange.end));
-    const result = {
+    const result: RenderLayer = {
       ...layer,
       visible: active,
       opacity: layer.opacity * scalarAt(layer.tracks.opacity, local, 1),
@@ -188,6 +181,13 @@ function evaluateSceneAt(
     if (result.type === 'route')
       result.coordinates = trimRoute(
         result.coordinates,
+        scalarAt(layer.tracks.reveal, local, 1),
+      );
+    if (result.type === 'shape')
+      result.renderCoordinates = trimRoute(
+        result.kind === 'bezier'
+          ? bezierPath(result.coordinates)
+          : result.coordinates,
         scalarAt(layer.tracks.reveal, local, 1),
       );
     return result;

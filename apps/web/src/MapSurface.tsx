@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapRenderer, type Countries } from '@animatemap/map-engine';
-import type { Camera, Project, Layer } from '@animatemap/project-schema';
+import type { Camera, Project } from '@animatemap/project-schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { SceneBlend } from '@animatemap/animation-core';
+import type { SceneBlend, RenderLayer } from '@animatemap/animation-core';
+import { EditHandles } from './EditHandles';
 export function MapSurface({
   project,
   camera,
@@ -14,10 +15,14 @@ export function MapSurface({
   onReady,
   onLayer,
   onError,
+  editCoordinates,
+  onEditPoint,
 }: {
   project: Project;
   camera: Camera;
-  layers?: Layer[];
+  layers?: RenderLayer[];
+  editCoordinates?: [number, number][];
+  onEditPoint?: (index: number) => void;
   blend?: SceneBlend;
   onCountry?: (code: string) => void;
   onCamera?: (camera: Camera) => void;
@@ -148,6 +153,13 @@ export function MapSurface({
         ref={container}
         style={{ position: 'absolute', inset: 0 }}
       />
+      {!status && renderer.current && editCoordinates && (
+        <EditHandles
+          renderer={renderer.current}
+          coordinates={editCoordinates}
+          onEditPoint={onEditPoint}
+        />
+      )}
       {status && (
         <div className="map-status" role="status">
           {status}

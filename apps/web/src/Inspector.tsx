@@ -159,17 +159,62 @@ export function Inspector({ country }: { country: string }) {
               />
             </>
           )}
-          {layer.type === 'route' && (
+          {(layer.type === 'route' || layer.type === 'shape') && (
             <>
               <p className="hint">
-                Geographic connection, not road directions.
+                {layer.type === 'shape'
+                  ? 'Illustrative geographic graphic. Bezier points are start, two controls, then end.'
+                  : 'Geographic connection, not road directions.'}
               </p>
+              {layer.type === 'shape' && (
+                <>
+                  <label className="field">
+                    Shape kind
+                    <select
+                      aria-label="Shape kind"
+                      value={layer.kind}
+                      onChange={(event) =>
+                        patch((target) => {
+                          if (target.type === 'shape') {
+                            target.kind = event.target
+                              .value as typeof target.kind;
+                            target.style.arrow = target.kind === 'arrow';
+                          }
+                        })
+                      }
+                    >
+                      <option value="line">Line</option>
+                      <option value="arrow">Arrow</option>
+                      <option
+                        value="bezier"
+                        disabled={layer.coordinates.length !== 4}
+                      >
+                        Bezier
+                      </option>
+                    </select>
+                  </label>
+                  <label className="check">
+                    <input
+                      aria-label="Show shape controls"
+                      type="checkbox"
+                      checked={s.showShapeControls}
+                      onChange={(event) =>
+                        useEditor.setState({
+                          showShapeControls: event.target.checked,
+                        })
+                      }
+                    />
+                    Show edit controls
+                  </label>
+                </>
+              )}
               <NumberField
-                label="Route width"
+                label={layer.type === 'shape' ? 'Shape width' : 'Route width'}
                 value={layer.style.width}
                 onChange={(v) =>
                   patch((l) => {
-                    if (l.type === 'route') l.style.width = v;
+                    if (l.type === 'route' || l.type === 'shape')
+                      l.style.width = v;
                   })
                 }
               />
@@ -179,19 +224,25 @@ export function Inspector({ country }: { country: string }) {
                   checked={layer.style.dash}
                   onChange={(e) =>
                     patch((l) => {
-                      if (l.type === 'route') l.style.dash = e.target.checked;
+                      if (l.type === 'route' || l.type === 'shape')
+                        l.style.dash = e.target.checked;
                     })
                   }
                 />
-                Dashed route
+                {layer.type === 'shape' ? 'Dashed shape' : 'Dashed route'}
               </label>
               <label className="check">
                 <input
                   type="checkbox"
-                  checked={layer.style.arrow}
+                  disabled={layer.type === 'shape' && layer.kind === 'arrow'}
+                  checked={
+                    layer.style.arrow ||
+                    (layer.type === 'shape' && layer.kind === 'arrow')
+                  }
                   onChange={(e) =>
                     patch((l) => {
-                      if (l.type === 'route') l.style.arrow = e.target.checked;
+                      if (l.type === 'route' || l.type === 'shape')
+                        l.style.arrow = e.target.checked;
                     })
                   }
                 />
@@ -204,7 +255,8 @@ export function Inspector({ country }: { country: string }) {
                     value={point[0]}
                     onChange={(v) =>
                       patch((l) => {
-                        if (l.type === 'route') l.coordinates[i]![0] = v;
+                        if (l.type === 'route' || l.type === 'shape')
+                          l.coordinates[i]![0] = v;
                       })
                     }
                   />
@@ -213,27 +265,47 @@ export function Inspector({ country }: { country: string }) {
                     value={point[1]}
                     onChange={(v) =>
                       patch((l) => {
-                        if (l.type === 'route') l.coordinates[i]![1] = v;
+                        if (l.type === 'route' || l.type === 'shape')
+                          l.coordinates[i]![1] = v;
                       })
                     }
                   />
                   <button
-                    disabled={layer.coordinates.length <= 2}
+                    disabled={
+                      layer.coordinates.length <= 2 ||
+                      (layer.type === 'shape' && layer.kind === 'bezier')
+                    }
                     aria-label={`Delete point ${i + 1}`}
                     onClick={() =>
                       patch((l) => {
-                        if (l.type === 'route') l.coordinates.splice(i, 1);
+                        if (l.type === 'route' || l.type === 'shape')
+                          l.coordinates.splice(i, 1);
                       })
                     }
                   >
                     ×
                   </button>
+                  {layer.type === 'shape' && (
+                    <button
+                      aria-label={`Move shape point ${i + 1} on map`}
+                      title="Click this button, then click the map"
+                      onClick={() =>
+                        useEditor.setState({
+                          tool: 'shapePoint',
+                          pointEdit: { id: layer.id, index: i },
+                        })
+                      }
+                    >
+                      ↗
+                    </button>
+                  )}
                 </div>
               ))}
               <button
+                disabled={layer.type === 'shape' && layer.kind === 'bezier'}
                 onClick={() =>
                   patch((l) => {
-                    if (l.type === 'route')
+                    if (l.type === 'route' || l.type === 'shape')
                       l.coordinates.push([s.camera.lng, s.camera.lat]);
                   })
                 }

@@ -6,13 +6,16 @@ test('render page reloads projects and recovers after a failed load', async ({
 }) => {
   await page.goto('http://127.0.0.1:5174/render');
   await page.waitForFunction(() => !!window.renderStudio);
+  // Complete unrelated page font requests before installing/removing network
+  // interception; otherwise a paused font request can survive unroute in Chromium.
+  await page.evaluate(() => document.fonts.ready);
   await page.route('**/data/countries.geojson', (route) =>
     route.fulfill({ status: 503, body: 'Unavailable' }),
   );
   await expect(
     page.evaluate((p) => window.renderStudio!.load(p), createDemo()),
   ).rejects.toThrow('Country data unavailable (503)');
-  await page.unroute('**/data/countries.geojson');
+  await page.unrouteAll({ behavior: 'wait' });
   await page.evaluate((p) => window.renderStudio!.load(p), createDemo());
   await page.evaluate(() => window.renderStudio!.frame(90));
   const next = createDemo('highlight');
