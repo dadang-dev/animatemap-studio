@@ -20,6 +20,7 @@ export function makeStyle(
   const p = palettes[style];
   return {
     version: 8,
+    transition: { duration: 0, delay: 0 },
     sources: { countries: { type: 'geojson', data: countries } },
     layers: [
       {
@@ -99,8 +100,22 @@ export class MapRenderer {
         layers: ['countries-fill'],
       })[0];
       if (f?.properties?.code) onCountry?.(String(f.properties.code));
-      const hit = this.map.queryRenderedFeatures(e.point).find((feature) => this.layerIds.some((id) => feature.layer.id === `${id}-line` || feature.layer.id === `${id}-fill`));
-      if (hit) { const id = this.layerIds.find((id) => hit.layer.id === `${id}-line` || hit.layer.id === `${id}-fill`); if (id) this.onLayer?.(id); }
+      const hit = this.map
+        .queryRenderedFeatures(e.point)
+        .find((feature) =>
+          this.layerIds.some(
+            (id) =>
+              feature.layer.id === `${id}-line` ||
+              feature.layer.id === `${id}-fill`,
+          ),
+        );
+      if (hit) {
+        const id = this.layerIds.find(
+          (id) =>
+            hit.layer.id === `${id}-line` || hit.layer.id === `${id}-fill`,
+        );
+        if (id) this.onLayer?.(id);
+      }
       onPoint?.([((e.lngLat.lng + 540) % 360) - 180, e.lngLat.lat]);
     });
   }
@@ -249,12 +264,28 @@ export class MapRenderer {
     this.overlays.replaceChildren();
     for (const layer of this.layers) {
       if (layer.type === 'route' && layer.visible && layer.style.arrow) {
-        const end = layer.coordinates.at(-1)!, previous = layer.coordinates.at(-2)!;
+        const end = layer.coordinates.at(-1)!,
+          previous = layer.coordinates.at(-2)!;
         if (end[0] !== previous[0] || end[1] !== previous[1]) {
-          const a = this.map.project(previous), b = this.map.project(end);
-          const arrow = document.createElement('div'); arrow.textContent = '▶'; arrow.dataset.layerId = layer.id;
-          arrow.addEventListener('click', (event) => { event.stopPropagation(); this.onLayer?.(layer.id); });
-          Object.assign(arrow.style, { position: 'absolute', left: `${b.x}px`, top: `${b.y}px`, fontSize: `${20*scale}px`, color: layer.style.color, opacity: `${layer.opacity}`, transform: `translate(-50%,-50%) rotate(${Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI}deg)` }); this.overlays.append(arrow);
+          const a = this.map.project(previous),
+            b = this.map.project(end);
+          const arrow = document.createElement('div');
+          arrow.textContent = '▶';
+          arrow.dataset.layerId = layer.id;
+          arrow.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.onLayer?.(layer.id);
+          });
+          Object.assign(arrow.style, {
+            position: 'absolute',
+            left: `${b.x}px`,
+            top: `${b.y}px`,
+            fontSize: `${20 * scale}px`,
+            color: layer.style.color,
+            opacity: `${layer.opacity}`,
+            transform: `translate(-50%,-50%) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI}deg)`,
+          });
+          this.overlays.append(arrow);
         }
       }
       if (
@@ -265,7 +296,10 @@ export class MapRenderer {
         continue;
       const el = document.createElement('div');
       el.dataset.layerId = layer.id;
-      el.addEventListener('click', (event) => { event.stopPropagation(); this.onLayer?.(layer.id); });
+      el.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.onLayer?.(layer.id);
+      });
       let x: number, y: number;
       if (layer.anchor.type === 'map') {
         const [lng, lat] = layer.anchor.coordinates;

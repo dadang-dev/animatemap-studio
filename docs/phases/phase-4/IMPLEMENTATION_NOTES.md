@@ -1,3 +1,5 @@
 # Phase 4
 
+Status: passed. 13 unit/integration tests; actual 1080p MP4 acceptance passed (360 frames, 12.000s, 30/1 FPS, H.264/yuv420p). Full worker took 104.0 seconds on this machine. Mean absolute RGB channel difference versus preview at 0/3/6/9s: 1.12/1.15/1.19/1.16, below threshold 3 on 0–255 scale. Decoded frame at 6s visually inspected: map, route/arrow, country highlight, Unicode labels and credit present. Actual 1080×1920 PNG and 30-frame MP4 passed dimension checks; active cancellation blocks download. Artifacts in `test-results/export`. First attempt failed due to editor hot reload; isolated production render server fixed it. Snapshot/report preserved and temporary frames cleaned.
+
 Add fixed-frame render page, immutable snapshot jobs, bounded queue, cancel/retry/download API, Playwright worker and shell-free FFmpeg encoder; CLI shares worker. Capture current-frame PNG and MP4 with source credit. Bundle Noto Sans fonts. Tests: real 360-frame 1080p render, ffprobe, decoded frame parity, portrait, PNG, cancellation/resource failure. Readiness errors must terminate jobs honestly, never fabricate output.

@@ -7,3 +7,4 @@
 - Phase 0 shell intentionally has disabled export until real rendering is validated.
 - Shared accessible native controls and CSS currently replace Tailwind/shadcn and React Hook Form; all edits validate through Zod. Reorder uses keyboard-accessible up/down buttons rather than dnd-kit. These choices reduce UI dependencies while preserving behavior; draggable enhancements can be added without changing project contracts.
 - Map vector geometry renders beneath DOM text/markers. Layer ordering is honored within each rendering plane; arbitrary interleaving needs a separate compositing implementation.
+- Render workers use the production build on port 5174; editor development uses port 5173. A failed acceptance render exposed hot reload interrupting an active export. Production rendering removes that dependency.

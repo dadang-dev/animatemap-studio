@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "concurrently -k -n api,web \"pnpm --filter @animatemap/api dev\" \"pnpm --filter @animatemap/web dev\"",
+    "dev": "pnpm build && concurrently -k -n api,web,render \"pnpm --filter @animatemap/api dev\" \"pnpm --filter @animatemap/web dev\" \"pnpm --filter @animatemap/web preview\"",
     "build": "pnpm --filter @animatemap/web build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -21,13 +21,15 @@
   "devDependencies": {
     "@eslint/js": "9.39.1",
     "@playwright/test": "1.58.2",
+    "@types/geojson": "7946.0.16",
     "@types/node": "24.10.1",
+    "@types/pngjs": "6.0.5",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "@types/geojson": "7946.0.16",
     "concurrently": "9.2.1",
     "eslint": "9.39.1",
     "globals": "16.5.0",
+    "pngjs": "7.0.0",
     "prettier": "3.7.4",
     "tsx": "4.21.0",
     "typescript": "5.9.3",

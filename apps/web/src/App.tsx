@@ -6,7 +6,6 @@ import {
   Globe2,
   Undo2,
   Redo2,
-  Download,
   Layers,
   MapPin,
   Route,
@@ -21,6 +20,7 @@ import { useEditor } from './store';
 import { Inspector, NumberField } from './Inspector';
 import { Timeline } from './Timeline';
 import { ProjectMenu } from './ProjectMenu';
+import { ExportPanel } from './ExportPanel';
 import { api, useAutosave } from './persistence';
 declare global {
   interface Window {
@@ -173,13 +173,7 @@ export function App() {
           {s.project.canvas.width} × {s.project.canvas.height} ·{' '}
           {s.project.canvas.fps} FPS
         </span>
-        <button
-          className="primary"
-          disabled
-          title="Available after export pipeline validation"
-        >
-          <Download size={16} /> Export
-        </button>
+        <ExportPanel />
       </header>
       {s.error && (
         <div className="error-banner" role="alert">
@@ -465,7 +459,10 @@ export function App() {
                 camera={s.camera}
                 layers={state.layers}
                 onCountry={chooseCountry}
-                onLayer={(id) => { if (useEditor.getState().tool === 'select') useEditor.setState({ selected: id }); }}
+                onLayer={(id) => {
+                  if (useEditor.getState().tool === 'select')
+                    useEditor.setState({ selected: id });
+                }}
                 onCamera={(camera) => useEditor.setState({ camera })}
                 onPoint={(point) => {
                   const editor = useEditor.getState();

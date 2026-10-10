@@ -20,6 +20,9 @@ importers:
       '@types/node':
         specifier: 24.10.1
         version: 24.10.1
+      '@types/pngjs':
+        specifier: 6.0.5
+        version: 6.0.5
       '@types/react':
         specifier: 19.2.2
         version: 19.2.2
@@ -35,6 +38,9 @@ importers:
       globals:
         specifier: 16.5.0
         version: 16.5.0
+      pngjs:
+        specifier: 7.0.0
+        version: 7.0.0
       prettier:
         specifier: 3.7.4
         version: 3.7.4
@@ -86,6 +92,9 @@ importers:
       '@animatemap/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@fontsource/noto-sans':
+        specifier: 5.2.8
+        version: 5.2.8
       idb-keyval:
         specifier: 6.2.2
         version: 6.2.2
@@ -597,6 +606,9 @@ packages:
 
   '@fastify/proxy-addr@5.1.1':
     resolution: {integrity: sha512-zv07Y9GEuDsJPegZoDFd4SDWaZOW8N2pa0GSrYmKpId/tjt1Hgo3BjZBVjdVpfVrHaA+Qv5jawtS2O50J5xM9g==}
+
+  '@fontsource/noto-sans@5.2.8':
+    resolution: {integrity: sha512-Gqsp0q7sL4G+KL7PRFy4eteeJad9Q3Ef8qlBVabT406e57vdbDH7fAQeiVn0ILGMQ/UDyj6j/SVK+VYzVzxE9w==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -1207,6 +1219,9 @@ packages:
 
   '@types/node@24.10.1':
     resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
+
+  '@types/pngjs@6.0.5':
+    resolution: {integrity: sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ==}
 
   '@types/react-dom@19.2.2':
     resolution: {integrity: sha512-9KQPoO6mZCi7jcIStSnlOWn2nEF3mNmyr3rIAsGnAbQKYbRLyqmeSc39EVgtxXVia+LMT8j3knZLAZAh+xLmrw==}
@@ -1893,6 +1908,10 @@ packages:
     resolution: {integrity: sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==}
     engines: {node: '>=18'}
     hasBin: true
+
+  pngjs@7.0.0:
+    resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
+    engines: {node: '>=14.19.0'}
 
   point-in-polygon-hao@1.2.4:
     resolution: {integrity: sha512-x2pcvXeqhRHlNRdhLs/tgFapAbSSe86wa/eqmj1G6pWftbEs5aVRJhRGM6FYSUERKu0PjekJzMq0gsI2XyiclQ==}
@@ -2661,6 +2680,8 @@ snapshots:
     dependencies:
       '@fastify/forwarded': 3.0.2
       ipaddr.js: 2.5.0
+
+  '@fontsource/noto-sans@5.2.8': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -3978,6 +3999,10 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/pngjs@6.0.5':
+    dependencies:
+      '@types/node': 24.10.1
+
   '@types/react-dom@19.2.2(@types/react@19.2.2)':
     dependencies:
       '@types/react': 19.2.2
@@ -4763,6 +4788,8 @@ snapshots:
       playwright-core: 1.58.2
     optionalDependencies:
       fsevents: 2.3.2
+
+  pngjs@7.0.0: {}
 
   point-in-polygon-hao@1.2.4:
     dependencies:

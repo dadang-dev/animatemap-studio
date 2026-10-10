@@ -1,0 +1,26 @@
+.export-menu {
+  left: auto;
+  right: 0;
+}
+.export-status {
+  margin: 18px 0;
+  padding: 12px;
+  background: #142922;
+  border: 1px solid #416655;
+  border-radius: 6px;
+}
+.export-status progress {
+  display: block;
+  width: 100%;
+  margin: 12px 0;
+  accent-color: #89d7bc;
+}
+.download-link {
+  display: block;
+  margin: 12px 0;
+  color: #a5eed1;
+  font-weight: 650;
+}
+.export-menu > button {
+  margin: 8px 5px 0 0;
+}

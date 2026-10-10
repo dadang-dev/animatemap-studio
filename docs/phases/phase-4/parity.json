@@ -1,0 +1,21 @@
+{
+  "comparisons": [
+    {
+      "time": 0,
+      "meanAbsoluteChannelError": 1.1166941550925926
+    },
+    {
+      "time": 3,
+      "meanAbsoluteChannelError": 1.1508871849279836
+    },
+    {
+      "time": 6,
+      "meanAbsoluteChannelError": 1.1874184992283952
+    },
+    {
+      "time": 9,
+      "meanAbsoluteChannelError": 1.1577273019547325
+    }
+  ],
+  "elapsedMs": 104001.5749
+}
