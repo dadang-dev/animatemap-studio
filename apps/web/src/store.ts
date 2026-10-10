@@ -7,7 +7,11 @@ import {
   type Layer,
   type Project,
 } from '@animatemap/project-schema';
-import { evaluateProjectAt } from '@animatemap/animation-core';
+import {
+  evaluateProjectAt,
+  createCameraPreset,
+  type CameraPresetKind,
+} from '@animatemap/animation-core';
 import { applySceneOperation, type SceneOperation } from './sceneOperations';
 type Tool = 'select' | 'route' | 'marker' | 'text';
 interface EditorState {
@@ -36,6 +40,8 @@ interface EditorState {
   addCameraKey: () => void;
   selectScene: (id: string) => void;
   sceneOperation: (operation: SceneOperation) => void;
+  applyTemplate: (project: unknown) => void;
+  applyCameraPreset: (kind: CameraPresetKind, amount?: number) => void;
 }
 const initial = createDemo();
 function selectionAt(project: Project, time: number, selected: string) {
@@ -100,6 +106,32 @@ export const useEditor = create<EditorState>((set, get) => ({
     } catch (e) {
       set({ error: e instanceof Error ? e.message : 'Invalid project' });
     }
+  },
+  applyTemplate(input) {
+    const previous = get().project;
+    get().edit((project) => {
+      Object.assign(project, migrateProject(input));
+    });
+    if (get().project === previous) return;
+    get().seek(0);
+    set({ playing: false, tool: 'select', points: [] });
+  },
+  applyCameraPreset(kind, amount) {
+    const state = get();
+    const sceneId = evaluateProjectAt(state.project, state.time).sceneId;
+    state.edit((project) => {
+      const scene = project.scenes.find((scene) => scene.id === sceneId);
+      if (!scene)
+        throw new Error('Select a scene before applying a camera preset');
+      scene.camera.keyframes = createCameraPreset(
+        kind,
+        state.camera,
+        scene.durationSeconds,
+        amount,
+        scene.camera.keyframes[0]!.value,
+      );
+    });
+    if (get().project !== state.project) get().seek(state.time);
   },
   seek(seconds) {
     const { project, selected } = get();

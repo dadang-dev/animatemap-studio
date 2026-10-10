@@ -1,6 +1,7 @@
 import { useEditor } from './store';
 import type { Camera } from '@animatemap/project-schema';
 import { cameraSchema } from '@animatemap/project-schema';
+import { CameraPresets } from './CameraPresets';
 export function NumberField({
   label,
   value,
@@ -478,6 +479,7 @@ export function Inspector({ country }: { country: string }) {
         Capture camera changes as a keyframe. Seeking restores the timeline
         camera.
       </p>
+      <CameraPresets />
     </>
   );
 }

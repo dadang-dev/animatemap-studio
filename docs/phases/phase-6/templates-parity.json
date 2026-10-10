@@ -1,0 +1,8 @@
+{
+  "comparisons": [
+    { "frame": 0, "meanAbsoluteChannelError": 1.8671212705761318 },
+    { "frame": 15, "meanAbsoluteChannelError": 0.9725419560185186 },
+    { "frame": 30, "meanAbsoluteChannelError": 1.9202922453703704 },
+    { "frame": 45, "meanAbsoluteChannelError": 0.9686533886316873 }
+  ]
+}

@@ -1,4 +1,9 @@
 import { distance, bearing, destination } from '@turf/turf';
+export {
+  createCameraPreset,
+  cameraPresetKinds,
+  type CameraPresetKind,
+} from './cameraPresets';
 import type {
   Camera,
   Easing,
@@ -7,9 +12,8 @@ import type {
   ScalarKeyframe,
 } from '@animatemap/project-schema';
 export const frameTime = (index: number, fps: number) => index / fps;
-export const clamp = (n: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, n));
-export const wrap = (n: number) => ((((n + 180) % 360) + 360) % 360) - 180;
+import { clamp, wrap } from './numeric';
+export { clamp, wrap } from './numeric';
 export const easings: Record<Easing, (t: number) => number> = {
   linear: (t) => t,
   easeIn: (t) => t * t,

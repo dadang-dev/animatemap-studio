@@ -2,9 +2,11 @@ import { useRef, useState } from 'react';
 import { createDemo, type Project } from '@animatemap/project-schema';
 import { useEditor } from './store';
 import { api, downloadJSON } from './persistence';
+import { TemplateLibrary } from './TemplateLibrary';
 export function ProjectMenu() {
   const s = useEditor();
   const [open, setOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const file = useRef<HTMLInputElement>(null);
   async function action(fn: () => Promise<unknown>) {
@@ -45,6 +47,14 @@ export function ProjectMenu() {
             />
           </label>
           <div className="button-grid">
+            <button
+              onClick={() => {
+                setTemplatesOpen(true);
+                setOpen(false);
+              }}
+            >
+              Template library
+            </button>
             <button
               onClick={() => {
                 const p = createDemo();
@@ -137,6 +147,9 @@ export function ProjectMenu() {
           e.target.value = '';
         }}
       />
+      {templatesOpen && (
+        <TemplateLibrary onClose={() => setTemplatesOpen(false)} />
+      )}
     </div>
   );
 }

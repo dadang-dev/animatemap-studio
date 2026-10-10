@@ -18,6 +18,8 @@ Set the playhead, position the camera, then add a camera keyframe. Timeline diam
 
 The Scenes panel adds blank scenes, duplicates complete scenes with independent layers, renames, reorders, deletes and resizes scenes. Scene bars in the timeline show the whole sequence and let you jump between scenes. Transitions are cuts: the exact boundary renders the next scene with its own local keyframes. Selecting an endpoint key at an internal cut previews the preceding scene's final visible frame so the key remains editable. Structural scene edits close imported gaps and update project duration; original JSON remains unchanged when merely loaded. Scene operations support undo/redo, autosave and JSON round-trip. Limits: 20 scenes and 300 seconds; crossfade remains deferred.
 
+Project → Template library provides travel, country highlight, portrait and two-scene starter projects. Search, save the current project as a local template, or delete a saved template. New instances have independent identifiers and support Undo back to the previous project. The library stores at most 30 templates/10 MB on this device, using atomic IndexedDB transactions. Inspector camera presets generate editable orbit, sweep, zoom bounce and fly-to keyframes for the current scene. Presets replace camera keys in one undoable operation and use the same evaluator during export.
+
 Export → MP4 or current-frame PNG → Start export. Progress, cancellation, retry and download are real worker operations. H.264 uses even dimensions, yuv420p, and fixed timestamps; source attribution remains in output. For CLI use:
 
 ```sh
