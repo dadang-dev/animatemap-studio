@@ -355,11 +355,25 @@ const imageLayerSchema = z.object({
     fit: z.enum(['contain', 'cover']),
   }),
 });
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV6Schema = z.discriminatedUnion('type', [
   layerV3Schema.options[0].extend({ textureAssetId: id.optional() }),
   layerV3Schema.options[1],
   layerV3Schema.options[2],
   layerV3Schema.options[3],
+  shapeSchema,
+  imageLayerSchema,
+]);
+export const labelCollisionSchema = z
+  .object({
+    mode: z.enum(['allow', 'hide']).default('allow'),
+    priority: z.number().int().min(0).max(100).default(50),
+  })
+  .default({ mode: 'allow', priority: 50 });
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV6Schema.options[0],
+  layerV6Schema.options[1],
+  layerV6Schema.options[2].extend({ collision: labelCollisionSchema }),
+  layerV6Schema.options[3].extend({ collision: labelCollisionSchema }),
   shapeSchema,
   imageLayerSchema,
 ]);
@@ -445,11 +459,81 @@ export const projectV5Schema = projectV5Base
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
   .superRefine(validateTransformTracks);
-export const CURRENT_SCHEMA_VERSION = 6;
-export const projectSchema = projectV5Base
+const projectV6Base = projectV5Base.extend({
+  schemaVersion: z.literal(6),
+  assets: z.array(imageAssetSchema).max(20).default([]),
+  scenes: z
+    .array(sceneV2Schema.extend({ layers: z.array(layerV6Schema).max(100) }))
+    .min(1)
+    .max(20),
+});
+export const projectV6Schema = projectV6Base
+  .superRefine(validateTiming)
+  .superRefine(validateTransitions)
+  .superRefine(validateTransformTracks)
+  .superRefine(validateAssetReferences);
+function validateAssetReferences(
+  project: Pick<z.infer<typeof projectV6Base>, 'assets' | 'scenes'>,
+  ctx: z.RefinementCtx,
+) {
+  const assets = new Set<string>();
+  let bytes = 0,
+    pixels = 0;
+  project.assets.forEach((asset, index) => {
+    if (assets.has(asset.id))
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Duplicate asset identifier',
+        path: ['assets', index, 'id'],
+      });
+    assets.add(asset.id);
+    pixels += asset.width * asset.height;
+    // Individual invalid data has already received a precise schema issue.
+    try {
+      bytes += inspectPng(asset.dataUrl).bytes;
+    } catch {
+      /* handled above */
+    }
+  });
+  if (bytes > MAX_ASSET_TOTAL_BYTES || pixels > MAX_ASSET_PIXELS)
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Project asset budget exceeded: 3 MB compressed / 24 million pixels',
+      path: ['assets'],
+    });
+  project.scenes.forEach((scene, s) =>
+    scene.layers.forEach((layer, l) => {
+      const reference =
+        layer.type === 'image'
+          ? layer.assetId
+          : layer.type === 'countryHighlight'
+            ? layer.textureAssetId
+            : undefined;
+      if (reference && !assets.has(reference))
+        ctx.addIssue({
+          code: 'custom',
+          message: `Missing image asset ${reference}`,
+          path: ['scenes', s, 'layers', l],
+        });
+      if (layer.type === 'countryHighlight' && layer.textureAssetId) {
+        const asset = project.assets.find(
+          (asset) => asset.id === layer.textureAssetId,
+        );
+        if (asset && (asset.width > 512 || asset.height > 512))
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Repeating texture dimensions cannot exceed 512 pixels',
+            path: ['scenes', s, 'layers', l, 'textureAssetId'],
+          });
+      }
+    }),
+  );
+}
+export const CURRENT_SCHEMA_VERSION = 7;
+export const projectSchema = projectV6Base
   .extend({
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
-    assets: z.array(imageAssetSchema).max(20).default([]),
     scenes: z
       .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
       .min(1)
@@ -458,61 +542,7 @@ export const projectSchema = projectV5Base
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
   .superRefine(validateTransformTracks)
-  .superRefine((project, ctx) => {
-    const assets = new Set<string>();
-    let bytes = 0,
-      pixels = 0;
-    project.assets.forEach((asset, index) => {
-      if (assets.has(asset.id))
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Duplicate asset identifier',
-          path: ['assets', index, 'id'],
-        });
-      assets.add(asset.id);
-      pixels += asset.width * asset.height;
-      // Individual invalid data has already received a precise schema issue.
-      try {
-        bytes += inspectPng(asset.dataUrl).bytes;
-      } catch {
-        /* handled above */
-      }
-    });
-    if (bytes > MAX_ASSET_TOTAL_BYTES || pixels > MAX_ASSET_PIXELS)
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'Project asset budget exceeded: 3 MB compressed / 24 million pixels',
-        path: ['assets'],
-      });
-    project.scenes.forEach((scene, s) =>
-      scene.layers.forEach((layer, l) => {
-        const reference =
-          layer.type === 'image'
-            ? layer.assetId
-            : layer.type === 'countryHighlight'
-              ? layer.textureAssetId
-              : undefined;
-        if (reference && !assets.has(reference))
-          ctx.addIssue({
-            code: 'custom',
-            message: `Missing image asset ${reference}`,
-            path: ['scenes', s, 'layers', l],
-          });
-        if (layer.type === 'countryHighlight' && layer.textureAssetId) {
-          const asset = project.assets.find(
-            (asset) => asset.id === layer.textureAssetId,
-          );
-          if (asset && (asset.width > 512 || asset.height > 512))
-            ctx.addIssue({
-              code: 'custom',
-              message: 'Repeating texture dimensions cannot exceed 512 pixels',
-              path: ['scenes', s, 'layers', l, 'textureAssetId'],
-            });
-        }
-      }),
-    );
-  });
+  .superRefine(validateAssetReferences);
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -525,21 +555,24 @@ export function migrateProject(input: unknown): Project {
       input.schemaVersion === 2 ||
       input.schemaVersion === 3 ||
       input.schemaVersion === 4 ||
-      input.schemaVersion === 5)
+      input.schemaVersion === 5 ||
+      input.schemaVersion === 6)
   ) {
     const legacy =
-      input.schemaVersion === 5
-        ? projectV5Schema.parse(input)
-        : input.schemaVersion === 4
-          ? projectV4Schema.parse(input)
-          : input.schemaVersion === 3
-            ? projectV3Schema.parse(input)
-            : input.schemaVersion === 1
-              ? projectV2Schema.parse({
-                  ...projectV1Schema.parse(input),
-                  schemaVersion: 2,
-                })
-              : projectV2Schema.parse(input);
+      input.schemaVersion === 6
+        ? projectV6Schema.parse(input)
+        : input.schemaVersion === 5
+          ? projectV5Schema.parse(input)
+          : input.schemaVersion === 4
+            ? projectV4Schema.parse(input)
+            : input.schemaVersion === 3
+              ? projectV3Schema.parse(input)
+              : input.schemaVersion === 1
+                ? projectV2Schema.parse({
+                    ...projectV1Schema.parse(input),
+                    schemaVersion: 2,
+                  })
+                : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

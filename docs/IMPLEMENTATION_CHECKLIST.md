@@ -13,5 +13,6 @@
 - [x] Phase 6E: schema v4/60 FPS, real 4K MP4, WebM/GIF, isolated temporary frames and startup failure cleanup. Evidence in `docs/phases/phase-6/EXPORT_FORMATS.md`.
 - [x] Phase 6F: schema v5 shapes, antimeridian Bezier sampling, projected controls, UI history/persistence and real MP4 parity. Evidence and recovery-test reruns in `docs/phases/phase-6/SHAPES.md`.
 - [x] Phase 6G: schema v6 embedded PNG assets, licensed flags/textures, active image cache/readiness, real MP4/PNG parity and clean 36-scenario browser regression. Evidence in `docs/phases/phase-6/ASSETS.md`.
+- [x] Phase 6H: schema v7 label collision, stateless full-project-pixel priority layout, UI history/persistence and real MP4/PNG parity. 69 unit/integration and 19 relevant browser scenarios passed; evidence in `docs/phases/phase-6/LABEL_COLLISION.md`.
 
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.

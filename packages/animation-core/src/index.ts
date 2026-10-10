@@ -1,5 +1,11 @@
 import { distance, bearing, destination } from '@turf/turf';
 export {
+  hiddenLabels,
+  transformLabelBounds,
+  type LabelCandidate,
+  type LabelBounds,
+} from './labelLayout';
+export {
   animationStylesFor,
   createAnimationStyle,
   type AnimationStyleKind,

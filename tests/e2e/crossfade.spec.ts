@@ -4,7 +4,10 @@ import { promisify } from 'node:util';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { PNG } from 'pngjs';
-import type { RenderJob } from '../../packages/project-schema/src/index';
+import {
+  CURRENT_SCHEMA_VERSION,
+  type RenderJob,
+} from '../../packages/project-schema/src/index';
 const exec = promisify(execFile);
 async function build(page: Page) {
   await page.goto('/');
@@ -40,7 +43,7 @@ test('crossfade composes both real scenes, repeats seeks, cleans maps and restor
   page,
 }) => {
   const project = await build(page);
-  expect(project.schemaVersion).toBe(6);
+  expect(project.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(
     page.getByLabel('Scene transition', { exact: true }),

@@ -345,6 +345,49 @@ export function Inspector({ country }: { country: string }) {
             layer.type === 'image') && (
             <>
               {layer.type !== 'image' && (
+                <>
+                  <label className="field">
+                    Label collision
+                    <select
+                      aria-label="Label collision"
+                      value={layer.collision.mode}
+                      onChange={(event) =>
+                        patch((target) => {
+                          if (
+                            target.type === 'text' ||
+                            target.type === 'marker'
+                          )
+                            target.collision.mode = event.target.value as
+                              | 'allow'
+                              | 'hide';
+                        })
+                      }
+                    >
+                      <option value="allow">Always show</option>
+                      <option value="hide">Hide when overlapping</option>
+                    </select>
+                  </label>
+                  <NumberField
+                    label="Label priority"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={layer.collision.priority}
+                    onChange={(value) =>
+                      patch((target) => {
+                        if (target.type === 'text' || target.type === 'marker')
+                          target.collision.priority = value;
+                      })
+                    }
+                  />
+                  <p className="hint">
+                    Higher priority wins; equal priority favors frontmost
+                    layers. Always-show labels reserve space. Marker pins remain
+                    visible.
+                  </p>
+                </>
+              )}
+              {layer.type !== 'image' && (
                 <label className="field">
                   {layer.type === 'text' ? 'Text' : 'Marker label'}
                   <textarea

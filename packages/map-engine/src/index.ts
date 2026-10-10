@@ -7,6 +7,9 @@ import type { Camera, Project } from '@animatemap/project-schema';
 import { ImageResources } from './images';
 import {
   wrap,
+  hiddenLabels,
+  transformLabelBounds,
+  type LabelCandidate,
   type RenderLayer,
   type SceneBlend,
 } from '@animatemap/animation-core';
@@ -120,6 +123,9 @@ export class MapRenderer {
     },
   );
   private patternImages = new Map<string, { dataUrl: string; ratio: number }>();
+  private textContext = document.createElement('canvas').getContext('2d')!;
+  private fontsReady = false;
+  private measurements = new Map<string, { width: number; height: number }>();
   constructor(
     container: HTMLElement,
     readonly countries: Countries,
@@ -191,16 +197,6 @@ export class MapRenderer {
     if (this.destroyed) throw new Error('Renderer disposed');
     if (this.error) throw new Error(this.error);
     await resourceReady(this.images.ready(), 'Image', timeoutMs);
-    // Cloned image elements must also finish decoding before a screenshot.
-    await resourceReady(
-      Promise.all(
-        Array.from(this.overlays.querySelectorAll('img')).map((image) =>
-          image.decode(),
-        ),
-      ),
-      'Image overlay',
-      timeoutMs,
-    );
     await resourceReady(
       Promise.all(
         [400, 700].map(async (weight) => {
@@ -231,6 +227,21 @@ export class MapRenderer {
         },
       );
     });
+    if (!this.fontsReady) {
+      this.fontsReady = true;
+      this.measurements.clear();
+      this.drawOverlays();
+    }
+    // Cloned image elements must also finish decoding before a screenshot.
+    await resourceReady(
+      Promise.all(
+        Array.from(this.overlays.querySelectorAll('img')).map((image) =>
+          image.decode(),
+        ),
+      ),
+      'Image overlay',
+      timeoutMs,
+    );
     const start = performance.now();
     await new Promise<void>((resolve, reject) => {
       const check = () => {
@@ -558,10 +569,45 @@ export class MapRenderer {
       this.blend.outgoing.layers,
     );
   }
+  private measureLabel(
+    text: string,
+    size: number,
+    weight: string,
+    lineHeight?: number,
+  ) {
+    const key = JSON.stringify([text, size, weight, lineHeight]);
+    const cached = this.measurements.get(key);
+    if (cached) return cached;
+    this.textContext.font = `${weight} ${size}px "Noto Sans"`;
+    const lines = text.replace(/\r\n?/g, '\n').split('\n');
+    const tabWidth = this.textContext.measureText(' ').width * 8;
+    const widths = lines.map((line) => {
+      let width = 0;
+      for (const [index, part] of line.split('\t').entries()) {
+        if (index) width = (Math.floor(width / tabWidth) + 1) * tabWidth;
+        width += this.textContext.measureText(part).width;
+      }
+      return width;
+    });
+    const metrics = this.textContext.measureText('Việt Nam');
+    const measurement = {
+      width: Math.max(...widths),
+      height:
+        lines.length *
+        (lineHeight ??
+          metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent),
+    };
+    if (this.measurements.size >= 100)
+      this.measurements.delete(this.measurements.keys().next().value!);
+    this.measurements.set(key, measurement);
+    return measurement;
+  }
   private drawOverlays() {
     if (!this.project) return;
     const container = this.map.getContainer();
     const scale = container.clientWidth / this.project.canvas.width;
+    if (!scale) return;
+    const labels: { candidate: LabelCandidate; element: HTMLElement }[] = [];
     this.overlays.replaceChildren();
     for (const layer of this.layers) {
       if (
@@ -652,7 +698,31 @@ export class MapRenderer {
           textAlign: layer.style.align,
           lineHeight: '1.25',
           textShadow: `0 ${2 * scale}px ${8 * scale}px #0008`,
+          width: 'max-content',
         });
+        if (layer.text.trim()) {
+          const measured = this.measureLabel(
+            layer.text,
+            layer.style.fontSize,
+            layer.style.fontWeight,
+            layer.style.fontSize * 1.25,
+          );
+          const bounds = { x: x / scale, y: y / scale, ...measured };
+          const origin = {
+            x: bounds.x + bounds.width / 2,
+            y: bounds.y + bounds.height / 2,
+          };
+          el.style.transformOrigin = `${(measured.width * scale) / 2}px ${(measured.height * scale) / 2}px`;
+          labels.push({
+            element: el,
+            candidate: {
+              id: layer.id,
+              ...layer.collision,
+              order: this.layers.indexOf(layer),
+              bounds: transformLabelBounds(bounds, origin, layer.transform),
+            },
+          });
+        }
       } else if (layer.type === 'image') {
         const decoded = this.images.get(layer.assetId);
         if (!decoded) continue;
@@ -713,8 +783,45 @@ export class MapRenderer {
           whiteSpace: 'nowrap',
         });
         el.append(pin, label);
+        if (layer.label.trim()) {
+          const measured = this.measureLabel(layer.label, 22, 'normal');
+          // Marker containers have no flow content: their CSS transform origin is the anchor.
+          const bounds = {
+            x: x / scale - measured.width / 2,
+            y: y / scale + layer.style.size / 2,
+            ...measured,
+          };
+          labels.push({
+            element: label,
+            candidate: {
+              id: layer.id,
+              ...layer.collision,
+              order: this.layers.indexOf(layer),
+              bounds: transformLabelBounds(
+                bounds,
+                { x: x / scale, y: y / scale },
+                layer.transform,
+              ),
+            },
+          });
+        }
       }
       this.overlays.append(el);
+    }
+    const hidden = hiddenLabels(
+      labels.map((label) => label.candidate),
+      {
+        x: 0,
+        y: 0,
+        width: this.project.canvas.width,
+        height: container.clientHeight / scale,
+      },
+    );
+    for (const label of labels) {
+      const isHidden = hidden.has(label.candidate.id);
+      label.element.dataset.labelId = label.candidate.id;
+      label.element.dataset.labelHidden = String(isHidden);
+      label.element.style.visibility = isHidden ? 'hidden' : 'visible';
     }
     const credit = document.createElement('div');
     credit.className = 'map-credit';
