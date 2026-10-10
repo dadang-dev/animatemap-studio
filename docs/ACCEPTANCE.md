@@ -17,7 +17,7 @@ All twelve supplied acceptance scenarios are covered by passing local checks. Ph
 | AC-11 Map anchors                           | projected anchor checks and normal/full-size framing comparison                                      |
 | AC-12 Vietnamese Unicode/SVG                | Noto Sans golden frames, actual decoded labels and deterministic SVG marker icons                    |
 
-Final commands: `pnpm check`, `pnpm format:check`, `pnpm test:e2e`, `pnpm audit --prod`, `pnpm benchmark`. 16 unit/integration tests and 13 browser scenarios passed. CI configuration is present but has not run on a hosted service because this repository has no remote.
+Final phase commands: `pnpm check`, `pnpm format:check`, `pnpm test:e2e`, `pnpm audit --prod`, `pnpm benchmark`. Initial Phase 5 validation passed 16 unit/integration tests and 13 browser scenarios. The subsequent reliability review passed `pnpm check`, `pnpm format:check` and the full browser suite with 18 unit/integration tests and 15 browser scenarios; see [review notes](phases/phase-5/RELIABILITY_REVIEW.md). CI configuration is present but has not run on a hosted service because this repository has no remote.
 
 Video comparisons use mean absolute RGB channel error <3/255 at 0/3/6/9s; final results were <0.9. Golden frames allow 2% pixel difference across platform GPU rasterizers. This is not a claim of bit-identical H.264 pixels; evaluation and timestamps are deterministic, while encoding introduces expected lossy differences.
 

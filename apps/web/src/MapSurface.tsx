@@ -69,6 +69,7 @@ export function MapSurface({
         (p) => current.current.onPoint?.(p),
         (id) => current.current.onLayer?.(id),
         (error) => {
+          if (disposed) return;
           setStatus(error.message);
           current.current.onError?.(error);
         },
@@ -85,13 +86,20 @@ export function MapSurface({
       setStatus('');
       current.current.onReady?.(r);
       resize = new ResizeObserver(() => {
-        r.map.resize();
-        r.apply(
-          current.current.project,
-          current.current.camera,
-          current.current.layers,
-          true,
-        );
+        try {
+          r.map.resize();
+          r.apply(
+            current.current.project,
+            current.current.camera,
+            current.current.layers,
+            true,
+          );
+        } catch (error) {
+          const e =
+            error instanceof Error ? error : new Error('Map resize failed');
+          setStatus(e.message);
+          current.current.onError?.(e);
+        }
       });
       resize.observe(container.current);
     })().catch((error: unknown) => {

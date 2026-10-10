@@ -16,6 +16,7 @@ declare global {
 }
 export function RenderView() {
   const [project, setProject] = useState<Project | null>(null);
+  const [revision, setRevision] = useState(0);
   const snapshot = useRef<Project | null>(null);
   const renderer = useRef<MapRenderer | null>(null);
   const resolveLoad = useRef<(() => void) | null>(null);
@@ -24,11 +25,15 @@ export function RenderView() {
     window.renderStudio = {
       load: async (input) => {
         const p = migrateProject(input);
+        if (resolveLoad.current)
+          throw new Error('A project is already loading');
+        renderer.current = null;
         snapshot.current = p;
         await new Promise<void>((resolve, reject) => {
           resolveLoad.current = resolve;
           rejectLoad.current = reject;
           setProject(p);
+          setRevision((value) => value + 1);
         });
       },
       frame: async (index) => {
@@ -65,17 +70,20 @@ export function RenderView() {
     >
       {project && state && (
         <MapSurface
+          key={revision}
           project={project}
           camera={state.camera}
           layers={state.layers}
           onError={(error) => {
             rejectLoad.current?.(error);
             rejectLoad.current = null;
+            resolveLoad.current = null;
           }}
           onReady={(r) => {
             renderer.current = r;
             resolveLoad.current?.();
             resolveLoad.current = null;
+            rejectLoad.current = null;
           }}
         />
       )}

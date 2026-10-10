@@ -52,8 +52,17 @@ export const useEditor = create<EditorState>((set, get) => ({
     try {
       change(next);
       const parsed = migrateProject(next);
+      if (JSON.stringify(parsed) === JSON.stringify(state.project)) {
+        set({ error: '' });
+        return;
+      }
+      const time = Math.min(state.time, parsed.durationSeconds);
       set({
         project: parsed,
+        time,
+        ...(time !== state.time
+          ? { camera: evaluateProjectAt(parsed, time).camera }
+          : {}),
         past: [...state.past.slice(-99), state.project],
         future: [],
         error: '',
@@ -89,24 +98,32 @@ export const useEditor = create<EditorState>((set, get) => ({
   undo() {
     const s = get(),
       previous = s.past.at(-1);
-    if (previous)
+    if (previous) {
+      const time = Math.min(s.time, previous.durationSeconds);
       set({
         project: previous,
         past: s.past.slice(0, -1),
         future: [s.project, ...s.future],
-        camera: evaluateProjectAt(previous, s.time).camera,
+        time,
+        camera: evaluateProjectAt(previous, time).camera,
+        error: '',
       });
+    }
   },
   redo() {
     const s = get(),
       next = s.future[0];
-    if (next)
+    if (next) {
+      const time = Math.min(s.time, next.durationSeconds);
       set({
         project: next,
         past: [...s.past, s.project],
         future: s.future.slice(1),
-        camera: evaluateProjectAt(next, s.time).camera,
+        time,
+        camera: evaluateProjectAt(next, time).camera,
+        error: '',
       });
+    }
   },
   patchLayer(change) {
     get().edit((p) => {
@@ -187,6 +204,10 @@ export const useEditor = create<EditorState>((set, get) => ({
   },
   deleteLayer() {
     const s = get();
+    const selected = s.project.scenes
+      .flatMap((scene) => scene.layers)
+      .find((layer) => layer.id === s.selected);
+    if (!selected || selected.locked) return;
     s.edit((p) => {
       for (const scene of p.scenes)
         scene.layers = scene.layers.filter(

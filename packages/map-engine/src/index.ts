@@ -70,6 +70,7 @@ export class MapRenderer {
   private project?: Project;
   private layers: Layer[] = [];
   private error?: string;
+  private destroyed = false;
   constructor(
     container: HTMLElement,
     readonly countries: Countries,
@@ -98,10 +99,12 @@ export class MapRenderer {
     this.overlays.className = 'map-overlays';
     container.append(this.overlays);
     this.map.on('error', (e) => {
+      if (this.destroyed) return;
       this.error = e.error.message;
       this.onFailure?.(new Error(this.error));
     });
     this.map.getCanvas().addEventListener('webglcontextlost', () => {
+      if (this.destroyed) return;
       this.error = 'WebGL context lost. Reload to restore the map.';
       this.onFailure?.(new Error(this.error));
     });
@@ -136,6 +139,7 @@ export class MapRenderer {
     });
   }
   async ready(timeoutMs = 15000) {
+    if (this.error) throw new Error(this.error);
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
         () => reject(new Error('Font resources timed out')),
@@ -168,6 +172,7 @@ export class MapRenderer {
     );
   }
   apply(project: Project, camera: Camera, layers: Layer[], jump = true) {
+    if (this.error) throw new Error(this.error);
     this.project = project;
     this.layers = layers;
     if (!this.map.getLayer('countries-fill')) return;
@@ -472,6 +477,7 @@ export class MapRenderer {
     this.overlays.append(credit);
   }
   destroy() {
+    this.destroyed = true;
     this.overlays.remove();
     this.map.remove();
   }
