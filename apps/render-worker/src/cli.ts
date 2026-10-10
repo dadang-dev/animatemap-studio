@@ -1,16 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { migrateProject } from '@animatemap/project-schema';
+import { migrateProject, exportFormatSchema } from '@animatemap/project-schema';
 import { renderProject } from './index';
 const input = process.argv[2];
 if (!input)
   throw new Error(
-    'Usage: pnpm render examples/travel-vietnam.json [output-directory] [mp4|png]',
+    'Usage: pnpm render examples/travel-vietnam.json [output-directory] [mp4|png|webm|gif]',
   );
 const project = migrateProject(JSON.parse(await readFile(input, 'utf8')));
-const format = process.argv[4] ?? 'mp4';
-if (format !== 'mp4' && format !== 'png')
-  throw new Error('Format must be mp4 or png');
+const format = exportFormatSchema.parse(process.argv[4] ?? 'mp4');
 const controller = new AbortController();
 process.on('SIGINT', () => controller.abort());
 const output = await renderProject({

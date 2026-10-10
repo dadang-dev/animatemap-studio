@@ -1,0 +1,63 @@
+{
+  "streams": [
+    {
+      "index": 0,
+      "codec_name": "gif",
+      "codec_long_name": "CompuServe GIF (Graphics Interchange Format)",
+      "codec_type": "video",
+      "codec_tag_string": "[0][0][0][0]",
+      "codec_tag": "0x0000",
+      "width": 1920,
+      "height": 1080,
+      "coded_width": 1920,
+      "coded_height": 1080,
+      "has_b_frames": 0,
+      "pix_fmt": "bgra",
+      "level": -99,
+      "refs": 1,
+      "r_frame_rate": "30000/1001",
+      "avg_frame_rate": "100/3",
+      "time_base": "1/100",
+      "start_pts": 0,
+      "start_time": "0.000000",
+      "duration_ts": 100,
+      "duration": "1.000000",
+      "nb_frames": "30",
+      "nb_read_frames": "30",
+      "disposition": {
+        "default": 0,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 0,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "timed_thumbnails": 0,
+        "non_diegetic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "metadata": 0,
+        "dependent": 0,
+        "still_image": 0,
+        "multilayer": 0
+      }
+    }
+  ],
+  "format": {
+    "filename": "C:\\Users\\PC\\OneDrive\\Desktop\\VIBECODE\\AnimateMap Studio\\test-results\\export-formats\\clip.gif",
+    "nb_streams": 1,
+    "nb_programs": 0,
+    "nb_stream_groups": 0,
+    "format_name": "gif",
+    "format_long_name": "CompuServe Graphics Interchange Format (GIF)",
+    "start_time": "0.000000",
+    "duration": "1.000000",
+    "size": "3814272",
+    "bit_rate": "30514176",
+    "probe_score": 100
+  }
+}

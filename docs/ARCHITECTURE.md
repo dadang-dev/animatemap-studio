@@ -6,7 +6,7 @@ Workspace packages expose TypeScript sources consumed by Vite/tsx. Root TypeScri
 
 ## Ownership and interfaces
 
-- `project-schema`: Zod v3 contracts, typed layers, tested v1/v2 migration, job response contracts and fixture factory. Scene/keyframe times are local seconds; scene start maps them to project time. Unsupported versions fail explicitly.
+- `project-schema`: Zod v4 contracts, typed layers, tested v1–v3 migration, job response contracts and fixture factory. Scene/keyframe times are local seconds; scene start maps them to project time. Unsupported versions fail explicitly.
 - `animation-core`: `evaluateProjectAt(project, seconds)` returns scene ID, camera and evaluated layer copies, plus an optional outgoing scene state and incoming blend weight. Crossfade holds the preceding final visible frame and evaluates the incoming scene live. Easing registry, short-arc longitude/bearing and length-based geodesic trim have no React/DOM/clock dependency. Route arcs are sampled at ≤50 km intervals and longitude-unwrapped for rendering.
 - `map-engine`: MapRenderer owns MapLibre, geometry sources, projected overlays, local worker URL and readiness checks. During crossfade it owns a second inert renderer for the outgoing frame; readiness and failure handling cover both, and the secondary renderer is disposed after the transition. User IDs are namespaced away from internal base-map layers. Preview scales project zoom/line widths/fonts; export scale is 1. Polygons retain islands and holes.
 - `web`: Zustand project transactions validate snapshots and hold bounded undo history. Selection, draft camera, drawing points and playback are transient. Pure scene operations mutate transaction clones and reflow a contiguous sequence, maintaining transition bounds. ScenePanel owns scene controls, Timeline shows global scene bounds and scene-local keys. IndexedDB autosave and atomic local templates are separate from explicit API saves. Inspector, ProjectMenu and ExportPanel own UI concerns; MapSurface is shared by editor and RenderView.
@@ -15,9 +15,9 @@ Workspace packages expose TypeScript sources consumed by Vite/tsx. Root TypeScri
 
 ## Project and API contracts
 
-Project v3 contains canvas/FPS/duration, bundled provider/style/provenance, scenes with cut/crossfade transitions, camera tracks and discriminated layers. Layers carry visibility, locking, time range, opacity, transforms and opacity/reveal and overlay transform tracks. Text/marker anchors are WGS84 map coordinates or normalized screen coordinates. Validated v1 projects migrate with cuts; v1/v2 migrations add empty transform tracks; original fixtures remain v1 to exercise migration. The evaluator expects validated projects; persistence and jobs enforce that boundary.
+Project v4 contains canvas/FPS/duration, bundled provider/style/provenance, scenes with cut/crossfade transitions, camera tracks and discriminated layers. Layers carry visibility, locking, time range, opacity, transforms and opacity/reveal and overlay transform tracks. Text/marker anchors are WGS84 map coordinates or normalized screen coordinates. Validated v1 projects migrate with cuts; v1/v2 migrations add empty transform tracks; original fixtures remain v1 to exercise migration. The evaluator expects validated projects; persistence and jobs enforce that boundary.
 
-Routes: GET health/projects/project-by-ID; POST projects; DELETE project-by-ID. Health returns `{status:"ok",schemaVersion:3}`; project list returns `[{id,name}]`. Render routes and response states are documented in RENDER_PIPELINE. All project names/text use plain text DOM APIs; there is no rich HTML rendering.
+Routes: GET health/projects/project-by-ID; POST projects; DELETE project-by-ID. Health returns `{status:"ok",schemaVersion:4}`; project list returns `[{id,name}]`. Render routes and response states are documented in RENDER_PIPELINE. All project names/text use plain text DOM APIs; there is no rich HTML rendering.
 
 ## Limits
 

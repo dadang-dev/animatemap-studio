@@ -4,7 +4,11 @@ import { resolve } from 'node:path';
 import { dirname, join } from 'node:path';
 import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
-import { CURRENT_SCHEMA_VERSION } from '@animatemap/project-schema';
+import {
+  CURRENT_SCHEMA_VERSION,
+  exportFormatSchema,
+  exportFormats,
+} from '@animatemap/project-schema';
 export function createApp(directory = resolve('.local/projects')) {
   const app = Fastify({ bodyLimit: 5 * 1024 * 1024 });
   app.addHook('onRequest', async (request, reply) => {
@@ -35,11 +39,10 @@ export function createApp(directory = resolve('.local/projects')) {
     '/api/jobs',
     async (request) => {
       const body = request.body;
-      if (!body || !['mp4', 'png'].includes(body.format))
-        throw new Error('Choose MP4 or PNG');
+      if (!body) throw new Error('Render request required');
       return jobs.create(
         body.project,
-        body.format as 'mp4' | 'png',
+        exportFormatSchema.parse(body.format),
         body.frameIndex,
       );
     },
@@ -64,7 +67,7 @@ export function createApp(directory = resolve('.local/projects')) {
         'Content-Disposition',
         `attachment; filename="animatemap-${e.job.id}.${e.job.format}"`,
       );
-      reply.type(e.job.format === 'mp4' ? 'video/mp4' : 'image/png');
+      reply.type(exportFormats[e.job.format].mime);
       return reply.send(createReadStream(e.output));
     },
   );

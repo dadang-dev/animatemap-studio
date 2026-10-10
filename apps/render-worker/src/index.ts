@@ -1,11 +1,17 @@
-import { chromium } from 'playwright';
+import { chromium, type Browser } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import type { Project, RenderJob } from '@animatemap/project-schema';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import type {
+  ExportFormat,
+  Project,
+  RenderJob,
+} from '@animatemap/project-schema';
+import { encodingSteps, validateExportDimensions } from './encoders';
+import { removeTemporaryDirectory } from './cleanup';
 export type RenderOptions = {
   project: Project;
-  format: 'mp4' | 'png';
+  format: ExportFormat;
   frameIndex?: number;
   directory: string;
   webURL: string;
@@ -17,28 +23,27 @@ export async function renderProject(options: RenderOptions) {
   const url = new URL(options.webURL);
   if (url.hostname !== '127.0.0.1' || url.protocol !== 'http:')
     throw new Error('Render server must be local HTTP on 127.0.0.1');
-  if (
-    format === 'mp4' &&
-    (project.canvas.width % 2 || project.canvas.height % 2)
-  )
-    throw new Error('H.264 requires even canvas dimensions');
-  const frames = join(directory, 'frames');
-  await mkdir(frames, { recursive: true });
-  await writeFile(
-    join(directory, 'snapshot.json'),
-    JSON.stringify(project, null, 2),
-  );
-  const output = join(directory, `output.${format}`);
+  validateExportDimensions(format, project.canvas.width, project.canvas.height);
+  const outputDirectory = resolve(directory);
+  await mkdir(outputDirectory, { recursive: true });
+  const frames = await mkdtemp(join(outputDirectory, 'frames-'));
+  const output = join(outputDirectory, `output.${format}`);
   const start = performance.now();
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--enable-unsafe-swiftshader'],
-  });
+  let browser: Browser | undefined;
   const cancel = () => {
-    void browser.close();
+    void browser?.close();
   };
   signal.addEventListener('abort', cancel, { once: true });
   try {
+    signal.throwIfAborted();
+    await writeFile(
+      join(outputDirectory, 'snapshot.json'),
+      JSON.stringify(project, null, 2),
+    );
+    browser = await chromium.launch({
+      headless: true,
+      args: ['--enable-unsafe-swiftshader'],
+    });
     signal.throwIfAborted();
     const page = await browser.newPage({
       viewport: { width: project.canvas.width, height: project.canvas.height },
@@ -97,36 +102,23 @@ export async function renderProject(options: RenderOptions) {
       });
       onProgress('rendering', ((i + 1) / count) * 0.9);
     }
-    if (format === 'mp4') {
+    if (format !== 'png') {
       onProgress('encoding', 0.92);
       signal.throwIfAborted();
-      await runFFmpeg(
-        [
-          '-y',
-          '-framerate',
-          String(project.canvas.fps),
-          '-i',
-          join(frames, '%06d.png'),
-          '-frames:v',
-          String(count),
-          '-c:v',
-          'libx264',
-          '-preset',
-          'fast',
-          '-crf',
-          '18',
-          '-pix_fmt',
-          'yuv420p',
-          '-movflags',
-          '+faststart',
-          output,
-        ],
-        signal,
-      );
+      for (const args of encodingSteps(
+        format,
+        project.canvas.fps,
+        count,
+        frames,
+        output,
+      )) {
+        signal.throwIfAborted();
+        await runFFmpeg(args, signal);
+      }
     }
     signal.throwIfAborted();
     await writeFile(
-      join(directory, 'report.json'),
+      join(outputDirectory, 'report.json'),
       JSON.stringify(
         {
           frames: count,
@@ -135,7 +127,8 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
-          pipeline: 'Chromium fixed-frame → FFmpeg libx264',
+          format,
+          pipeline: `Chromium fixed-frame → ${format === 'png' ? 'PNG' : `FFmpeg ${format}`}`,
         },
         null,
         2,
@@ -148,8 +141,11 @@ export async function renderProject(options: RenderOptions) {
     throw e;
   } finally {
     signal.removeEventListener('abort', cancel);
-    await browser.close();
-    await rm(frames, { recursive: true, force: true });
+    try {
+      await browser?.close();
+    } finally {
+      await removeTemporaryDirectory(frames, outputDirectory, 'frames-');
+    }
   }
 }
 export function runFFmpeg(args: string[], signal: AbortSignal): Promise<void> {
@@ -164,7 +160,11 @@ export function runFFmpeg(args: string[], signal: AbortSignal): Promise<void> {
       stderr = (stderr + chunk.toString()).slice(-8000);
     });
     const abort = () => child.kill('SIGKILL');
-    const timeout = setTimeout(abort, 180000);
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      abort();
+    }, 600000);
     signal.addEventListener('abort', abort, { once: true });
     if (signal.aborted) abort();
     const clean = () => {
@@ -178,6 +178,12 @@ export function runFFmpeg(args: string[], signal: AbortSignal): Promise<void> {
     child.on('exit', (code) => {
       clean();
       if (signal.aborted) reject(new Error('Render cancelled'));
+      else if (timedOut)
+        reject(
+          new Error(
+            'FFmpeg encoding timed out after 10 minutes. Try a shorter scene or lower resolution.',
+          ),
+        );
       else if (code === 0) resolve();
       else reject(new Error(`FFmpeg failed (${code}): ${stderr}`));
     });

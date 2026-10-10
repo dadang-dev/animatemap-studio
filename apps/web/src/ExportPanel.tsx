@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import type { RenderJob } from '@animatemap/project-schema';
+import {
+  exportFormats,
+  type ExportFormat,
+  type RenderJob,
+} from '@animatemap/project-schema';
 import { useEditor } from './store';
 import { api } from './persistence';
 export function ExportPanel() {
   const [open, setOpen] = useState(false);
-  const [format, setFormat] = useState<'mp4' | 'png'>('mp4');
+  const [format, setFormat] = useState<ExportFormat>('mp4');
   const [job, setJob] = useState<RenderJob | null>(null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -68,12 +72,31 @@ export function ExportPanel() {
               aria-label="Export format"
               value={format}
               disabled={!!busy}
-              onChange={(e) => setFormat(e.target.value as 'mp4' | 'png')}
+              onChange={(e) => setFormat(e.target.value as ExportFormat)}
             >
-              <option value="mp4">MP4 · H.264</option>
-              <option value="png">PNG · Current frame</option>
+              {(
+                Object.entries(exportFormats) as [
+                  ExportFormat,
+                  (typeof exportFormats)[ExportFormat],
+                ][]
+              ).map(([value, metadata]) => (
+                <option key={value} value={value}>
+                  {metadata.label}
+                </option>
+              ))}
             </select>
           </label>
+          {format === 'gif' && (
+            <p className="hint">
+              GIF has 256 colors and centisecond timing. Playback speed depends
+              on the viewer.
+            </p>
+          )}
+          {s.project.canvas.width > 1920 && (
+            <p className="hint">
+              4K capture requires more time and temporary disk space.
+            </p>
+          )}
           <p className="hint">
             Natural Earth credit is included. Frames use the same timeline
             evaluator as preview.

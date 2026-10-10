@@ -5,9 +5,11 @@ import {
   migrateProject,
   projectV1Schema,
   projectV2Schema,
+  projectV3Schema,
+  CURRENT_SCHEMA_VERSION,
 } from './index';
 
-test('real v1 fixtures migrate to v3 with cuts and unchanged content', async () => {
+test('real v1 fixtures migrate to the current schema with cuts and unchanged content', async () => {
   for (const name of ['travel-vietnam', 'southeast-asia-highlight']) {
     const input = JSON.parse(
       await readFile(
@@ -18,7 +20,7 @@ test('real v1 fixtures migrate to v3 with cuts and unchanged content', async () 
     const original = JSON.stringify(input);
     const legacy = projectV1Schema.parse(input);
     const migrated = migrateProject(input);
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(
       migrated.scenes.every((scene) => scene.transition.type === 'cut'),
     ).toBe(true);
@@ -48,7 +50,12 @@ test('crossfade rejects first scene, gaps, oversized durations, and future schem
   input.durationSeconds = 24;
   second.transition = { type: 'crossfade', durationSeconds: 13 };
   expect(() => migrateProject(input)).toThrow();
-  expect(() => migrateProject({ ...createDemo(), schemaVersion: 4 })).toThrow();
+  expect(() =>
+    migrateProject({
+      ...createDemo(),
+      schemaVersion: CURRENT_SCHEMA_VERSION + 1,
+    }),
+  ).toThrow();
 });
 
 test('v2 migration preserves crossfade and base transforms while adding empty scalar tracks', () => {
@@ -66,10 +73,27 @@ test('v2 migration preserves crossfade and base transforms while adding empty sc
   const legacy = projectV2Schema.parse({ ...input, schemaVersion: 2 });
   const before = JSON.stringify(legacy);
   const migrated = migrateProject(legacy);
-  expect(migrated.schemaVersion).toBe(3);
+  expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   expect(projectV2Schema.parse({ ...migrated, schemaVersion: 2 })).toEqual(
     legacy,
   );
   expect(migrated.scenes[1]!.layers[0]!.tracks.scale).toEqual([]);
+  expect(JSON.stringify(legacy)).toBe(before);
+});
+
+test('v3 migration preserves scalar tracks and transitions without changing the source', () => {
+  const project = createDemo();
+  project.scenes[0]!.layers.find(
+    (layer) => layer.type === 'text',
+  )!.tracks.scale = [
+    { time: 0, value: 0.2, easing: 'easeOut' },
+    { time: 1, value: 1, easing: 'linear' },
+  ];
+  const legacy = projectV3Schema.parse({ ...project, schemaVersion: 3 });
+  const before = JSON.stringify(legacy);
+  const migrated = migrateProject(legacy);
+  expect(projectV3Schema.parse({ ...migrated, schemaVersion: 3 })).toEqual(
+    legacy,
+  );
   expect(JSON.stringify(legacy)).toBe(before);
 });

@@ -229,6 +229,8 @@ export function App() {
               <option value="1920x1080">16:9 · 1920 × 1080</option>
               <option value="1080x1920">9:16 · 1080 × 1920</option>
               <option value="1080x1080">1:1 · 1080 × 1080</option>
+              <option value="3840x2160">16:9 · 4K 3840 × 2160</option>
+              <option value="2160x3840">9:16 · 4K 2160 × 3840</option>
             </select>
           </label>
           <label className="field">
@@ -238,12 +240,13 @@ export function App() {
               value={s.project.canvas.fps}
               onChange={(e) =>
                 s.edit((p) => {
-                  p.canvas.fps = Number(e.target.value) as 24 | 30;
+                  p.canvas.fps = Number(e.target.value) as 24 | 30 | 60;
                 })
               }
             >
               <option>24</option>
               <option>30</option>
+              <option>60</option>
             </select>
           </label>
           <label className="field">

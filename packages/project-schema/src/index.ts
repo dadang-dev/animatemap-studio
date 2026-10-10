@@ -295,37 +295,51 @@ export function propertiesForLayer(layer: Layer): ScalarProperty[] {
       ? ['opacity', 'reveal']
       : ['opacity'];
 }
-export const CURRENT_SCHEMA_VERSION = 3;
-export const projectSchema = z
-  .object({
-    ...projectV2Base.shape,
+const projectV3Base = z.object({
+  ...projectV2Base.shape,
+  schemaVersion: z.literal(3),
+  scenes: z
+    .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+    .min(1)
+    .max(20),
+});
+function validateTransformTracks(
+  project: Pick<z.infer<typeof projectV3Base>, 'scenes'>,
+  ctx: z.RefinementCtx,
+) {
+  project.scenes.forEach((scene, s) =>
+    scene.layers.forEach((layer, l) => {
+      if (layer.type === 'marker' || layer.type === 'text') return;
+      for (const property of [
+        'scale',
+        'rotation',
+        'offsetX',
+        'offsetY',
+      ] as const)
+        if (layer.tracks[property].length)
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Transform tracks require a marker or text overlay',
+            path: ['scenes', s, 'layers', l, 'tracks', property],
+          });
+    }),
+  );
+}
+export const projectV3Schema = projectV3Base
+  .superRefine(validateTiming)
+  .superRefine(validateTransitions)
+  .superRefine(validateTransformTracks);
+export const CURRENT_SCHEMA_VERSION = 4;
+export const projectSchema = projectV3Base
+  .extend({
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
-    scenes: z
-      .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
-      .min(1)
-      .max(20),
+    canvas: projectV3Base.shape.canvas.extend({
+      fps: z.union([z.literal(24), z.literal(30), z.literal(60)]),
+    }),
   })
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
-  .superRefine((project, ctx) => {
-    project.scenes.forEach((scene, s) =>
-      scene.layers.forEach((layer, l) => {
-        if (layer.type === 'marker' || layer.type === 'text') return;
-        for (const property of [
-          'scale',
-          'rotation',
-          'offsetX',
-          'offsetY',
-        ] as const)
-          if (layer.tracks[property].length)
-            ctx.addIssue({
-              code: 'custom',
-              message: 'Transform tracks require a marker or text overlay',
-              path: ['scenes', s, 'layers', l, 'tracks', property],
-            });
-      }),
-    );
-  });
+  .superRefine(validateTransformTracks);
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -334,15 +348,19 @@ export function migrateProject(input: unknown): Project {
     input &&
     typeof input === 'object' &&
     'schemaVersion' in input &&
-    (input.schemaVersion === 1 || input.schemaVersion === 2)
+    (input.schemaVersion === 1 ||
+      input.schemaVersion === 2 ||
+      input.schemaVersion === 3)
   ) {
     const legacy =
-      input.schemaVersion === 1
-        ? projectV2Schema.parse({
-            ...projectV1Schema.parse(input),
-            schemaVersion: 2,
-          })
-        : projectV2Schema.parse(input);
+      input.schemaVersion === 3
+        ? projectV3Schema.parse(input)
+        : input.schemaVersion === 1
+          ? projectV2Schema.parse({
+              ...projectV1Schema.parse(input),
+              schemaVersion: 2,
+            })
+          : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -354,6 +372,21 @@ export const healthResponseSchema = z.object({
   status: z.literal('ok'),
   schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
 });
+export const exportFormatSchema = z.enum(['mp4', 'png', 'webm', 'gif']);
+export type ExportFormat = z.infer<typeof exportFormatSchema>;
+export const exportFormats: Record<
+  ExportFormat,
+  { label: string; mime: string; evenDimensions: boolean }
+> = {
+  mp4: { label: 'MP4 · H.264', mime: 'video/mp4', evenDimensions: true },
+  png: {
+    label: 'PNG · Current frame',
+    mime: 'image/png',
+    evenDimensions: false,
+  },
+  webm: { label: 'WebM · VP9', mime: 'video/webm', evenDimensions: true },
+  gif: { label: 'GIF · Animated', mime: 'image/gif', evenDimensions: false },
+};
 export const jobSchema = z.object({
   id,
   state: z.enum([
@@ -365,7 +398,7 @@ export const jobSchema = z.object({
     'cancelled',
   ]),
   progress: finite.min(0).max(1),
-  format: z.enum(['mp4', 'png']),
+  format: exportFormatSchema,
   error: z.string().optional(),
   elapsedMs: finite.optional(),
 });

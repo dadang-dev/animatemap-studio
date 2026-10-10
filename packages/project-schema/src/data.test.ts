@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
-import { migrateProject } from './index';
+import { migrateProject, CURRENT_SCHEMA_VERSION } from './index';
 test('bundled data checksum and example contracts match provenance', async () => {
   const root = new URL('../../../', import.meta.url);
   const data = await readFile(
@@ -27,5 +27,5 @@ test('bundled data checksum and example contracts match provenance', async () =>
           await readFile(new URL(`examples/${file}.json`, root), 'utf8'),
         ),
       ).schemaVersion,
-    ).toBe(3);
+    ).toBe(CURRENT_SCHEMA_VERSION);
 });

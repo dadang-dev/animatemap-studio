@@ -3,6 +3,9 @@ import { join } from 'node:path';
 import { renderProject, type RenderOptions } from '@animatemap/render-worker';
 import {
   migrateProject,
+  exportFormatSchema,
+  exportFormats,
+  type ExportFormat,
   type Project,
   type RenderJob,
 } from '@animatemap/project-schema';
@@ -21,11 +24,12 @@ export class JobQueue {
     private directory: string,
     private runner: (options: RenderOptions) => Promise<string> = renderProject,
   ) {}
-  create(input: unknown, format: 'mp4' | 'png', frameIndex = 0) {
+  create(input: unknown, format: ExportFormat, frameIndex = 0) {
     if (this.stopping) throw new Error('Worker shutting down');
     const project = structuredClone(migrateProject(input));
+    exportFormatSchema.parse(format);
     if (
-      format === 'mp4' &&
+      exportFormats[format].evenDimensions &&
       (project.canvas.width % 2 || project.canvas.height % 2)
     )
       throw new Error('Video canvas dimensions must be even');
