@@ -1,5 +1,9 @@
 import { useRef, useState } from 'react';
-import { createDemo, type Project } from '@animatemap/project-schema';
+import {
+  createDemo,
+  MAX_PROJECT_BODY_BYTES,
+  type Project,
+} from '@animatemap/project-schema';
 import { useEditor } from './store';
 import { api, downloadJSON } from './persistence';
 import { TemplateLibrary } from './TemplateLibrary';
@@ -133,6 +137,7 @@ export function ProjectMenu() {
       )}
       <input
         ref={file}
+        aria-label="Import project JSON"
         type="file"
         accept=".json,application/json"
         hidden
@@ -140,8 +145,8 @@ export function ProjectMenu() {
           const f = e.target.files?.[0];
           if (f)
             void action(async () => {
-              if (f.size > 5 * 1024 * 1024)
-                throw new Error('Project exceeds 5 MB');
+              if (f.size > MAX_PROJECT_BODY_BYTES)
+                throw new Error('Project exceeds 48 MiB');
               s.load(JSON.parse(await f.text()));
             });
           e.target.value = '';

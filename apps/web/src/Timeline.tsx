@@ -249,6 +249,48 @@ export function Timeline() {
               ))}
             </div>
           </div>
+          {s.project.audioTracks.map((track) => (
+            <div className="track" key={`audio-${track.id}`}>
+              <span>♫ {track.name}</span>
+              <div className="track-body">
+                <button
+                  className="scene-clip"
+                  aria-label={`Seek audio ${track.name}`}
+                  style={{
+                    left: `${(track.startSeconds / s.project.durationSeconds) * 100}%`,
+                    width: `${(track.durationSeconds / s.project.durationSeconds) * 100}%`,
+                    opacity: track.muted ? 0.4 : 1,
+                  }}
+                  onClick={() => s.seek(track.startSeconds)}
+                >
+                  {track.locked ? '🔒 ' : ''}
+                  {track.muted ? 'Muted' : 'Audio'}
+                </button>
+              </div>
+            </div>
+          ))}
+          {!!s.project.captions.cues.length && (
+            <div className="track">
+              <span>CC Captions</span>
+              <div className="track-body">
+                {s.project.captions.cues.map((cue, index) => (
+                  <button
+                    key={cue.id}
+                    className="scene-clip"
+                    aria-label={`Seek caption ${index + 1}`}
+                    title={cue.text}
+                    style={{
+                      left: `${(cue.startSeconds / s.project.durationSeconds) * 100}%`,
+                      width: `${((cue.endSeconds - cue.startSeconds) / s.project.durationSeconds) * 100}%`,
+                    }}
+                    onClick={() => s.seek(cue.startSeconds)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {scene.layers.map((l) => (
             <div className="track" key={l.id}>
               <button

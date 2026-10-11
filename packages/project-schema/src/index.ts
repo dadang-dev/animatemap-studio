@@ -1,5 +1,30 @@
 import { z } from 'zod';
 import {
+  audioAssetSchema,
+  audioTrackSchema,
+  captionsSchema,
+  inspectEmbeddedWav,
+  MAX_AUDIO_TOTAL_BYTES,
+  MAX_PROJECT_BODY_BYTES,
+} from './audio';
+export {
+  audioAssetSchema,
+  audioTrackSchema,
+  captionsSchema,
+  inspectWav,
+  inspectEmbeddedWav,
+  pcmWav,
+  wavBytes,
+  wavDataUrl,
+  MAX_AUDIO_BYTES,
+  MAX_AUDIO_TOTAL_BYTES,
+  MAX_PROJECT_BODY_BYTES,
+  type AudioAsset,
+  type AudioTrack,
+  type CaptionCue,
+  type WavInfo,
+} from './audio';
+import {
   admin1CountryCodesSchema,
   admin1RegionCodesSchema,
   admin1CountriesForRegions,
@@ -719,9 +744,9 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 9;
+export const CURRENT_SCHEMA_VERSION = 10;
 const projectV9Base = projectV8Base.extend({
-  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+  schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
     admin1Countries: admin1CountryCodesSchema,
   }),
@@ -730,7 +755,7 @@ const projectV9Base = projectV8Base.extend({
     .min(1)
     .max(20),
 });
-export const projectSchema = projectV9Base
+const projectV9Schema = projectV9Base
   .superRefine(validateTiming)
   .superRefine(validateTransitions)
   .superRefine(validateTransformTracks)
@@ -752,6 +777,111 @@ export const projectSchema = projectV9Base
         path: ['map', 'admin1Countries'],
       });
   });
+const projectV10Base = projectV9Base.extend({
+  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+  audioAssets: z.array(audioAssetSchema).max(5).default([]),
+  audioTracks: z.array(audioTrackSchema).max(10).default([]),
+  captions: captionsSchema,
+});
+export const projectSchema = projectV10Base.superRefine((project, ctx) => {
+  const legacy = projectV9Schema.safeParse({ ...project, schemaVersion: 9 });
+  if (!legacy.success)
+    for (const issue of legacy.error.issues)
+      ctx.addIssue({
+        code: 'custom',
+        message: issue.message,
+        path: issue.path,
+      });
+  const unique = (items: { id: string }[], key: string) => {
+    if (new Set(items.map((item) => item.id)).size !== items.length)
+      ctx.addIssue({
+        code: 'custom',
+        message: `Duplicate ${key} identifier`,
+        path: [key],
+      });
+  };
+  unique(project.audioAssets, 'audioAssets');
+  unique(project.audioTracks, 'audioTracks');
+  unique(project.captions.cues, 'captions');
+  let bytes = 0;
+  const info = new Map<string, ReturnType<typeof inspectEmbeddedWav>>();
+  for (const asset of project.audioAssets) {
+    try {
+      const value = inspectEmbeddedWav(asset.dataUrl);
+      info.set(asset.id, value);
+      bytes += value.bytes;
+    } catch {
+      /* Asset schema reports malformed bytes. */
+    }
+  }
+  if (bytes > MAX_AUDIO_TOTAL_BYTES)
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Project audio exceeds 32 MiB',
+      path: ['audioAssets'],
+    });
+  project.audioTracks.forEach((track, index) => {
+    const source = info.get(track.assetId);
+    const error = !source
+      ? 'Missing audio asset'
+      : track.startSeconds + track.durationSeconds >
+          project.durationSeconds + 1e-9
+        ? 'Audio track exceeds project duration'
+        : track.sourceStartSeconds + track.durationSeconds >
+            source.duration + 1e-9
+          ? 'Audio track exceeds source duration'
+          : track.fadeInSeconds + track.fadeOutSeconds >
+              track.durationSeconds + 1e-9
+            ? 'Audio fades exceed clip duration'
+            : null;
+    if (error)
+      ctx.addIssue({
+        code: 'custom',
+        message: error,
+        path: ['audioTracks', index],
+      });
+  });
+  project.captions.cues.forEach((cue, index) => {
+    if (
+      cue.startSeconds >= cue.endSeconds ||
+      cue.endSeconds > project.durationSeconds ||
+      (index &&
+        cue.startSeconds < project.captions.cues[index - 1]!.startSeconds)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Caption cues require ordered starts and valid project bounds',
+        path: ['captions', 'cues', index],
+      });
+  });
+  const audioCharacters = project.audioAssets.reduce(
+    (sum, asset) => sum + asset.dataUrl.length,
+    0,
+  );
+  const imageCharacters = project.assets.reduce(
+    (sum, asset) => sum + asset.dataUrl.length,
+    0,
+  );
+  const metadataBytes = new TextEncoder().encode(
+    JSON.stringify({
+      ...project,
+      audioAssets: project.audioAssets.map((asset) => ({
+        ...asset,
+        dataUrl: '',
+      })),
+      assets: project.assets.map((asset) => ({ ...asset, dataUrl: '' })),
+    }),
+  ).length;
+  if (
+    audioCharacters + imageCharacters + metadataBytes >
+    MAX_PROJECT_BODY_BYTES - 65536
+  )
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Project exceeds the embedded JSON request budget (48 MiB)',
+      path: [],
+    });
+});
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -767,27 +897,30 @@ export function migrateProject(input: unknown): Project {
       input.schemaVersion === 5 ||
       input.schemaVersion === 6 ||
       input.schemaVersion === 7 ||
-      input.schemaVersion === 8)
+      input.schemaVersion === 8 ||
+      input.schemaVersion === 9)
   ) {
     const legacy =
-      input.schemaVersion === 8
-        ? projectV8Schema.parse(input)
-        : input.schemaVersion === 7
-          ? projectV7Schema.parse(input)
-          : input.schemaVersion === 6
-            ? projectV6Schema.parse(input)
-            : input.schemaVersion === 5
-              ? projectV5Schema.parse(input)
-              : input.schemaVersion === 4
-                ? projectV4Schema.parse(input)
-                : input.schemaVersion === 3
-                  ? projectV3Schema.parse(input)
-                  : input.schemaVersion === 1
-                    ? projectV2Schema.parse({
-                        ...projectV1Schema.parse(input),
-                        schemaVersion: 2,
-                      })
-                    : projectV2Schema.parse(input);
+      input.schemaVersion === 9
+        ? projectV9Schema.parse(input)
+        : input.schemaVersion === 8
+          ? projectV8Schema.parse(input)
+          : input.schemaVersion === 7
+            ? projectV7Schema.parse(input)
+            : input.schemaVersion === 6
+              ? projectV6Schema.parse(input)
+              : input.schemaVersion === 5
+                ? projectV5Schema.parse(input)
+                : input.schemaVersion === 4
+                  ? projectV4Schema.parse(input)
+                  : input.schemaVersion === 3
+                    ? projectV3Schema.parse(input)
+                    : input.schemaVersion === 1
+                      ? projectV2Schema.parse({
+                          ...projectV1Schema.parse(input),
+                          schemaVersion: 2,
+                        })
+                      : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

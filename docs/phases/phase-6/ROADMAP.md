@@ -12,7 +12,7 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 - [x] 6H: deterministic label collision policy shared by preview/export.
 - [x] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
 - [x] 6J: licensed Admin 1 boundaries and selection/highlighting.
-- [ ] 6K: local audio/voiceover tracks, captions and real FFmpeg mixing.
+- [x] 6K: local audio/voiceover tracks, captions and real FFmpeg mixing.
 - [ ] 6L: geocoding/routing provider adapters with quota/terms and explicit configuration errors; no public service abuse.
 - [ ] P1 release gate: full regression, security/dependency/license audit, fresh setup docs and updated benchmarks.
 

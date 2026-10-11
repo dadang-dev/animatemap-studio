@@ -158,6 +158,8 @@ export function instantiateTemplate(
   const project = migrateProject(structuredClone(template.project));
   project.id = newId();
   project.name = template.name;
+  for (const track of project.audioTracks) track.id = newId();
+  for (const cue of project.captions.cues) cue.id = newId();
   for (const scene of project.scenes) {
     scene.id = newId();
     for (const layer of scene.layers) layer.id = newId();

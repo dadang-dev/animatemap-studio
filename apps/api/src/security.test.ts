@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { createApp } from './app';
-import { createDemo } from '@animatemap/project-schema';
+import { createDemo, MAX_PROJECT_BODY_BYTES } from '@animatemap/project-schema';
 import { JobQueue } from './jobs';
 test('API rejects hostile origins, hosts, provider URLs and oversized projects', async () => {
   const app = createApp();
@@ -46,7 +46,7 @@ test('API rejects hostile origins, hosts, provider URLs and oversized projects',
         await app.inject({
           method: 'POST',
           url: '/api/projects',
-          payload: { name: 'x'.repeat(6 * 1024 * 1024) },
+          payload: { name: 'x'.repeat(MAX_PROJECT_BODY_BYTES + 1) },
         })
       ).statusCode,
     ).toBe(413);

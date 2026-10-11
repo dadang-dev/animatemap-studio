@@ -339,3 +339,22 @@ fieldset:disabled {
   background: repeating-conic-gradient(#263542 0% 25%, #17232e 0% 50%) 0 / 16px
     16px;
 }
+.audio-dialog {
+  max-height: 90vh;
+  overflow: auto;
+}
+.audio-dialog fieldset {
+  border: 1px solid #344250;
+  margin: 8px 0;
+  padding: 12px;
+}
+.audio-track-list,
+.audio-asset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.audio-asset {
+  align-items: center;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapRenderer, type Countries } from '@animatemap/map-engine';
-import type { Camera, Project } from '@animatemap/project-schema';
+import type { Camera, Project, CaptionCue } from '@animatemap/project-schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { SceneBlend, RenderLayer } from '@animatemap/animation-core';
 import { EditHandles } from './EditHandles';
@@ -9,6 +9,7 @@ export function MapSurface({
   camera,
   layers = project.scenes[0]!.layers,
   blend,
+  captions,
   onCountry,
   onRegion,
   onCamera,
@@ -25,6 +26,7 @@ export function MapSurface({
   editCoordinates?: [number, number][];
   onEditPoint?: (index: number) => void;
   blend?: SceneBlend;
+  captions?: CaptionCue[];
   onCountry?: (code: string) => void;
   onRegion?: (code: string) => void;
   onCamera?: (camera: Camera) => void;
@@ -40,6 +42,7 @@ export function MapSurface({
     camera,
     layers,
     blend,
+    captions,
     onCountry,
     onRegion,
     onCamera,
@@ -53,6 +56,7 @@ export function MapSurface({
     camera,
     layers,
     blend,
+    captions,
     onCountry,
     onRegion,
     onCamera,
@@ -98,6 +102,7 @@ export function MapSurface({
         current.current.layers,
         true,
         current.current.blend,
+        current.current.captions,
       );
       await r.ready();
       setStatus('');
@@ -111,6 +116,7 @@ export function MapSurface({
             current.current.layers,
             true,
             current.current.blend,
+            current.current.captions,
           );
         } catch (error) {
           const e =
@@ -143,14 +149,14 @@ export function MapSurface({
   useEffect(() => {
     if (!renderer.current) return;
     try {
-      renderer.current.apply(project, camera, layers, true, blend);
+      renderer.current.apply(project, camera, layers, true, blend, captions);
       setStatus('');
     } catch (error) {
       const e = error instanceof Error ? error : new Error('Map update failed');
       setStatus(e.message);
       current.current.onError?.(e);
     }
-  }, [project, camera, layers, blend]);
+  }, [project, camera, layers, blend, captions]);
   return (
     <div className="map-surface" data-testid="map-surface">
       <div

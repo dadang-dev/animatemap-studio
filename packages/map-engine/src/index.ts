@@ -3,7 +3,8 @@ import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import type { Camera, Project } from '@animatemap/project-schema';
+import type { Camera, Project, CaptionCue } from '@animatemap/project-schema';
+import { drawCaptions } from './captions';
 import {
   admin1CountriesForRegions,
   ADMIN1_RELEASE,
@@ -122,6 +123,8 @@ export function readCamera(
   };
 }
 export class MapRenderer {
+  private captionHost = document.createElement('div');
+  private captions: CaptionCue[] = [];
   readonly map: maplibregl.Map;
   private overlays: HTMLDivElement;
   private layerIds: string[] = [];
@@ -197,6 +200,13 @@ export class MapRenderer {
     this.overlays = document.createElement('div');
     this.overlays.className = 'map-overlays';
     container.append(this.overlays);
+    Object.assign(this.captionHost.style, {
+      position: 'absolute',
+      inset: '0',
+      pointerEvents: 'none',
+      zIndex: '4',
+    });
+    container.append(this.captionHost);
     this.map.on('error', (e) => {
       if (this.destroyed) return;
       this.error = e.error.message;
@@ -324,11 +334,13 @@ export class MapRenderer {
     layers: RenderLayer[],
     jump = true,
     blend?: SceneBlend,
+    captions: CaptionCue[] = this.captions,
   ) {
     if (this.error) throw new Error(this.error);
     this.project = project;
     this.layers = layers;
     this.blend = blend;
+    this.captions = captions;
     if (!this.map.getLayer('countries-fill')) return;
     const regionCountries = [
       ...new Set([
@@ -820,6 +832,7 @@ export class MapRenderer {
   }
   private drawOverlays() {
     if (!this.project) return;
+    drawCaptions(this.captionHost, this.project, this.captions);
     const container = this.map.getContainer();
     const scale = container.clientWidth / this.project.canvas.width;
     if (!scale) return;
@@ -1066,6 +1079,13 @@ export class MapRenderer {
     const credit = document.createElement('div');
     credit.className = 'map-credit';
     const credits = new Set<string>();
+    for (const asset of this.project.audioAssets)
+      if (
+        this.project.audioTracks.some(
+          (track) => track.assetId === asset.id && !track.muted,
+        )
+      )
+        credits.add(asset.provenance.credit);
     if (
       this.project.map.admin1Countries.length ||
       this.layers.some(
@@ -1107,6 +1127,7 @@ export class MapRenderer {
     this.outgoing?.destroy();
     this.outgoingHost?.remove();
     this.overlays.remove();
+    this.captionHost.remove();
     this.map.remove();
   }
   regionsForCountry(country: string) {

@@ -1,4 +1,6 @@
 import { distance, bearing, destination } from '@turf/turf';
+import { evaluateMediaAt } from './audio';
+export { audioGainAt, evaluateMediaAt } from './audio';
 import { evaluateChoropleth, type ChoroplethData } from './choropleth';
 export {
   evaluateChoropleth,
@@ -120,13 +122,14 @@ export type RenderState = {
   camera: Camera;
   layers: RenderLayer[];
   blend?: SceneBlend;
-};
+} & ReturnType<typeof evaluateMediaAt>;
 export function evaluateProjectAt(
   project: Project,
   seconds: number,
 ): RenderState {
   if (!Number.isFinite(seconds)) throw new Error('Time must be finite');
   const time = clamp(seconds, 0, project.durationSeconds);
+  const media = evaluateMediaAt(project, time);
   const scene = project.scenes.find(
     (s) =>
       time >= s.startSeconds &&
@@ -136,7 +139,13 @@ export function evaluateProjectAt(
   );
   const fallback = project.scenes[0]!.camera.keyframes[0]!.value;
   if (!scene)
-    return { time, sceneId: null, camera: { ...fallback }, layers: [] };
+    return {
+      time,
+      ...media,
+      sceneId: null,
+      camera: { ...fallback },
+      layers: [],
+    };
   const state = evaluateSceneAt(project, scene, time);
   const local = time - scene.startSeconds;
   const previous = project.scenes[project.scenes.indexOf(scene) - 1];
@@ -150,6 +159,7 @@ export function evaluateProjectAt(
       Math.max(0, previous.durationSeconds - 1 / project.canvas.fps);
     return {
       time,
+      ...media,
       ...state,
       blend: {
         incomingWeight: clamp(local / scene.transition.durationSeconds, 0, 1),
@@ -157,7 +167,7 @@ export function evaluateProjectAt(
       },
     };
   }
-  return { time, ...state };
+  return { time, ...media, ...state };
 }
 function evaluateSceneAt(
   project: Project,

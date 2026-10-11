@@ -1,6 +1,6 @@
 # Phase 6K — Local audio, voiceover and captions
 
-Status: technical preparation; implementation begins after the Admin 1 gate.
+Status: complete; static, browser/export and regression gates passed.
 
 Files/interfaces: versioned project audio registry and project-time tracks, bounded PCM WAV import/recording, pure timing/gain/caption evaluation, disposable Web Audio playback, accessible audio/caption editor, FFmpeg mixing module and source reports. Existing visual rendering stays frame-index driven; captions render through the same shared preview/export surface. Audio is mixed offline, never captured from real-time playback.
 
@@ -12,11 +12,21 @@ Initial format decision: import PCM 16-bit WAV (mono/stereo, 8–96 kHz) and pre
 
 Acceptance:
 
-- [ ] Schema/migrations, WAV validation, cue parsing and pure gain/timing boundaries pass.
-- [ ] Import/edit/mute/lock/undo/redo/autosave and recording work in a real browser; no microphone remains active after close/cancel.
-- [ ] Seek/pause/resume use correct source offsets and identical gain envelopes; repeated caption seeks are deterministic.
-- [ ] Real MP4/WebM contain verified audio streams and expected onset/offset/fade/mix levels; decoded captions match preview and attribution remains visible.
-- [ ] Cancellation/failure cleanup preserves saved projects and no external audio URL is requested.
-- [ ] Static/unit/integration/build/format, browser regressions and license checks pass before proceeding.
+- [x] Schema/migrations, WAV validation, cue parsing and pure gain/timing boundaries pass.
+- [x] Import/edit/mute/lock/undo/redo/autosave and recording work in a real browser; no microphone remains active after close/cancel.
+- [x] Seek/pause/resume use correct source offsets and identical gain envelopes; repeated caption seeks are deterministic.
+- [x] Real MP4/WebM contain verified audio streams and expected onset/offset/fade/mix levels; decoded captions match preview and attribution remains visible.
+- [x] Cancellation/failure cleanup preserves saved projects and no external audio URL is requested.
+- [x] Static/unit/integration/build/format, browser regressions and license checks pass before proceeding.
 
 Primary references: [FFmpeg audio filters](https://ffmpeg.org/ffmpeg-filters.html), [Web Audio scheduled source start](https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start), [MediaRecorder lifecycle](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder). Import/recording format and budget tradeoffs must be recorded before their implementation.
+
+Implementation: schema v10 preserves the actual v9 validator and migrates previous projects with empty audio/caption registries. Audio/caption timing is global and uses half-open boundaries; structural trims preserve validity and bound fades. The editor imports canonical PCM WAV with explicit provenance review, reuses/deletes unused assets, edits/mutes/locks clips, reviews SRT/VTT and edits Unicode cues. Timeline includes audio/caption lanes. Caption composition sits above both scene planes, using the same font readiness and project pixels. Web Audio schedules decoded PCM buffers and gains from the shared project timing model; seeks while playing restart from their new source offset. FFmpeg trims/resamples/fades/delays/mixes to a bounded 48 kHz stereo WAV, hard-clips, then muxes AAC/Opus into the real video. Mono is duplicated explicitly to match Web Audio rather than FFmpeg's default channel conversion gain.
+
+Tests so far: strict typecheck/lint/build and 101 unit/integration tests passed, including the combined UTF-8 JSON request budget. Real FFmpeg PCM mix matches the evaluator sample-by-sample with maximum error below 0.00008, including silence, source offsets, fades, overlap and hard clipping. API accepts valid media above its former 5 MiB limit and rejects malformed media atomically. Browser editor/history/locking/persistence and OfflineAudioContext evaluation at three resume offsets passed. Playwright uses fake capture devices backed by an authored WAV signal and an isolated `.local/e2e/` repository, never the editor's saved projects. Capture produces actual MediaRecorder/decoded PCM and stop/discard/close release every media track. Windows headless capture initially returned NotSupportedError without an explicit fake input file; configuring that file fixed the harness, while the app preserves an actionable access/codec/start error.
+
+First encoded-audio comparison incorrectly downmixed stereo to mono using FFmpeg's default gain; the test now preserves both channels instead of changing the application mix or relaxing tolerance. A repeated-seek test exposed 1530 changed channels along a fractional caption background edge and a stale compositor damage rectangle with CSS translation. Caption boxes now use measured, integer pixel placement without translation; repeated seeks pass and visual inspection confirms a clean map. Both fixes retain existing exact-PNG/lossy-codec thresholds. The clean final export/cancellation run and broader regressions remain in progress.
+
+Clean final audio/foundation browser run: seven scenarios passed in 4.3 minutes. MP4 H.264/AAC and WebM VP9/Opus contain 60 video frames at 1920×1080/30 FPS with 48 kHz stereo audio. Mean visual RGB errors at frames 0/10/20/37/59 are 0.803/0.850/0.850/1.339/0.814, all below 3. PNG frame 37 and repeated/reverse seeks are identical. Encoded-audio RMS errors against the independent source/gain model are 0.000115 AAC and 0.000709 Opus, below 0.015; silent-window peak is zero. Actual cancellation during encoding of a 240-frame job removes owned frames/media and disables download while preserving the saved project. Reports: `audio-ffprobe.json`, `audio-parity.json`; reviewed artifacts: `.local/reviewed/audio/editor.png`, `captions.mp4`, `captions.webm`, `frame.png`.
+
+Final review adds paused-buffer eviction and a >5 MiB embedded-JSON import/refresh test. The editor/CLI and schema enforce the same 48 MiB request budget, including UTF-8 metadata and a wrapper reserve. Four affected browser tests passed after this review. The broader 24-scenario regression passed in 7.4 minutes, including Admin 1, assets, data, editing, labels, scenes, templates, recovery and golden frames. Together with the audio/foundation runs, eight unique audio/foundation scenarios and 24 other scenarios passed (35 executions including three repeats). Strict typecheck, lint, 101 unit/integration tests, production build, format check and production dependency audit passed; audit found zero vulnerabilities. Imported MP3/AAC and styled VTT are explicitly unsupported; local templates retain their separate 10 MB aggregate budget. These format/storage limits are documented rather than treated as unimplemented fake paths.

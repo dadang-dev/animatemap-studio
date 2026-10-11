@@ -8,9 +8,10 @@ import {
   CURRENT_SCHEMA_VERSION,
   exportFormatSchema,
   exportFormats,
+  MAX_PROJECT_BODY_BYTES,
 } from '@animatemap/project-schema';
 export function createApp(directory = resolve('.local/projects')) {
-  const app = Fastify({ bodyLimit: 5 * 1024 * 1024 });
+  const app = Fastify({ bodyLimit: MAX_PROJECT_BODY_BYTES });
   app.addHook('onRequest', async (request, reply) => {
     if (!['127.0.0.1', 'localhost'].includes(request.hostname))
       return reply.code(403).send({ error: 'Local host required' });

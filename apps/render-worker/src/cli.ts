@@ -1,12 +1,18 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { migrateProject, exportFormatSchema } from '@animatemap/project-schema';
+import {
+  migrateProject,
+  exportFormatSchema,
+  MAX_PROJECT_BODY_BYTES,
+} from '@animatemap/project-schema';
 import { renderProject } from './index';
 const input = process.argv[2];
 if (!input)
   throw new Error(
     'Usage: pnpm render examples/travel-vietnam.json [output-directory] [mp4|png|webm|gif]',
   );
+if ((await stat(input)).size > MAX_PROJECT_BODY_BYTES)
+  throw new Error('Project exceeds 48 MiB');
 const project = migrateProject(JSON.parse(await readFile(input, 'utf8')));
 const format = exportFormatSchema.parse(process.argv[4] ?? 'mp4');
 const controller = new AbortController();

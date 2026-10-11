@@ -29,7 +29,9 @@ import { ExportPanel } from './ExportPanel';
 import { AssetLibrary } from './AssetLibrary';
 import { DataLibrary } from './DataLibrary';
 import { Admin1Panel } from './Admin1Panel';
+import { AudioPanel } from './AudioPanel';
 import { api, useAutosave } from './persistence';
+import { usePlayback } from './usePlayback';
 declare global {
   interface Window {
     studio?: {
@@ -37,12 +39,18 @@ declare global {
       getProject: () => Project;
       seek: (time: number) => void;
       evaluate: (time: number) => ReturnType<typeof evaluateProjectAt>;
+      audioState: () => {
+        state: string;
+        scheduled: string[];
+        decodedAssets: string[];
+      };
     };
   }
 }
 export function App() {
   const s = useEditor();
   const autosave = useAutosave();
+  const playback = usePlayback();
   const canvasWrap = useRef<HTMLDivElement>(null);
   const [canvasSpace, setCanvasSpace] = useState({ width: 600, height: 400 });
   useLayoutEffect(() => {
@@ -71,6 +79,7 @@ export function App() {
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [regionsOpen, setRegionsOpen] = useState(false);
+  const [audioOpen, setAudioOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -93,24 +102,6 @@ export function App() {
       useEditor.setState({ tool: 'select', points: [], pointEdit: null });
     previousScene.current = scene.id;
   }, [scene.id, s.selected, s.pointEdit]);
-  useEffect(() => {
-    if (!s.playing) return;
-    const initial = useEditor.getState().time,
-      start = performance.now();
-    let frame: number;
-    const tick = () => {
-      const next = Math.min(
-        s.project.durationSeconds,
-        initial + (performance.now() - start) / 1000,
-      );
-      useEditor.getState().seek(next);
-      if (next === s.project.durationSeconds)
-        useEditor.setState({ playing: false });
-      else frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [s.playing, s.project.durationSeconds]);
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
       if (
@@ -239,6 +230,7 @@ export function App() {
           onClose={() => setRegionsOpen(false)}
         />
       )}
+      {audioOpen && <AudioPanel onClose={() => setAudioOpen(false)} />}
       <div
         className="workspace"
         style={{
@@ -406,6 +398,7 @@ export function App() {
             Country data · CSV / Excel
           </button>
           <button onClick={() => setRegionsOpen(true)}>Admin 1 regions</button>
+          <button onClick={() => setAudioOpen(true)}>Audio & captions</button>
           {s.tool !== 'select' && (
             <div className="tool-notice">
               {s.tool === 'route' || s.tool === 'shape'
@@ -563,6 +556,7 @@ export function App() {
                 camera={s.camera}
                 layers={state.layers}
                 blend={state.blend}
+                captions={state.captions}
                 editCoordinates={
                   !s.playing &&
                   s.tool === 'select' &&
@@ -634,6 +628,11 @@ export function App() {
                   renderer.current = r;
                   setMapReady(true);
                   window.studio = {
+                    audioState: () => ({
+                      state: playback.current?.state ?? 'idle',
+                      scheduled: [...(playback.current?.scheduled ?? [])],
+                      decodedAssets: playback.current?.decodedAssets ?? [],
+                    }),
                     renderer: r,
                     getProject: () => useEditor.getState().project,
                     seek: (t) => useEditor.getState().seek(t),

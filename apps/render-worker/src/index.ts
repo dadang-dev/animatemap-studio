@@ -9,6 +9,7 @@ import type {
 } from '@animatemap/project-schema';
 import { encodingSteps, validateExportDimensions } from './encoders';
 import { removeTemporaryDirectory } from './cleanup';
+import { muxProjectAudio } from './audio';
 import admin1Provenance from '../../../data/admin1/PROVENANCE.json' with { type: 'json' };
 import { admin1CountriesForRegions } from '@animatemap/project-schema';
 export type RenderOptions = {
@@ -117,6 +118,7 @@ export async function renderProject(options: RenderOptions) {
         signal.throwIfAborted();
         await runFFmpeg(args, signal);
       }
+      await muxProjectAudio(project, format, frames, output, signal, runFFmpeg);
     }
     signal.throwIfAborted();
     await writeFile(
@@ -129,6 +131,16 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          audioSources: project.audioAssets.map(({ id, name, provenance }) => ({
+            id,
+            name,
+            ...provenance,
+          })),
+          audioTracks: project.audioTracks,
+          captions: {
+            enabled: project.captions.enabled,
+            cues: project.captions.cues.length,
+          },
           admin1Source: {
             release: admin1Provenance.release,
             source: admin1Provenance.source,

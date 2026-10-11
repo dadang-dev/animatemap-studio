@@ -19,4 +19,6 @@
 
 - [x] Phase 6J: schema v9 catalog-based Admin 1 highlights/outlines, verified lazy country geometry, selection/search/focus and persistence. 91 unit/integration and 25 relevant browser scenarios passed; real MP4/PNG parity, failure recovery and source preservation are recorded in `docs/phases/phase-6/ADMIN1.md`.
 
+- [x] Phase 6K: schema v10 canonical WAV assets, microphone voiceover, project-time clips, captions and real AAC/Opus exports. 101 unit/integration tests, eight audio/foundation browser scenarios and 24 broader regressions passed. Exact PNG and decoded audio/video parity evidence is recorded in `docs/phases/phase-6/AUDIO_CAPTIONS.md`.
+
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.

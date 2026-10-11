@@ -1,0 +1,35 @@
+{
+  "comparisons": [
+    {
+      "frame": 0,
+      "meanAbsoluteChannelError": 0.8028722993827161
+    },
+    {
+      "frame": 10,
+      "meanAbsoluteChannelError": 0.8502126736111111
+    },
+    {
+      "frame": 20,
+      "meanAbsoluteChannelError": 0.8499749228395062
+    },
+    {
+      "frame": 37,
+      "meanAbsoluteChannelError": 1.3387647890946501
+    },
+    {
+      "frame": 59,
+      "meanAbsoluteChannelError": 0.8139655671296296
+    }
+  ],
+  "audioErrors": {
+    "mp4": {
+      "rmsError": 0.00011462023639928819,
+      "silentPeak": 0
+    },
+    "webm": {
+      "rmsError": 0.000708586397866099,
+      "silentPeak": 0
+    }
+  },
+  "pngIdentical": true
+}

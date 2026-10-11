@@ -1,4 +1,5 @@
 import { evaluateProjectAt } from '@animatemap/animation-core';
+import { trimProjectMedia } from './audioOperations';
 import {
   scalarProperties,
   type Camera,
@@ -21,6 +22,7 @@ function reflow(project: Project) {
   }
   project.scenes[0]!.transition = { type: 'cut' };
   project.durationSeconds = start;
+  trimProjectMedia(project);
   if (start > 300)
     throw new Error('Project duration cannot exceed 300 seconds');
 }
