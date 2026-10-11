@@ -10,6 +10,7 @@ export function MapSurface({
   layers = project.scenes[0]!.layers,
   blend,
   onCountry,
+  onRegion,
   onCamera,
   onPoint,
   onReady,
@@ -25,6 +26,7 @@ export function MapSurface({
   onEditPoint?: (index: number) => void;
   blend?: SceneBlend;
   onCountry?: (code: string) => void;
+  onRegion?: (code: string) => void;
   onCamera?: (camera: Camera) => void;
   onPoint?: (point: [number, number]) => void;
   onReady?: (renderer: MapRenderer) => void;
@@ -39,6 +41,7 @@ export function MapSurface({
     layers,
     blend,
     onCountry,
+    onRegion,
     onCamera,
     onPoint,
     onReady,
@@ -51,6 +54,7 @@ export function MapSurface({
     layers,
     blend,
     onCountry,
+    onRegion,
     onCamera,
     onPoint,
     onReady,
@@ -83,6 +87,7 @@ export function MapSurface({
           setStatus(error.message);
           current.current.onError?.(error);
         },
+        (code) => current.current.onRegion?.(code),
       );
       renderer.current = r;
       await r.ready();

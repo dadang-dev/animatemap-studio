@@ -17,4 +17,6 @@
 
 - [x] Phase 6I: schema v8 datasets/choropleth, bounded local CSV/XLSX review/import, editable data-year tracks and fixed-domain colors/legend. 83 unit/integration and clean 41-scenario browser regression passed, followed by four affected data/golden scenarios after final review. Real MP4/PNG parity, licenses and audit recorded in `docs/phases/phase-6/DATA_IMPORT.md`.
 
+- [x] Phase 6J: schema v9 catalog-based Admin 1 highlights/outlines, verified lazy country geometry, selection/search/focus and persistence. 91 unit/integration and 25 relevant browser scenarios passed; real MP4/PNG parity, failure recovery and source preservation are recorded in `docs/phases/phase-6/ADMIN1.md`.
+
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.

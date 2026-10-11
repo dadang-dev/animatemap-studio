@@ -9,6 +9,8 @@ import type {
 } from '@animatemap/project-schema';
 import { encodingSteps, validateExportDimensions } from './encoders';
 import { removeTemporaryDirectory } from './cleanup';
+import admin1Provenance from '../../../data/admin1/PROVENANCE.json' with { type: 'json' };
+import { admin1CountriesForRegions } from '@animatemap/project-schema';
 export type RenderOptions = {
   project: Project;
   format: ExportFormat;
@@ -127,6 +129,24 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          admin1Source: {
+            release: admin1Provenance.release,
+            source: admin1Provenance.source,
+            license: admin1Provenance.license,
+            sourceSha256: admin1Provenance.sourceSha256,
+            files: admin1Provenance.files.filter((file) =>
+              new Set([
+                ...project.map.admin1Countries,
+                ...project.scenes.flatMap((scene) =>
+                  scene.layers.flatMap((layer) =>
+                    layer.type === 'admin1Highlight'
+                      ? admin1CountriesForRegions(layer.regionCodes)
+                      : [],
+                  ),
+                ),
+              ]).has(file.countryCode),
+            ),
+          },
           assetSources: project.assets.map(({ id, name, provenance }) => ({
             id,
             name,

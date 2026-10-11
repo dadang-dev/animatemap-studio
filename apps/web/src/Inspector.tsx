@@ -1,11 +1,20 @@
 import { useEditor } from './store';
-import type { Camera } from '@animatemap/project-schema';
+import type { Camera, Admin1Properties } from '@animatemap/project-schema';
 import { cameraSchema } from '@animatemap/project-schema';
 import { CameraPresets } from './CameraPresets';
 import { AnimationStyles } from './AnimationStyles';
 import { ChoroplethInspector } from './ChoroplethInspector';
 import { NumberField } from './NumberField';
-export function Inspector({ country }: { country: string }) {
+import { Admin1Inspector } from './Admin1Inspector';
+export function Inspector({
+  country,
+  region,
+  onRegions,
+}: {
+  country: string;
+  region?: Admin1Properties | null;
+  onRegions?: () => void;
+}) {
   const s = useEditor();
   const layer = s.project.scenes
     .flatMap((v) => v.layers)
@@ -156,6 +165,9 @@ export function Inspector({ country }: { country: string }) {
             </>
           )}
           {layer.type === 'choropleth' && <ChoroplethInspector layer={layer} />}
+          {layer.type === 'admin1Highlight' && (
+            <Admin1Inspector layer={layer} />
+          )}
           {(layer.type === 'route' || layer.type === 'shape') && (
             <>
               <p className="hint">
@@ -654,6 +666,19 @@ export function Inspector({ country }: { country: string }) {
         Selected country
         <input aria-label="Selected country" readOnly value={country} />
       </label>
+      {region && (
+        <section aria-label="Selected Admin 1 region">
+          <h3>{region.name}</h3>
+          <p>{region.localName}</p>
+          <p>
+            {region.type} · {region.sourceCode} · {region.isoCode}
+          </p>
+          <p className="hint">
+            Natural Earth reference release 5.1.2 · {region.code}
+          </p>
+          <button onClick={onRegions}>Review selected region</button>
+        </section>
+      )}
       <button
         onClick={() => s.addLayer('countryHighlight', undefined, country)}
       >

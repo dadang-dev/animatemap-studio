@@ -4,7 +4,12 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { Camera, Project } from '@animatemap/project-schema';
+import {
+  admin1CountriesForRegions,
+  ADMIN1_RELEASE,
+} from '@animatemap/project-schema';
 import { ImageResources } from './images';
+import { Admin1Resources } from './admin1Resources';
 import { dataLegend } from './dataLegend';
 import {
   wrap,
@@ -55,7 +60,13 @@ export function makeStyle(
   return {
     version: 8,
     transition: { duration: 0, delay: 0 },
-    sources: { countries: { type: 'geojson', data: countries } },
+    sources: {
+      countries: { type: 'geojson', data: countries },
+      admin1: {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      },
+    },
     layers: [
       {
         id: 'ocean',
@@ -72,6 +83,20 @@ export function makeStyle(
         id: 'countries-border',
         type: 'line',
         source: 'countries',
+        paint: { 'line-color': p.border, 'line-width': 0.7 },
+      },
+      {
+        id: 'admin1-select',
+        type: 'fill',
+        source: 'admin1',
+        filter: ['==', ['get', 'countryCode'], ''],
+        paint: { 'fill-color': p.land, 'fill-opacity': 0 },
+      },
+      {
+        id: 'admin1-border',
+        type: 'line',
+        source: 'admin1',
+        filter: ['==', ['get', 'countryCode'], ''],
         paint: { 'line-color': p.border, 'line-width': 0.7 },
       },
     ],
@@ -107,6 +132,23 @@ export class MapRenderer {
   private blend?: SceneBlend;
   private outgoing?: MapRenderer;
   private outgoingHost?: HTMLDivElement;
+  private admin1Signature = '';
+  private admin1 = new Admin1Resources(
+    () => {
+      if (!this.destroyed && this.project && !this.error)
+        this.apply(
+          this.project,
+          readCamera(this.map, this.project.canvas.width),
+          this.layers,
+          false,
+          this.blend,
+        );
+    },
+    (error) => {
+      this.error = error.message;
+      this.onFailure?.(error);
+    },
+  );
   private images = new ImageResources(
     () => {
       if (!this.destroyed && this.project && !this.error)
@@ -136,6 +178,7 @@ export class MapRenderer {
     private onPoint?: (point: [number, number]) => void,
     private onLayer?: (id: string) => void,
     private onFailure?: (error: Error) => void,
+    private onRegion?: (code: string) => void,
   ) {
     this.map = new maplibregl.Map({
       container,
@@ -173,7 +216,13 @@ export class MapRenderer {
       const f = this.map.queryRenderedFeatures(e.point, {
         layers: ['countries-fill'],
       })[0];
-      if (f?.properties?.code) onCountry?.(String(f.properties.code));
+      const region = this.map
+        .queryRenderedFeatures(e.point)
+        .find(
+          (feature) => feature.source === 'admin1' && feature.properties?.code,
+        );
+      if (region) this.onRegion?.(String(region.properties.code));
+      else if (f?.properties?.code) onCountry?.(String(f.properties.code));
       const hit = this.map
         .queryRenderedFeatures(e.point)
         .find((feature) =>
@@ -197,6 +246,7 @@ export class MapRenderer {
   async ready(timeoutMs = 15000) {
     if (this.destroyed) throw new Error('Renderer disposed');
     if (this.error) throw new Error(this.error);
+    await resourceReady(this.admin1.ready(), 'Admin 1', timeoutMs);
     await resourceReady(this.images.ready(), 'Image', timeoutMs);
     await resourceReady(
       Promise.all(
@@ -280,6 +330,36 @@ export class MapRenderer {
     this.layers = layers;
     this.blend = blend;
     if (!this.map.getLayer('countries-fill')) return;
+    const regionCountries = [
+      ...new Set([
+        ...project.map.admin1Countries,
+        ...layers.flatMap((layer) =>
+          layer.type === 'admin1Highlight' && layer.visible && layer.opacity > 0
+            ? admin1CountriesForRegions(layer.regionCodes)
+            : [],
+        ),
+      ]),
+    ].sort();
+    this.admin1.use(regionCountries);
+    const regionSignature = regionCountries
+      .map(
+        (country) =>
+          `${country}:${this.admin1.get(country)?.features.length ?? 0}`,
+      )
+      .join('|');
+    if (regionSignature !== this.admin1Signature) {
+      (this.map.getSource('admin1') as GeoJSONSource).setData(
+        this.admin1.collection(regionCountries),
+      );
+      this.admin1Signature = regionSignature;
+    }
+    const regionFilter: maplibregl.FilterSpecification = [
+      'in',
+      ['get', 'countryCode'],
+      ['literal', project.map.admin1Countries],
+    ];
+    this.map.setFilter('admin1-select', regionFilter);
+    this.map.setFilter('admin1-border', regionFilter);
     const references = new Set(
       layers.flatMap((layer) => {
         if (!layer.visible || layer.opacity === 0) return [];
@@ -332,6 +412,12 @@ export class MapRenderer {
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
     this.map.setPaintProperty('countries-fill', 'fill-color', p.land);
     this.map.setPaintProperty('countries-border', 'line-color', p.border);
+    this.map.setPaintProperty('admin1-border', 'line-color', p.border);
+    this.map.setPaintProperty(
+      'admin1-border',
+      'line-width',
+      (0.7 * this.map.getContainer().clientWidth) / project.canvas.width,
+    );
     this.map.setPaintProperty(
       'countries-border',
       'line-width',
@@ -352,6 +438,7 @@ export class MapRenderer {
           l.type === 'route' ||
           l.type === 'shape' ||
           l.type === 'choropleth' ||
+          l.type === 'admin1Highlight' ||
           l.type === 'countryHighlight',
       )
       .map((l) => l.id);
@@ -364,7 +451,8 @@ export class MapRenderer {
     this.layerIds = ids;
     const dim = layers.reduce(
       (max, l) =>
-        l.type === 'countryHighlight' && l.visible
+        (l.type === 'countryHighlight' || l.type === 'admin1Highlight') &&
+        l.visible
           ? Math.max(max, l.style.dimOutside * l.opacity)
           : max,
       0,
@@ -383,6 +471,53 @@ export class MapRenderer {
     this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
+      if (layer.type === 'admin1Highlight') {
+        if (!this.map.getLayer(`ams-${layer.id}-fill`)) {
+          this.map.addLayer({
+            id: `ams-${layer.id}-fill`,
+            type: 'fill',
+            source: 'admin1',
+          });
+          this.map.addLayer({
+            id: `ams-${layer.id}-line`,
+            type: 'line',
+            source: 'admin1',
+          });
+        }
+        const filter: maplibregl.FilterSpecification = [
+          'in',
+          ['get', 'code'],
+          ['literal', layer.regionCodes],
+        ];
+        for (const suffix of ['fill', 'line'])
+          this.map.setFilter(`ams-${layer.id}-${suffix}`, filter);
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-color',
+          layer.style.color,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-fill`,
+          'fill-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-color',
+          layer.style.stroke,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-opacity',
+          opacity,
+        );
+        this.map.setPaintProperty(
+          `ams-${layer.id}-line`,
+          'line-width',
+          (layer.style.width * this.map.getContainer().clientWidth) /
+            project.canvas.width,
+        );
+      }
       if (layer.type === 'choropleth') {
         const dataset = project.datasets.find(
           (dataset) => dataset.id === layer.datasetId,
@@ -575,6 +710,7 @@ export class MapRenderer {
         layer.type === 'route' ||
         layer.type === 'shape' ||
         layer.type === 'choropleth' ||
+        layer.type === 'admin1Highlight' ||
         layer.type === 'countryHighlight'
       )
         for (const suffix of ['fill', 'line'])
@@ -930,6 +1066,16 @@ export class MapRenderer {
     const credit = document.createElement('div');
     credit.className = 'map-credit';
     const credits = new Set<string>();
+    if (
+      this.project.map.admin1Countries.length ||
+      this.layers.some(
+        (layer) =>
+          layer.type === 'admin1Highlight' &&
+          layer.visible &&
+          layer.opacity > 0,
+      )
+    )
+      credits.add(`Natural Earth Admin 1 · v${ADMIN1_RELEASE}`);
     for (const layer of this.layers) {
       if (!layer.visible || layer.opacity === 0) continue;
       if (layer.type === 'choropleth') {
@@ -956,10 +1102,14 @@ export class MapRenderer {
   }
   destroy() {
     this.destroyed = true;
+    this.admin1.destroy();
     this.images.dispose();
     this.outgoing?.destroy();
     this.outgoingHost?.remove();
     this.overlays.remove();
     this.map.remove();
+  }
+  regionsForCountry(country: string) {
+    return this.admin1.get(country);
   }
 }

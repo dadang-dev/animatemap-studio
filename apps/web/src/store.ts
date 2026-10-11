@@ -35,7 +35,7 @@ interface EditorState {
   redo: () => void;
   patchLayer: (change: (layer: Layer) => void) => void;
   addLayer: (
-    type: Exclude<Layer['type'], 'image' | 'choropleth'>,
+    type: Exclude<Layer['type'], 'image' | 'choropleth' | 'admin1Highlight'>,
     point?: [number, number],
     code?: string,
   ) => void;

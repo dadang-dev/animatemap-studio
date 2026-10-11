@@ -1,5 +1,7 @@
 # Fixed-frame export
 
+Schema v9 Admin 1 highlights and optional outlines load only from fixed bundled country files. Each renderer verifies pinned bytes/SHA-256 and waits for geography before capture, including outgoing crossfade frames. Missing/corrupt files produce actionable failures; saved snapshots/projects remain intact. Source metadata and selected country file checksums/counts appear in `admin1Source` in the render report; visible credit identifies release 5.1.2.
+
 Schema v8 snapshots include country/year/value datasets and provenance. The evaluator samples data-year tracks and calculates colors before the shared MapLibre adapter applies fills/borders. Legends, observation/interpolation status and source credit use the same DOM renderer in preview/export. The legend color ramp uses fixed opaque pixel values instead of compositor-dithered CSS gradients. Render reports include active `datasetSources` metadata/counts without duplicating observations. Workbook parsing is an editor import operation; workers render only validated normalized project records.
 
 `POST /api/jobs` accepts `{project, format: "mp4"|"png"|"webm"|"gif", frameIndex?}`. It validates and clones the project. `GET /api/jobs/:id` reports status/progress; POST `cancel` or `retry`; GET `download` returns an actual completed file with schema-defined MIME/extension. One worker runs at a time; up to five active/queued jobs are allowed.

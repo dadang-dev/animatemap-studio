@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { evaluateProjectAt } from '@animatemap/animation-core';
-import type { Project } from '@animatemap/project-schema';
+import {
+  admin1Reference,
+  type Admin1Properties,
+  type Project,
+} from '@animatemap/project-schema';
 import type { MapRenderer } from '@animatemap/map-engine';
 import {
   Globe2,
@@ -24,6 +28,7 @@ import { ProjectMenu } from './ProjectMenu';
 import { ExportPanel } from './ExportPanel';
 import { AssetLibrary } from './AssetLibrary';
 import { DataLibrary } from './DataLibrary';
+import { Admin1Panel } from './Admin1Panel';
 import { api, useAutosave } from './persistence';
 declare global {
   interface Window {
@@ -65,6 +70,10 @@ export function App() {
   const [search, setSearch] = useState('');
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
+  const [regionsOpen, setRegionsOpen] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
+    null,
+  );
   const [leftWidth, setLeftWidth] = useState(240);
   const [rightWidth, setRightWidth] = useState(280);
   const renderer = useRef<MapRenderer | null>(null);
@@ -147,6 +156,7 @@ export function App() {
     const editor = useEditor.getState();
     if (editor.tool !== 'select') return;
     setCountry(code);
+    setSelectedRegion(null);
     const existing = editor.project.scenes
       .find(
         (scene) =>
@@ -214,6 +224,20 @@ export function App() {
       )}
       {dataOpen && (
         <DataLibrary sceneId={scene.id} onClose={() => setDataOpen(false)} />
+      )}
+      {regionsOpen && (
+        <Admin1Panel
+          country={country}
+          initialRegion={selectedRegion?.code}
+          sceneId={scene.id}
+          renderer={renderer.current}
+          onCountry={(code) => {
+            setCountry(code);
+            setSelectedRegion(null);
+          }}
+          onSelect={setSelectedRegion}
+          onClose={() => setRegionsOpen(false)}
+        />
       )}
       <div
         className="workspace"
@@ -381,6 +405,7 @@ export function App() {
           <button onClick={() => setDataOpen(true)}>
             Country data · CSV / Excel
           </button>
+          <button onClick={() => setRegionsOpen(true)}>Admin 1 regions</button>
           {s.tool !== 'select' && (
             <div className="tool-notice">
               {s.tool === 'route' || s.tool === 'shape'
@@ -555,6 +580,27 @@ export function App() {
                     });
                 }}
                 onCountry={chooseCountry}
+                onRegion={(code) => {
+                  const editor = useEditor.getState();
+                  if (editor.tool !== 'select') return;
+                  const parent = admin1Reference.get(code);
+                  const region =
+                    parent &&
+                    renderer.current
+                      ?.regionsForCountry(parent)
+                      ?.features.find(
+                        (region) => region.properties.code === code,
+                      );
+                  if (!region) return;
+                  setCountry(region.properties.countryCode);
+                  setSelectedRegion(region.properties);
+                  const existing = scene.layers.find(
+                    (layer) =>
+                      layer.type === 'admin1Highlight' &&
+                      layer.regionCodes.includes(code),
+                  );
+                  useEditor.setState({ selected: existing?.id ?? '' });
+                }}
                 onLayer={(id) => {
                   if (useEditor.getState().tool === 'select')
                     useEditor.setState({ selected: id });
@@ -610,7 +656,11 @@ export function App() {
           </div>
         </section>
         <aside className="right-panel panel">
-          <Inspector country={country} />
+          <Inspector
+            country={country}
+            region={selectedRegion}
+            onRegions={() => setRegionsOpen(true)}
+          />
           <label className="field">
             Panel width
             <input
