@@ -30,6 +30,7 @@ import { AssetLibrary } from './AssetLibrary';
 import { DataLibrary } from './DataLibrary';
 import { Admin1Panel } from './Admin1Panel';
 import { AudioPanel } from './AudioPanel';
+import { GeographyPanel } from './GeographyPanel';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -80,6 +81,7 @@ export function App() {
   const [dataOpen, setDataOpen] = useState(false);
   const [regionsOpen, setRegionsOpen] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false);
+  const [geographyOpen, setGeographyOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -231,6 +233,12 @@ export function App() {
         />
       )}
       {audioOpen && <AudioPanel onClose={() => setAudioOpen(false)} />}
+      {geographyOpen && (
+        <GeographyPanel
+          sceneId={scene.id}
+          onClose={() => setGeographyOpen(false)}
+        />
+      )}
       <div
         className="workspace"
         style={{
@@ -399,6 +407,9 @@ export function App() {
           </button>
           <button onClick={() => setRegionsOpen(true)}>Admin 1 regions</button>
           <button onClick={() => setAudioOpen(true)}>Audio & captions</button>
+          <button onClick={() => setGeographyOpen(true)}>
+            Places & road routes
+          </button>
           {s.tool !== 'select' && (
             <div className="tool-notice">
               {s.tool === 'route' || s.tool === 'shape'

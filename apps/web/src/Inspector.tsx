@@ -25,6 +25,23 @@ export function Inspector({
       <div className="panel-heading">INSPECTOR</div>
       <h2>{layer?.name ?? 'Camera'}</h2>
       <span className="type-label">{layer?.type ?? 'Camera keyframes'}</span>
+      {layer &&
+        (layer.type === 'route' || layer.type === 'marker') &&
+        layer.geographySource && (
+          <details className="source-review">
+            <summary>Geographic source</summary>
+            <p>{layer.geographySource.credit}</p>
+            <p>
+              {layer.geographySource.license} ·{' '}
+              {layer.geographySource.datasetVersion}
+            </p>
+            <p>{layer.geographySource.sourceId}</p>
+            <p>
+              Imported source reference; geometry may have been edited in this
+              project.
+            </p>
+          </details>
+        )}
       {layer && (
         <fieldset disabled={layer.locked} className="inspector-fields">
           <label className="field">

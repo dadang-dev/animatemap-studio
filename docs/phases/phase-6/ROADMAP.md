@@ -13,7 +13,7 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 - [x] 6I: country/year/value CSV and Excel import, choropleth and data keyframes.
 - [x] 6J: licensed Admin 1 boundaries and selection/highlighting.
 - [x] 6K: local audio/voiceover tracks, captions and real FFmpeg mixing.
-- [ ] 6L: geocoding/routing provider adapters with quota/terms and explicit configuration errors; no public service abuse.
+- [ ] 6L live-service gate: offline city search and bounded optional geocoding/routing adapter implemented; static/111 unit/integration and 16 browser scenarios passed. External routing/terms remain unverified because the user declined accounts/keys. See GEOCODING_ROUTING.md; continue independent Codex work without requesting credentials again.
 - [ ] P1 release gate: full regression, security/dependency/license audit, fresh setup docs and updated benchmarks.
 
 P2 modules:

@@ -1,0 +1,11 @@
+{
+  "release": "5.1.2",
+  "source": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_populated_places.geojson",
+  "sha256": "9b8e3de09048ef00dfc70357dbb9fa324493f214b5e0ae4daf1aa79a8d10116b",
+  "sourceBytes": 19359003,
+  "count": 7342,
+  "catalogSha256": "ce5c3ce0a8d2abf203d842238da2451d28bc4c1ae3cb89ce2966c0460a62e665",
+  "license": "Public domain",
+  "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "note": "Geometry Point coordinates preserved exactly; place names are release references, not street addresses or current political/population claims."
+}

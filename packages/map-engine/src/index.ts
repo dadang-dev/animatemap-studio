@@ -1098,6 +1098,11 @@ export class MapRenderer {
       credits.add(`Natural Earth Admin 1 · v${ADMIN1_RELEASE}`);
     for (const layer of this.layers) {
       if (!layer.visible || layer.opacity === 0) continue;
+      if (
+        (layer.type === 'route' || layer.type === 'marker') &&
+        layer.geographySource
+      )
+        credits.add(layer.geographySource.credit);
       if (layer.type === 'choropleth') {
         const dataset = this.project.datasets.find(
           (dataset) => dataset.id === layer.datasetId,

@@ -131,6 +131,14 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          geographySources: project.scenes.flatMap((scene) =>
+            scene.layers.flatMap((layer) =>
+              (layer.type === 'route' || layer.type === 'marker') &&
+              layer.geographySource
+                ? [{ layerId: layer.id, ...layer.geographySource }]
+                : [],
+            ),
+          ),
           audioSources: project.audioAssets.map(({ id, name, provenance }) => ({
             id,
             name,

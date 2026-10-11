@@ -1,4 +1,22 @@
 import { z } from 'zod';
+import { geographySourceSchema } from './geography';
+export {
+  orsGeocodeSchema,
+  orsDirectionsSchema,
+  type GeographyConfiguration,
+} from './geography';
+export {
+  geographySourceSchema,
+  placeResultSchema,
+  roadRouteResultSchema,
+  geocodeResponseSchema,
+  geocodeRequestSchema,
+  directionsRequestSchema,
+  geographyConfigurationSchema,
+  type GeographySource,
+  type PlaceResult,
+  type RoadRouteResult,
+} from './geography';
 import {
   audioAssetSchema,
   audioTrackSchema,
@@ -494,8 +512,22 @@ const admin1HighlightSchema = z.object({
     dimOutside: finite.min(0).max(0.9).default(0),
   }),
 });
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV9Schema = z.discriminatedUnion('type', [
   ...layerV8Schema.options,
+  admin1HighlightSchema,
+]);
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV8Schema.options[0],
+  layerV8Schema.options[1].extend({
+    geographySource: geographySourceSchema.optional(),
+  }),
+  layerV8Schema.options[2].extend({
+    geographySource: geographySourceSchema.optional(),
+  }),
+  layerV8Schema.options[3],
+  layerV8Schema.options[4],
+  layerV8Schema.options[5],
+  layerV8Schema.options[6],
   admin1HighlightSchema,
 ]);
 export type Layer = z.infer<typeof layerSchema>;
@@ -744,14 +776,14 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 10;
+export const CURRENT_SCHEMA_VERSION = 11;
 const projectV9Base = projectV8Base.extend({
   schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
     admin1Countries: admin1CountryCodesSchema,
   }),
   scenes: z
-    .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+    .array(sceneV2Schema.extend({ layers: z.array(layerV9Schema).max(100) }))
     .min(1)
     .max(20),
 });
@@ -778,12 +810,12 @@ const projectV9Schema = projectV9Base
       });
   });
 const projectV10Base = projectV9Base.extend({
-  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+  schemaVersion: z.literal(10),
   audioAssets: z.array(audioAssetSchema).max(5).default([]),
   audioTracks: z.array(audioTrackSchema).max(10).default([]),
   captions: captionsSchema,
 });
-export const projectSchema = projectV10Base.superRefine((project, ctx) => {
+const projectV10Schema = projectV10Base.superRefine((project, ctx) => {
   const legacy = projectV9Schema.safeParse({ ...project, schemaVersion: 9 });
   if (!legacy.success)
     for (const issue of legacy.error.issues)
@@ -882,6 +914,51 @@ export const projectSchema = projectV10Base.superRefine((project, ctx) => {
       path: [],
     });
 });
+export const projectSchema = projectV10Base
+  .extend({
+    schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+    scenes: z
+      .array(sceneV2Schema.extend({ layers: z.array(layerSchema).max(100) }))
+      .min(1)
+      .max(20),
+  })
+  .superRefine((project, ctx) => {
+    const legacy = projectV10Schema.safeParse({
+      ...project,
+      schemaVersion: 10,
+    });
+    if (!legacy.success)
+      for (const issue of legacy.error.issues)
+        ctx.addIssue({
+          code: 'custom',
+          message: issue.message,
+          path: issue.path,
+        });
+    project.scenes.forEach((scene, s) =>
+      scene.layers.forEach((layer, l) => {
+        if (
+          (layer.type === 'route' || layer.type === 'marker') &&
+          layer.geographySource &&
+          layer.geographySource.kind !==
+            (layer.type === 'route' ? 'road-route' : 'place')
+        )
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Geographic source does not match layer type',
+            path: ['scenes', s, 'layers', l, 'geographySource'],
+          });
+      }),
+    );
+    if (
+      new TextEncoder().encode(JSON.stringify(project)).length >
+      MAX_PROJECT_BODY_BYTES - 65536
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Project exceeds the embedded JSON request budget (48 MiB)',
+        path: [],
+      });
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -898,29 +975,32 @@ export function migrateProject(input: unknown): Project {
       input.schemaVersion === 6 ||
       input.schemaVersion === 7 ||
       input.schemaVersion === 8 ||
-      input.schemaVersion === 9)
+      input.schemaVersion === 9 ||
+      input.schemaVersion === 10)
   ) {
     const legacy =
-      input.schemaVersion === 9
-        ? projectV9Schema.parse(input)
-        : input.schemaVersion === 8
-          ? projectV8Schema.parse(input)
-          : input.schemaVersion === 7
-            ? projectV7Schema.parse(input)
-            : input.schemaVersion === 6
-              ? projectV6Schema.parse(input)
-              : input.schemaVersion === 5
-                ? projectV5Schema.parse(input)
-                : input.schemaVersion === 4
-                  ? projectV4Schema.parse(input)
-                  : input.schemaVersion === 3
-                    ? projectV3Schema.parse(input)
-                    : input.schemaVersion === 1
-                      ? projectV2Schema.parse({
-                          ...projectV1Schema.parse(input),
-                          schemaVersion: 2,
-                        })
-                      : projectV2Schema.parse(input);
+      input.schemaVersion === 10
+        ? projectV10Schema.parse(input)
+        : input.schemaVersion === 9
+          ? projectV9Schema.parse(input)
+          : input.schemaVersion === 8
+            ? projectV8Schema.parse(input)
+            : input.schemaVersion === 7
+              ? projectV7Schema.parse(input)
+              : input.schemaVersion === 6
+                ? projectV6Schema.parse(input)
+                : input.schemaVersion === 5
+                  ? projectV5Schema.parse(input)
+                  : input.schemaVersion === 4
+                    ? projectV4Schema.parse(input)
+                    : input.schemaVersion === 3
+                      ? projectV3Schema.parse(input)
+                      : input.schemaVersion === 1
+                        ? projectV2Schema.parse({
+                            ...projectV1Schema.parse(input),
+                            schemaVersion: 2,
+                          })
+                        : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

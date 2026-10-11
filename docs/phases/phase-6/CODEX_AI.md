@@ -1,6 +1,6 @@
 # Phase 7C — Reviewed Codex project proposals
 
-Status: preimplementation notes. The user selected the installed Codex account rather than a separate API provider. Complete preceding module gates before enabling this workflow.
+Status: implementation preparation. The user selected the installed Codex account rather than a separate API provider and explicitly declined other accounts/keys. Offline geography and adapter contract checks pass; its live-routing gate stays visibly open. Develop this independent JSON proposal workflow while that external check is unavailable, then validate its own actual Codex/browser/export gate before enabling it.
 
 Provider research: [Codex non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode) documents structured output, stdin prompts and ephemeral runs. The installed CLI supports `exec`, `--output-schema`, `--json`, `--ignore-user-config`, `--ignore-rules`, read-only sandboxing and output-last-message. Read-only login status confirms ChatGPT authentication; no authentication file has been read or copied. Feature inspection confirms shell and multi-agent flags can be disabled. Do not choose a different model silently.
 

@@ -358,3 +358,30 @@ fieldset:disabled {
 .audio-asset {
   align-items: center;
 }
+
+.geography-dialog {
+  width: min(760px, 90vw);
+}
+.geography-dialog fieldset {
+  display: grid;
+  gap: 10px;
+  margin-block: 14px;
+  padding: 14px;
+}
+.geography-dialog label {
+  display: grid;
+  gap: 5px;
+}
+.geography-results {
+  display: grid;
+  gap: 6px;
+}
+.geography-dialog li {
+  margin-block: 8px;
+}
+.source-review {
+  padding: 10px;
+  border: 1px solid #3d4c59;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}

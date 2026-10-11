@@ -22,3 +22,5 @@
 - [x] Phase 6K: schema v10 canonical WAV assets, microphone voiceover, project-time clips, captions and real AAC/Opus exports. 101 unit/integration tests, eight audio/foundation browser scenarios and 24 broader regressions passed. Exact PNG and decoded audio/video parity evidence is recorded in `docs/phases/phase-6/AUDIO_CAPTIONS.md`.
 
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.
+
+- [ ] Phase 6L live-service gate: real offline city search, source-preserving review and bounded optional geocoding/routing adapter are implemented; 111 unit/integration and 16 relevant browser scenarios passed. The user declined external accounts/API keys, so real routing/account terms remain unverified. Details and explicitly labeled contract-fixture export evidence: `docs/phases/phase-6/GEOCODING_ROUTING.md`.

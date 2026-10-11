@@ -4,13 +4,17 @@ import { resolve } from 'node:path';
 import { dirname, join } from 'node:path';
 import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
+import { GeographyService } from './geography';
 import {
   CURRENT_SCHEMA_VERSION,
   exportFormatSchema,
   exportFormats,
   MAX_PROJECT_BODY_BYTES,
 } from '@animatemap/project-schema';
-export function createApp(directory = resolve('.local/projects')) {
+export function createApp(
+  directory = resolve('.local/projects'),
+  geography = new GeographyService(),
+) {
   const app = Fastify({ bodyLimit: MAX_PROJECT_BODY_BYTES });
   app.addHook('onRequest', async (request, reply) => {
     if (!['127.0.0.1', 'localhost'].includes(request.hostname))
@@ -35,7 +39,23 @@ export function createApp(directory = resolve('.local/projects')) {
   const jobs = new JobQueue(join(dirname(directory), 'renders'));
   app.addHook('onClose', async () => {
     jobs.stop();
+    geography.cancel();
   });
+  app.get('/api/geography/status', async () => geography.status());
+  app.post('/api/geography/configure', { bodyLimit: 2048 }, async (request) =>
+    geography.configure(request.body),
+  );
+  app.delete('/api/geography/configure', async () => geography.clear());
+  app.post('/api/geography/cancel', async () => {
+    geography.cancel();
+    return { cancelled: true };
+  });
+  app.post('/api/geography/search', { bodyLimit: 2048 }, async (request) =>
+    geography.search(request.body),
+  );
+  app.post('/api/geography/route', { bodyLimit: 4096 }, async (request) =>
+    geography.route(request.body),
+  );
   app.post<{ Body: { project: unknown; format: string; frameIndex?: number } }>(
     '/api/jobs',
     async (request) => {
