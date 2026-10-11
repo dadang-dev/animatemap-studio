@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
 import { GeographyService } from './geography';
+import { CodexService } from './codex';
 import {
   CURRENT_SCHEMA_VERSION,
   exportFormatSchema,
@@ -14,6 +15,7 @@ import {
 export function createApp(
   directory = resolve('.local/projects'),
   geography = new GeographyService(),
+  codex = new CodexService(join(dirname(directory), 'ai')),
 ) {
   const app = Fastify({ bodyLimit: MAX_PROJECT_BODY_BYTES });
   app.addHook('onRequest', async (request, reply) => {
@@ -40,7 +42,32 @@ export function createApp(
   app.addHook('onClose', async () => {
     jobs.stop();
     geography.cancel();
+    codex.cancel();
   });
+  app.get('/api/ai/status', async () => codex.status());
+  app.post<{
+    Body: { prompt: unknown; project: unknown; generationId?: string };
+  }>('/api/ai/propose', async (request) => {
+    const aborted = () => {
+      if (request.body?.generationId) codex.cancel(request.body.generationId);
+    };
+    request.raw.once('aborted', aborted);
+    try {
+      return await codex.generate(request.body);
+    } finally {
+      request.raw.removeListener('aborted', aborted);
+    }
+  });
+  app.post<{ Body: { generationId?: string } }>(
+    '/api/ai/cancel',
+    { bodyLimit: 1024 },
+    async (request) => {
+      const id = request.body?.generationId;
+      if (!id || !/^[a-f0-9-]{36}$/i.test(id))
+        throw new Error('Generation identifier required');
+      return { cancelled: codex.cancel(id) };
+    },
+  );
   app.get('/api/geography/status', async () => geography.status());
   app.post('/api/geography/configure', { bodyLimit: 2048 }, async (request) =>
     geography.configure(request.body),

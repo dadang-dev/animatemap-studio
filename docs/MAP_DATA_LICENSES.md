@@ -1,5 +1,7 @@
 # Map data and fonts
 
+The authored JSON proposal fixture in `packages/project-schema/src/proposals.fixture.ts` is dedicated under CC0-1.0 for protocol tests. It is explicitly labeled synthetic and is not represented as a live model response. Codex proposal markers resolve coordinates from the same pinned public-domain Natural Earth gazetteer; generated connections are illustrative paths between verified places, without a road-routing claim. Generated text is plain text, and the proposal contract does not accept new geographic polygon data or external assets.
+
 Audio imports and voiceover require declared source, author, license and visible credit; recordings stay local until the user reviews/applies them. No third-party music is bundled. The authored synthetic PCM tone in `packages/project-schema/src/audio.fixture.ts` is dedicated under CC0-1.0 solely as a test signal, not represented as speech/music. Source declarations travel with samples in JSON/snapshots and `audioSources` reports; referenced unmuted audio retains source credit in rendered frames.
 
 Natural Earth Admin 0 Countries, release v5.1.2, 1:10m, public domain. Source URL and SHA-256 hashes are in `data/countries/PROVENANCE.json`. Geometry is unchanged; attributes are reduced for local loading. Dataset boundaries reflect the source's point of view, not definitive territorial claims. UI and exports retain Natural Earth credit.

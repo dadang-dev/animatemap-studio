@@ -31,6 +31,7 @@ import { DataLibrary } from './DataLibrary';
 import { Admin1Panel } from './Admin1Panel';
 import { AudioPanel } from './AudioPanel';
 import { GeographyPanel } from './GeographyPanel';
+import { AIPanel } from './AIPanel';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -82,6 +83,7 @@ export function App() {
   const [regionsOpen, setRegionsOpen] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false);
   const [geographyOpen, setGeographyOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -233,6 +235,7 @@ export function App() {
         />
       )}
       {audioOpen && <AudioPanel onClose={() => setAudioOpen(false)} />}
+      {aiOpen && <AIPanel onClose={() => setAiOpen(false)} />}
       {geographyOpen && (
         <GeographyPanel
           sceneId={scene.id}
@@ -407,6 +410,7 @@ export function App() {
           </button>
           <button onClick={() => setRegionsOpen(true)}>Admin 1 regions</button>
           <button onClick={() => setAudioOpen(true)}>Audio & captions</button>
+          <button onClick={() => setAiOpen(true)}>Create with Codex</button>
           <button onClick={() => setGeographyOpen(true)}>
             Places & road routes
           </button>

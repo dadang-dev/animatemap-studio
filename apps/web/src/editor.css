@@ -385,3 +385,17 @@ fieldset:disabled {
   border-radius: 6px;
   overflow-wrap: anywhere;
 }
+
+.ai-dialog {
+  width: min(780px, 92vw);
+}
+.ai-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  color: inherit;
+  background: #111820;
+  border: 1px solid #3d4c59;
+  padding: 10px;
+  border-radius: 6px;
+}

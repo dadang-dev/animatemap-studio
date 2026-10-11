@@ -1,0 +1,35 @@
+{
+  "source": "Actual signed-in Codex CLI generation; no intercepted provider response",
+  "provider": {
+    "name": "Codex CLI",
+    "model": "Installed CLI default",
+    "toolCalls": 0,
+    "elapsedMs": 11833,
+    "usage": {
+      "input_tokens": 15883,
+      "cached_input_tokens": 0,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 341,
+      "reasoning_output_tokens": 0
+    }
+  },
+  "comparisons": [
+    {
+      "frame": 0,
+      "meanAbsoluteChannelError": 1.324283693415638
+    },
+    {
+      "frame": 30,
+      "meanAbsoluteChannelError": 1.4105420524691359
+    },
+    {
+      "frame": 59,
+      "meanAbsoluteChannelError": 1.4521429719650205
+    }
+  ],
+  "repeatedSeeksIdentical": true,
+  "png": {
+    "frame": 30,
+    "identical": true
+  }
+}

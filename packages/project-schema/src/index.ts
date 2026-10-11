@@ -1,4 +1,10 @@
 import { z } from 'zod';
+export {
+  proposalRequestSchema,
+  projectProposalSchema,
+  projectProposalJsonSchema,
+  type ProjectProposal,
+} from './proposals';
 import { geographySourceSchema } from './geography';
 export {
   orsGeocodeSchema,

@@ -40,6 +40,10 @@ Places & road routes searches 7,342 bundled Natural Earth v5.1.2 populated place
 
 Canvas presets include 3840×2160 and 2160×3840; choose 24, 30 or 60 FPS. Current schema v11 retains geographic import provenance, migrating valid v1–v10 projects while preserving their original frame rate, content and transitions.
 
+Create with Codex uses your installed, signed-in Codex CLI and its configured default model. No separate API key is required. Install/sign in to Codex first; if discovery fails, set `ANIMATEMAP_CODEX_PATH` to its absolute executable path and restart the API. Generation requires network access and sends the entered prompt plus a bounded project summary and verified country/place references to that account. Existing project text, image and audio contents are excluded. Runs are read-only, tools are disabled and only one proposal runs at a time, with a two-minute deadline.
+
+Review the proposed JSON, scene/layer counts and geography limitations before Apply. Apply replaces scenes/audio/captions in one undoable operation while retaining canvas/style; locked or changed projects cannot be overwritten. Discard/Cancel leaves the original project intact. Proposals support camera keys, current country highlights, verified city markers, illustrative geographic connections and plain Unicode text. Codex does not supply factual street routes or historical boundary geometry. CLI absence, sign-in/network failure or invalid output shows an error without generated fallback content. Normal editing/export continues offline.
+
 Export → MP4, WebM, GIF or current-frame PNG → Start export. Progress, cancellation, retry and download are real worker operations. MP4/H.264 and WebM/VP9 use even dimensions, yuv420p, and fixed timestamps; source attribution remains in output. GIF uses a generated 256-color palette and centisecond frame delays, so its colors/timing differ slightly and viewer playback may be capped. All outputs keep canvas dimensions; there is no automatic downscale. 4K exports need more temporary disk and processing time. For CLI use:
 
 ```sh
@@ -51,6 +55,8 @@ The final CLI argument also accepts `webm`, `gif` and `png`. Temporary frame fol
 On Windows install FFmpeg with `winget install Gyan.FFmpeg`; on Ubuntu use `sudo apt-get install ffmpeg`. Check `ffmpeg -version` and `ffprobe -version`. If Chromium is missing, rerun `pnpm exec playwright install chromium`. On Linux use `pnpm exec playwright install --with-deps chromium`. Optional `FFMPEG_PATH` specifies an encoder executable. Installation needs network access; the default app and render pipeline do not.
 
 Run `pnpm check`, `pnpm format:check`, and `pnpm test:e2e`. Stop running dev services before E2E: Playwright launches its own services and uses an isolated `.local/e2e/` repository, with fake microphone devices for capture tests. E2E includes a real 360-frame 1080p render and takes several minutes. Golden frames use pinned Chromium/Noto Sans and allow 2% pixel difference for GPU rasterization across operating systems. `pnpm benchmark` profiles the evaluator and a 300-frame render with local services running. CI installs FFmpeg and Chromium before testing.
+
+Codex protocol/error tests run without an account using clearly labeled authored fixtures. The actual signed-in generation/export browser test is opt-in: set `ANIMATEMAP_LIVE_CODEX=1` and run `pnpm test:e2e tests/e2e/codex.spec.ts`. It uses the installed account and verifies a real generated project, H.264 frame count and PNG/preview parity; it is skipped in ordinary CI to avoid silently consuming account usage.
 
 Shortcuts: Space play/pause; Ctrl/Cmd+Z undo; Ctrl/Cmd+Shift+Z redo; Ctrl/Cmd+S save; K capture camera key; Delete remove selected unlocked layer; +/- timeline zoom; Escape cancel drawing. Shortcuts are ignored inside text/form inputs.
 
