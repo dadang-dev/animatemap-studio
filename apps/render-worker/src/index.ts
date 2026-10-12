@@ -150,6 +150,15 @@ export async function renderProject(options: RenderOptions) {
                 : [],
             ),
           ),
+          buildingSources: project.buildingDatasets.map(
+            ({ id, name, heightUnit, records, provenance }) => ({
+              id,
+              name,
+              heightUnit,
+              footprints: records.length,
+              ...provenance,
+            }),
+          ),
           audioSources: project.audioAssets.map(({ id, name, provenance }) => ({
             id,
             name,

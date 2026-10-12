@@ -235,6 +235,12 @@ function evaluateSceneAt(
         scalarAt(layer.tracks.dataYear, local, result.dataYear),
       );
     }
+    if (result.type === 'buildings')
+      result.heightScale = scalarAt(
+        layer.tracks.heightScale,
+        local,
+        result.heightScale,
+      );
     return result;
   });
   return { sceneId: scene.id, camera: { ...camera }, layers };

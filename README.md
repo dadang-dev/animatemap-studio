@@ -1,5 +1,7 @@
 # AnimateMap Studio
 
+**3D buildings · GeoJSON** imports local WGS84 Polygon/MultiPolygon footprints up to 3 MiB/500 records or reviews the licensed Vancouver 2009 high-rise sample. Select explicit source-ID/height fields and metres, international feet or US survey feet; supply source/license/credit/uncertainty and confirm above-grade heights. Validation rejects malformed geometry or missing heights before any project change. Add reviewed buildings creates a real extrusion layer; optional focus replaces current-scene camera keys and disables regional terrain in one undoable edit. Inspector edits color, shading and height scale; Animate building growth creates editable timeline keys. Source records stay intact and travel with JSON/autosave/templates/API saves. Credits include survey year. Native 3D preview uses full canvas resolution. This older, incomplete reference sample and its prisms do not represent current roofs/interiors or a complete city inventory. Details: `docs/phases/phase-6/BUILDINGS.md` and `data/buildings/NOTICES.md`.
+
 Local-first animated map editor. Implementation follows `PLAN_CODEX_ANIMATEMAP_STUDIO.md`; phase evidence lives in `docs/phases`.
 
 Prerequisites: Node 24+, pnpm 11; FFmpeg/ffprobe on PATH for video export.

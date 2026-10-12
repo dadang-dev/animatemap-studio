@@ -38,8 +38,13 @@ export function MapSurface({
   const container = useRef<HTMLDivElement>(null);
   const surface = useRef<HTMLDivElement>(null);
   const [renderScale, setRenderScale] = useState(1);
+  const native3D =
+    !!project.map.terrain ||
+    project.scenes.some((scene) =>
+      scene.layers.some((layer) => layer.type === 'buildings'),
+    );
   useLayoutEffect(() => {
-    if (!project.map.terrain) return;
+    if (!native3D) return;
     const parent = surface.current?.parentElement;
     if (!parent) return;
     const resize = () =>
@@ -53,7 +58,7 @@ export function MapSurface({
     const observer = new ResizeObserver(resize);
     observer.observe(parent);
     return () => observer.disconnect();
-  }, [project.map.terrain, project.canvas.width, project.canvas.height]);
+  }, [native3D, project.canvas.width, project.canvas.height]);
   const renderer = useRef<MapRenderer | null>(null);
   const current = useRef({
     project,
@@ -181,8 +186,9 @@ export function MapSurface({
       className="map-surface"
       data-testid="map-surface"
       data-native-terrain={!!project.map.terrain}
+      data-native-3d={native3D}
       style={
-        project.map.terrain
+        native3D
           ? {
               width: project.canvas.width,
               height: project.canvas.height,

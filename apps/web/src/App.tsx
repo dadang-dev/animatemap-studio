@@ -34,6 +34,7 @@ import { GeographyPanel } from './GeographyPanel';
 import { AIPanel } from './AIPanel';
 import { AfterEffectsPanel } from './AfterEffectsPanel';
 import { TerrainPanel } from './TerrainPanel';
+import { BuildingLibrary } from './BuildingLibrary';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -88,6 +89,7 @@ export function App() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aeOpen, setAeOpen] = useState(false);
   const [terrainOpen, setTerrainOpen] = useState(false);
+  const [buildingsOpen, setBuildingsOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -241,6 +243,9 @@ export function App() {
       {audioOpen && <AudioPanel onClose={() => setAudioOpen(false)} />}
       {aiOpen && <AIPanel onClose={() => setAiOpen(false)} />}
       {terrainOpen && <TerrainPanel onClose={() => setTerrainOpen(false)} />}
+      {buildingsOpen && (
+        <BuildingLibrary onClose={() => setBuildingsOpen(false)} />
+      )}
       {aeOpen && (
         <AfterEffectsPanel
           countries={renderer.current?.countries}
@@ -424,6 +429,9 @@ export function App() {
           <button onClick={() => setAiOpen(true)}>Create with Codex</button>
           <button onClick={() => setTerrainOpen(true)}>
             Offline 3D terrain
+          </button>
+          <button onClick={() => setBuildingsOpen(true)}>
+            3D buildings · GeoJSON
           </button>
           <button onClick={() => setAeOpen(true)}>
             After Effects interchange

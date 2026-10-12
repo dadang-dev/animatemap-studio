@@ -140,6 +140,11 @@ export function aeManifestBase(input: Project): Omit<AEManifest, 'frames'> {
   project.assets.forEach((a) => attribution.add(a.provenance.credit));
   project.audioAssets.forEach((a) => attribution.add(a.provenance.credit));
   project.datasets.forEach((d) => attribution.add(d.provenance.credit));
+  project.buildingDatasets.forEach((d) =>
+    attribution.add(
+      `${d.provenance.credit}${d.provenance.surveyYear ? ` · ${d.provenance.surveyYear} survey` : ''}`,
+    ),
+  );
   project.scenes.forEach((scene) =>
     scene.layers.forEach((layer) => {
       if (

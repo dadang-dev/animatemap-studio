@@ -20,7 +20,7 @@ P2 modules:
 
 - [ ] 7A: 3D terrain/buildings/models with a separate validated asset pipeline, camera follow and multi-pass graphics.
 - [x] 7A.1 terrain: pinned offline Sa Pa DEM, native preview, ground anchors, camera/source validation and real 60-frame H.264/PNG parity. 129 unit/integration tests and 15 unique relevant browser scenarios passed; evidence/costs in TERRAIN.md.
-- [ ] 7A.2 buildings: licensed footprint/height import, measured units/provenance and actual extrusions.
+- [x] 7A.2 buildings: licensed original Vancouver height/footprint snapshot, bounded reviewed local GeoJSON/units/topology, deterministic actual extrusion growth and native preview/export. 139 unit/integration and 14 relevant browser scenarios passed; real 60-frame 1080p H.264/PNG/seek evidence in BUILDINGS.md. Models/follow/multi-pass remain separate gates.
 - [ ] 7A.3 models/follow: bounded licensed local 3D assets, deterministic poses and camera follow.
 - [ ] 7A.4 multi-pass: deterministic beauty/depth/overlay outputs and compositing validation.
 - [ ] 7B: licensed time-aware historical border import, year slider, uncertainty/source labels and topology validation before morphing.

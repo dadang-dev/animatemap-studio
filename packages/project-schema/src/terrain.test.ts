@@ -100,14 +100,17 @@ test('nine pinned original DEM tiles retain bytes, SHA, alpha, Terrarium elevati
     expect([png.width, png.height]).toEqual([256, 256]);
     let minimum = Infinity,
       maximum = -Infinity;
+    let invalidAlphaPixel = -1;
     for (let p = 0; p < png.data.length; p += 4) {
       const meters =
         png.data[p]! * 256 + png.data[p + 1]! + png.data[p + 2]! / 256 - 32768;
-      expect(png.data[p + 3]).toBe(255);
+      if (png.data[p + 3] !== 255 && invalidAlphaPixel === -1)
+        invalidAlphaPixel = p / 4;
       minimum = Math.min(minimum, meters);
       maximum = Math.max(maximum, meters);
     }
     expect([minimum, maximum]).toEqual([tile.minMeters, tile.maxMeters]);
+    expect(invalidAlphaPixel, `Non-opaque pixel in ${key}`).toBe(-1);
   }
   expect(bytes).toBe(864969);
   expect(

@@ -1,0 +1,15 @@
+{
+  "source": "https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/building-footprints-2009/records?where=hgt_agl+%3E+0&order_by=hgt_agl+DESC%2C+id+ASC&limit=100",
+  "retrievedAt": "2026-10-12T17:16:14.954Z",
+  "sourceBytes": 91283,
+  "sourceSha256": "4b13b0ac61f32e3dd5b37ed24b20db01742bf39bda9d58887fa573f7e5731407",
+  "count": 100,
+  "matchingSourceCount": 124172,
+  "surveyYear": 2009,
+  "heightField": "hgt_agl",
+  "heightUnit": "metres above grade",
+  "publisher": "City of Vancouver",
+  "license": "Open Government Licence - Vancouver 1.0",
+  "licenseURL": "https://opendata.vancouver.ca/pages/licence/",
+  "credit": "Contains information licensed under the Open Government Licence – Vancouver."
+}

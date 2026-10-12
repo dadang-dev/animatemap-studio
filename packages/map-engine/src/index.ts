@@ -11,6 +11,7 @@ import type {
 } from '@animatemap/project-schema';
 import { drawCaptions } from './captions';
 import { TerrainAdapter } from './terrainAdapter';
+import { applyBuildings } from './buildingsAdapter';
 import {
   admin1CountriesForRegions,
   ADMIN1_RELEASE,
@@ -253,14 +254,16 @@ export class MapRenderer {
           this.layerIds.some(
             (id) =>
               feature.layer.id === `ams-${id}-line` ||
-              feature.layer.id === `ams-${id}-fill`,
+              feature.layer.id === `ams-${id}-fill` ||
+              feature.layer.id === `ams-${id}-extrusion`,
           ),
         );
       if (hit) {
         const id = this.layerIds.find(
           (id) =>
             hit.layer.id === `ams-${id}-line` ||
-            hit.layer.id === `ams-${id}-fill`,
+            hit.layer.id === `ams-${id}-fill` ||
+            hit.layer.id === `ams-${id}-extrusion`,
         );
         if (id) this.onLayer?.(id);
       }
@@ -482,7 +485,8 @@ export class MapRenderer {
           l.type === 'shape' ||
           l.type === 'choropleth' ||
           l.type === 'admin1Highlight' ||
-          l.type === 'countryHighlight',
+          l.type === 'countryHighlight' ||
+          l.type === 'buildings',
       )
       .map((l) => l.id);
     for (const id of this.layerIds.filter(
@@ -491,7 +495,7 @@ export class MapRenderer {
         this.geometryTypes.get(id) !==
           layers.find((layer) => layer.id === id)?.type,
     )) {
-      for (const suffix of ['fill', 'line'])
+      for (const suffix of ['fill', 'line', 'extrusion'])
         if (this.map.getLayer(`ams-${id}-${suffix}`))
           this.map.removeLayer(`ams-${id}-${suffix}`);
       if (this.map.getSource(`ams-${id}`)) this.map.removeSource(`ams-${id}`);
@@ -524,6 +528,16 @@ export class MapRenderer {
     this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
+      if (layer.type === 'buildings') {
+        const dataset = project.buildingDatasets.find(
+          (d) => d.id === layer.buildingDatasetId,
+        );
+        if (!dataset)
+          throw new Error(
+            `Missing building dataset ${layer.buildingDatasetId}`,
+          );
+        applyBuildings(this.map, layer, dataset, this.geometrySignatures);
+      }
       if (layer.type === 'admin1Highlight') {
         if (!this.map.getLayer(`ams-${layer.id}-fill`)) {
           this.map.addLayer({
@@ -768,6 +782,7 @@ export class MapRenderer {
     }
     // Moving identical layers each frame invalidates terrain render-to-texture stacks.
     const ordered = layers.flatMap((layer) => {
+      if (layer.type === 'buildings') return [`ams-${layer.id}-extrusion`];
       if (
         layer.type === 'route' ||
         layer.type === 'shape' ||
@@ -1156,6 +1171,15 @@ export class MapRenderer {
           (dataset) => dataset.id === layer.datasetId,
         );
         if (dataset) credits.add(dataset.provenance.credit);
+      }
+      if (layer.type === 'buildings') {
+        const dataset = this.project.buildingDatasets.find(
+          (d) => d.id === layer.buildingDatasetId,
+        );
+        if (dataset)
+          credits.add(
+            `${dataset.provenance.credit}${dataset.provenance.surveyYear ? ` · ${dataset.provenance.surveyYear} survey` : ''}`,
+          );
       }
       const reference =
         layer.type === 'image'

@@ -1,0 +1,27 @@
+{
+  "source": "City of Vancouver actual 2009 LiDAR high-rise sample",
+  "footprints": 100,
+  "heightField": "hgt_agl",
+  "heightUnits": "metres above grade",
+  "nativePreviewWidth": 1920,
+  "comparisons": [
+    {
+      "frame": 0,
+      "meanAbsoluteChannelError": 0.8079759837962963
+    },
+    {
+      "frame": 30,
+      "meanAbsoluteChannelError": 0.8226699138374486
+    },
+    {
+      "frame": 59,
+      "meanAbsoluteChannelError": 0.8396484375
+    }
+  ],
+  "repeatedSeeksIdentical": true,
+  "growthChangesActualPixels": true,
+  "png": {
+    "frame": 30,
+    "identical": true
+  }
+}

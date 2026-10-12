@@ -1,5 +1,7 @@
 # Implementation checklist
 
+- [x] Phase 7A.2 buildings: project v13 with actual v12 migration, licensed original 100-element Vancouver 2009 height-biased sample, bounded GeoJSON topology/unit/source review, actual extrusion growth and native preview. 139 unit/integration and 14 affected browser scenarios passed; real 60-frame H.264/PNG/seek parity and source failure/atomic persistence are documented in `docs/phases/phase-6/BUILDINGS.md`. Models/follow/multi-pass remain open.
+
 - [x] Phase 0: workspace, schemas, fixtures, API health, shell, CI, unit/integration/e2e checks.
 - [x] Phase 1: local MapLibre, countries, styles, selection, camera, anchors, editor layout.
 - [x] Phase 2: deterministic evaluator, easing, geodesic routes, seek/playback tests.

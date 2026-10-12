@@ -115,9 +115,19 @@ export function Timeline() {
                     (item) => item.id === layer.id,
                   )?.data?.year ??
                   (layer.type === 'choropleth' ? layer.dataYear : 1))
-                : evaluateProjectAt(s.project, s.time).layers.find(
-                    (item) => item.id === layer.id,
-                  )!.transform[property],
+                : property === 'heightScale'
+                  ? (() => {
+                      const evaluated = evaluateProjectAt(
+                        s.project,
+                        s.time,
+                      ).layers.find((item) => item.id === layer.id);
+                      return evaluated?.type === 'buildings'
+                        ? evaluated.heightScale
+                        : 1;
+                    })()
+                  : evaluateProjectAt(s.project, s.time).layers.find(
+                      (item) => item.id === layer.id,
+                    )!.transform[property],
           easing: 'linear',
         });
         keys.sort((a, b) => a.time - b.time);
@@ -352,11 +362,13 @@ export function Timeline() {
               <option key={prop} value={prop}>
                 {prop === 'dataYear'
                   ? 'Data year'
-                  : prop === 'reveal'
-                    ? layer?.type === 'shape'
-                      ? 'Shape reveal'
-                      : 'Route reveal'
-                    : `Layer ${prop}`}
+                  : prop === 'heightScale'
+                    ? 'Building height scale'
+                    : prop === 'reveal'
+                      ? layer?.type === 'shape'
+                        ? 'Shape reveal'
+                        : 'Route reveal'
+                      : `Layer ${prop}`}
               </option>
             ),
           )}

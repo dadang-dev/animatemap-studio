@@ -6,6 +6,7 @@ import { AnimationStyles } from './AnimationStyles';
 import { ChoroplethInspector } from './ChoroplethInspector';
 import { NumberField } from './NumberField';
 import { Admin1Inspector } from './Admin1Inspector';
+import { BuildingInspector } from './BuildingInspector';
 export function Inspector({
   country,
   region,
@@ -182,6 +183,7 @@ export function Inspector({
             </>
           )}
           {layer.type === 'choropleth' && <ChoroplethInspector layer={layer} />}
+          {layer.type === 'buildings' && <BuildingInspector layer={layer} />}
           {layer.type === 'admin1Highlight' && (
             <Admin1Inspector layer={layer} />
           )}
