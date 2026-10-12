@@ -5,6 +5,7 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "@animatemap/project-schema": "workspace:*",
-    "@turf/turf": "7.3.1"
+    "@turf/turf": "7.3.1",
+    "zod": "4.1.13"
   }
 }

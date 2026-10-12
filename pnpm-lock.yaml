@@ -138,6 +138,9 @@ importers:
       '@turf/turf':
         specifier: 7.3.1
         version: 7.3.1
+      zod:
+        specifier: 4.1.13
+        version: 4.1.13
 
   packages/map-engine:
     dependencies:

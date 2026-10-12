@@ -21,7 +21,7 @@ P2 modules:
 - [ ] 7A: 3D terrain/buildings/models with a separate validated asset pipeline, camera follow and multi-pass graphics.
 - [ ] 7B: licensed time-aware historical border import, year slider, uncertainty/source labels and topology validation before morphing.
 - [x] 7C: Actual signed-in Codex CLI proposes validated JSON, with explicit review before applying, source-resolved places, locked/stale protection and no invented polygons. 120 unit/integration, four module/foundation browser scenarios and ten broader regressions passed; real 60-frame H.264/PNG parity evidence in CODEX_AI.md.
-- [ ] 7D: After Effects camera/anchor interchange and executable import script, with documented projection limitations and host validation.
+- [ ] 7D host gate: actual camera/anchor JSON and executable JSX artifact workflow implemented; 123 unit/integration tests and ten final relevant browser scenarios passed, with repeated 90-frame sampling and <0.005-pixel preview position error. Adobe host import/render remains unverified because the host is absent. See AFTER_EFFECTS.md.
 - [ ] 7E: authenticated collaborative cloud persistence and concurrency/conflict handling.
 - [ ] 7F: SaaS billing with configured payment provider, verified webhooks and test-mode lifecycle.
 - [ ] Complete release gate: all P0/P1/P2 acceptance scenarios, local CI-equivalent checks, live external-service/host checks where configured, performance/security/license reports.

@@ -23,6 +23,8 @@
 
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.
 
+- [ ] Phase 7D Adobe host gate: real camera/anchor JSON and trusted executable JSX are implemented and downloaded through the editor. 123 unit/integration tests and ten final relevant browser scenarios passed; exact repeated sampling, <0.005-pixel position parity, cancellation and actual resource failure are covered. Actual Adobe import/render remains unverified. Details: `docs/phases/phase-6/AFTER_EFFECTS.md`.
+
 - [x] Phase 7C: actual installed Codex CLI JSON proposals with source validation, explicit review, atomic apply/history, scoped cancellation and bounded read-only execution. 120 unit/integration tests, four module/foundation browser scenarios and ten broader regressions passed; actual generated 1080p/30 FPS MP4 has 60 frames and PNG is pixel-identical to preview. Evidence: `docs/phases/phase-6/CODEX_AI.md`.
 
 - [ ] Phase 6L live-service gate: real offline city search, source-preserving review and bounded optional geocoding/routing adapter are implemented; 111 unit/integration and 16 relevant browser scenarios passed. The user declined external accounts/API keys, so real routing/account terms remain unverified. Details and explicitly labeled contract-fixture export evidence: `docs/phases/phase-6/GEOCODING_ROUTING.md`.

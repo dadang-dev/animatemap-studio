@@ -3,7 +3,12 @@ import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import type { Camera, Project, CaptionCue } from '@animatemap/project-schema';
+import type {
+  Camera,
+  Project,
+  CaptionCue,
+  Anchor,
+} from '@animatemap/project-schema';
 import { drawCaptions } from './captions';
 import {
   admin1CountriesForRegions,
@@ -19,6 +24,7 @@ import {
   type LabelCandidate,
   type RenderLayer,
   type SceneBlend,
+  type AEAnchorSample,
 } from '@animatemap/animation-core';
 export type Countries = FeatureCollection<
   Polygon | MultiPolygon,
@@ -920,20 +926,7 @@ export class MapRenderer {
           this.onPoint?.([wrap(point.lng), point.lat]);
         }
       });
-      let x: number, y: number;
-      if (layer.anchor.type === 'map') {
-        const [lng, lat] = layer.anchor.coordinates;
-        const center = this.map.getCenter().lng;
-        const point = this.map.project([
-          lng + 360 * Math.round((center - lng) / 360),
-          lat,
-        ]);
-        x = point.x;
-        y = point.y;
-      } else {
-        x = layer.anchor.x * container.clientWidth;
-        y = layer.anchor.y * container.clientHeight;
-      }
+      const { x, y } = this.projectAnchor(layer.anchor);
       Object.assign(el.style, {
         position: 'absolute',
         left: `${x}px`,
@@ -1124,6 +1117,68 @@ export class MapRenderer {
     credit.style.maxWidth = '90%';
     credit.style.fontSize = `${16 * scale}px`;
     this.overlays.append(credit);
+  }
+  /** Read-only full-project-pixel attachment samples from the same overlay projection. */
+  private projectAnchor(anchor: Anchor) {
+    if (anchor.type === 'map') {
+      const [lng, lat] = anchor.coordinates;
+      return this.map.project([
+        lng + 360 * Math.round((this.map.getCenter().lng - lng) / 360),
+        lat,
+      ]);
+    }
+    const container = this.map.getContainer();
+    return {
+      x: anchor.x * container.clientWidth,
+      y: anchor.y * container.clientHeight,
+    };
+  }
+  anchorSamples(weight = 1): AEAnchorSample[] {
+    if (!this.project || this.destroyed)
+      throw new Error('Renderer not initialized');
+    const scale =
+      this.map.getContainer().clientWidth / this.project.canvas.width;
+    const elements = new Map(
+      Array.from(this.overlays.children)
+        .filter((el): el is HTMLElement => el instanceof HTMLElement)
+        .map((el) => [el.dataset.layerId, el]),
+    );
+    const samples = this.layers.flatMap((layer): AEAnchorSample[] => {
+      if (
+        layer.type !== 'marker' &&
+        layer.type !== 'text' &&
+        layer.type !== 'image'
+      )
+        return [];
+      const element = elements.get(layer.id);
+      const hidden =
+        element?.dataset.labelHidden === 'true' ||
+        !!element?.querySelector('[data-label-hidden="true"]');
+      const point = this.projectAnchor(layer.anchor),
+        x = point.x / scale,
+        y = point.y / scale;
+      return [
+        {
+          id: layer.id,
+          position: [x + layer.transform.offsetX, y + layer.transform.offsetY],
+          scale: layer.transform.scale,
+          rotation: layer.transform.rotation,
+          opacity:
+            layer.visible && !(layer.type === 'text' && hidden)
+              ? layer.opacity * weight
+              : 0,
+          labelHidden: hidden,
+        },
+      ];
+    });
+    if (this.blend && this.outgoing) {
+      const incoming = this.blend.incomingWeight;
+      return [
+        ...samples.map((s) => ({ ...s, opacity: s.opacity * incoming })),
+        ...this.outgoing.anchorSamples(weight * (1 - incoming)),
+      ];
+    }
+    return samples;
   }
   destroy() {
     this.destroyed = true;

@@ -1,0 +1,33 @@
+{
+  "pipeline": "Actual MapLibre full-size sampling; Adobe host unverified",
+  "frames": 90,
+  "anchors": 8,
+  "repeatedJSONIdentical": true,
+  "comparisons": [
+    {
+      "frame": 0,
+      "maximumPixelError": 0.004603056625683166
+    },
+    {
+      "frame": 30,
+      "maximumPixelError": 0.0004813477843299552
+    },
+    {
+      "frame": 60,
+      "maximumPixelError": 0.00048658818991498265
+    },
+    {
+      "frame": 67,
+      "maximumPixelError": 0.00048658818991498265
+    },
+    {
+      "frame": 75,
+      "maximumPixelError": 0.0004368841362065723
+    },
+    {
+      "frame": 89,
+      "maximumPixelError": 0.0004368841362065723
+    }
+  ],
+  "crossfadeWeightsVerified": true
+}

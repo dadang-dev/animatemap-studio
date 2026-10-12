@@ -1,4 +1,13 @@
 import { distance, bearing, destination } from '@turf/turf';
+export {
+  aeManifestBase,
+  aeManifestSchema,
+  afterEffectsJSX,
+  MAX_AE_SAMPLES,
+  type AEManifest,
+  type AEFrame,
+  type AEAnchorSample,
+} from './afterEffects';
 import { evaluateMediaAt } from './audio';
 export { audioGainAt, evaluateMediaAt } from './audio';
 import { evaluateChoropleth, type ChoroplethData } from './choropleth';

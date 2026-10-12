@@ -37,6 +37,10 @@ The proposal v1 contract accepts camera keys, source country codes, verified pla
 
 AIPanel displays the validated JSON before any edit. Apply checks that the project still matches its captured snapshot and has no locked layers/audio/captions, then creates one undoable replacement. It preserves canvas/provider/style and replaces scenes/media. Discard, cancellation and failures leave the original project unchanged. The accepted project enters the existing evaluator/render pipeline, without model calls during playback/export.
 
+## After Effects interchange
+
+The independent animation-core interchange module validates versioned camera/anchor samples and emits a trusted ASCII ES3 JSX template. Existing project v11 stays unchanged. `sampleAfterEffects` owns a cloned snapshot and an offscreen MapRenderer with full canvas dimensions, evaluates `i/fps`, waits for resources and reads projected anchor samples. The same projection method draws preview overlays. Samples include evaluated offsets/scale/rotation, collision visibility and separate crossfade scene weights; no editor seek/state mutation occurs. Cancellation, close, timeout and resource errors dispose the renderer. A bounded JSON registry carries attribution and identifies scenes/layers; JSX uses escaped literals to create geographic metadata sliders and 2D attachment nulls, without arbitrary code or native 3D camera conversion. Artifact/UI tests and a labeled API contract harness are separate from the pending actual Adobe host gate.
+
 ## Limits
 
 No external service is configured by default. Optional routing uses only the fixed official HTTPS provider, with redirects prohibited; arbitrary remote URLs are never accepted. Natural Earth is a country-scale basemap and place gazetteer, not a street-map service. Vector layers render below DOM overlays, with reorder within each plane. API job status is in memory; saved JSON projects and completed artifacts persist. Cloud hosting, authentication, distributed jobs and remaining P2 modules are tracked in the phase roadmap.

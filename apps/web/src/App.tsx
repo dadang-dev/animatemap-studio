@@ -32,6 +32,7 @@ import { Admin1Panel } from './Admin1Panel';
 import { AudioPanel } from './AudioPanel';
 import { GeographyPanel } from './GeographyPanel';
 import { AIPanel } from './AIPanel';
+import { AfterEffectsPanel } from './AfterEffectsPanel';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -84,6 +85,7 @@ export function App() {
   const [audioOpen, setAudioOpen] = useState(false);
   const [geographyOpen, setGeographyOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [aeOpen, setAeOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -236,6 +238,12 @@ export function App() {
       )}
       {audioOpen && <AudioPanel onClose={() => setAudioOpen(false)} />}
       {aiOpen && <AIPanel onClose={() => setAiOpen(false)} />}
+      {aeOpen && (
+        <AfterEffectsPanel
+          countries={renderer.current?.countries}
+          onClose={() => setAeOpen(false)}
+        />
+      )}
       {geographyOpen && (
         <GeographyPanel
           sceneId={scene.id}
@@ -411,6 +419,9 @@ export function App() {
           <button onClick={() => setRegionsOpen(true)}>Admin 1 regions</button>
           <button onClick={() => setAudioOpen(true)}>Audio & captions</button>
           <button onClick={() => setAiOpen(true)}>Create with Codex</button>
+          <button onClick={() => setAeOpen(true)}>
+            After Effects interchange
+          </button>
           <button onClick={() => setGeographyOpen(true)}>
             Places & road routes
           </button>
