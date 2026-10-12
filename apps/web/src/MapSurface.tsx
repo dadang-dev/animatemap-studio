@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MapRenderer, type Countries } from '@animatemap/map-engine';
 import type { Camera, Project, CaptionCue } from '@animatemap/project-schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -36,6 +36,24 @@ export function MapSurface({
   onError?: (error: Error) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const surface = useRef<HTMLDivElement>(null);
+  const [renderScale, setRenderScale] = useState(1);
+  useLayoutEffect(() => {
+    if (!project.map.terrain) return;
+    const parent = surface.current?.parentElement;
+    if (!parent) return;
+    const resize = () =>
+      setRenderScale(
+        Math.min(
+          parent.clientWidth / project.canvas.width,
+          parent.clientHeight / project.canvas.height,
+        ),
+      );
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [project.map.terrain, project.canvas.width, project.canvas.height]);
   const renderer = useRef<MapRenderer | null>(null);
   const current = useRef({
     project,
@@ -158,7 +176,22 @@ export function MapSurface({
     }
   }, [project, camera, layers, blend, captions]);
   return (
-    <div className="map-surface" data-testid="map-surface">
+    <div
+      ref={surface}
+      className="map-surface"
+      data-testid="map-surface"
+      data-native-terrain={!!project.map.terrain}
+      style={
+        project.map.terrain
+          ? {
+              width: project.canvas.width,
+              height: project.canvas.height,
+              transform: `scale(${renderScale})`,
+              transformOrigin: '0 0',
+            }
+          : undefined
+      }
+    >
       <div
         className="map-host"
         ref={container}

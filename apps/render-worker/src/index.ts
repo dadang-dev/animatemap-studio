@@ -11,7 +11,11 @@ import { encodingSteps, validateExportDimensions } from './encoders';
 import { removeTemporaryDirectory } from './cleanup';
 import { muxProjectAudio } from './audio';
 import admin1Provenance from '../../../data/admin1/PROVENANCE.json' with { type: 'json' };
-import { admin1CountriesForRegions } from '@animatemap/project-schema';
+import {
+  admin1CountriesForRegions,
+  terrainPack,
+  TERRAIN_CREDIT,
+} from '@animatemap/project-schema';
 export type RenderOptions = {
   project: Project;
   format: ExportFormat;
@@ -131,6 +135,13 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          terrainSource: project.map.terrain
+            ? {
+                configuration: project.map.terrain,
+                credit: TERRAIN_CREDIT,
+                pack: terrainPack,
+              }
+            : null,
           geographySources: project.scenes.flatMap((scene) =>
             scene.layers.flatMap((layer) =>
               (layer.type === 'route' || layer.type === 'marker') &&

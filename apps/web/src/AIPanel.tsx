@@ -182,6 +182,7 @@ export function AIPanel({ onClose }: { onClose: () => void }) {
             Verified Natural Earth places; connections are illustrative
             geographic paths. This replaces scenes/audio/captions after review
             and keeps canvas/style. You can Undo the complete replacement.
+            Terrain is disabled in this new 2D proposal.
           </p>
           <p>
             {review.provider.name} · {review.provider.model} ·{' '}

@@ -60,7 +60,7 @@ test('actual v10 migration preserves visual evaluation and future schemas/wrong 
     expect(evaluateProjectAt(parsed, time)).toEqual(
       evaluateProjectAt(project, time),
     );
-  expect(() => migrateProject({ ...project, schemaVersion: 12 })).toThrow();
+  expect(() => migrateProject({ ...project, schemaVersion: 999 })).toThrow();
   addGeographicLayer(project, project.scenes[0]!.id, place, 'place');
   const marker = project.scenes[0]!.layers.at(-1)!;
   if (marker.type === 'marker') marker.geographySource!.kind = 'road-route';

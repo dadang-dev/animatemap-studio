@@ -1,0 +1,109 @@
+{
+  "id": "sapa-2026-10-12",
+  "name": "Sa Pa regional elevation",
+  "accessedAt": "2026-10-12T15:35:28.077Z",
+  "source": "https://registry.opendata.aws/terrain-tiles/",
+  "encoding": "terrarium",
+  "tileSize": 256,
+  "minzoom": 9,
+  "maxzoom": 9,
+  "bounds": [
+    102.65625,
+    21.28937435586042,
+    104.765625,
+    23.24134610238614
+  ],
+  "attributionSource": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+  "tiles": [
+    {
+      "z": 9,
+      "x": 402,
+      "y": 222,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/402/222.png",
+      "bytes": 97437,
+      "sha256": "4500c6c568920b1e4e97e986d4ee092d06c1ac68c068eab6328c785e06f6e40c",
+      "minMeters": 132,
+      "maxMeters": 3033
+    },
+    {
+      "z": 9,
+      "x": 403,
+      "y": 222,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/403/222.png",
+      "bytes": 97449,
+      "sha256": "e96743eb0dc43ad33d1be40dbd2314fa58b2fdf08b24af95b50f55762aa20424",
+      "minMeters": -55,
+      "maxMeters": 2941
+    },
+    {
+      "z": 9,
+      "x": 404,
+      "y": 222,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/404/222.png",
+      "bytes": 94191,
+      "sha256": "e8355a4e0e660f9172c1807348cdad67e493d58b34d30f6e9c072bee1a0d820e",
+      "minMeters": 140,
+      "maxMeters": 2520
+    },
+    {
+      "z": 9,
+      "x": 402,
+      "y": 223,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/402/223.png",
+      "bytes": 98436,
+      "sha256": "9536032252668e2e16539453d6362564861d1651ac0b5f8227a95ce2f696c059",
+      "minMeters": 152,
+      "maxMeters": 2618
+    },
+    {
+      "z": 9,
+      "x": 403,
+      "y": 223,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/403/223.png",
+      "bytes": 96904,
+      "sha256": "a9ae6b692b36055d493465ddd1b64efdc27371e2285fdcce5ed589acdd88bc34",
+      "minMeters": 30,
+      "maxMeters": 3074
+    },
+    {
+      "z": 9,
+      "x": 404,
+      "y": 223,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/404/223.png",
+      "bytes": 93401,
+      "sha256": "8077a5c77cf4ff52ed38166e704391a0799ad3210284f66d261d08d71c716f4e",
+      "minMeters": -5,
+      "maxMeters": 2611
+    },
+    {
+      "z": 9,
+      "x": 402,
+      "y": 224,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/402/224.png",
+      "bytes": 93195,
+      "sha256": "6899fc84a78a468df051945c8e20068d8d032156837f0d54f29ae7ee5ffeafa8",
+      "minMeters": 223,
+      "maxMeters": 2164
+    },
+    {
+      "z": 9,
+      "x": 403,
+      "y": 224,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/403/224.png",
+      "bytes": 96659,
+      "sha256": "0a372af8e291c324bf3ffaf2589562d37c73ae09e2cea6d58a4a071d53eaf279",
+      "minMeters": -267,
+      "maxMeters": 2439
+    },
+    {
+      "z": 9,
+      "x": 404,
+      "y": 224,
+      "source": "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/9/404/224.png",
+      "bytes": 97297,
+      "sha256": "ec506b2394a485fe7bdfbb3e2a8a61fc6fb7fabd4f12347a390bd8b0044a40da",
+      "minMeters": -328,
+      "maxMeters": 2925
+    }
+  ]
+}

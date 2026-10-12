@@ -3,6 +3,7 @@ import {
   migrateProject,
   cameraSchema,
   type Project,
+  TERRAIN_CREDIT,
 } from '@animatemap/project-schema';
 export const MAX_AE_SAMPLES = 250000;
 const identifier = z.string().min(1).max(200);
@@ -134,6 +135,8 @@ export function aeManifestBase(input: Project): Omit<AEManifest, 'frames'> {
       'After Effects interchange exceeds 100 anchors/250000 samples; split the project into shorter sections',
     );
   const attribution = new Set(project.map.attribution);
+  if (project.map.terrain)
+    attribution.add(`${TERRAIN_CREDIT} · Sa Pa coverage`);
   project.assets.forEach((a) => attribution.add(a.provenance.credit));
   project.audioAssets.forEach((a) => attribution.add(a.provenance.credit));
   project.datasets.forEach((d) => attribution.add(d.provenance.credit));

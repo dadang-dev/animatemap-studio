@@ -22,6 +22,7 @@ export function normalizeProposal(
   const project = migrateProject({
     ...original,
     name: proposal.title,
+    map: { ...original.map, terrain: null },
     scenes: [
       {
         ...original.scenes[0],

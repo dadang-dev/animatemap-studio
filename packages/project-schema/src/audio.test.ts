@@ -96,7 +96,7 @@ test('actual v9 projects migrate without changing visual evaluation inputs', () 
   expect(migrated.audioAssets).toEqual([]);
   expect(migrated.audioTracks).toEqual([]);
   expect(migrated.captions.cues).toEqual([]);
-  expect(() => migrateProject({ ...project, schemaVersion: 12 })).toThrow();
+  expect(() => migrateProject({ ...project, schemaVersion: 999 })).toThrow();
 });
 test('combined embedded/Unicode project JSON stays within the API request budget', () => {
   const project = createDemo(),

@@ -23,6 +23,8 @@
 
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.
 
+- [x] Phase 7A.1 terrain: schema v12 with actual v11 migration, nine original SHA-verified Sa Pa DEM tiles, native-resolution preview, source-aware camera limits and editable height/hillshade. 129 unit/integration and 15 unique relevant browser scenarios passed; real 60-frame 1080p MP4, exact PNG/seeks/ground anchors, cancellation and resource recovery evidence in `docs/phases/phase-6/TERRAIN.md`. Buildings/models/follow/multi-pass remain required.
+
 - [ ] Phase 7D Adobe host gate: real camera/anchor JSON and trusted executable JSX are implemented and downloaded through the editor. 123 unit/integration tests and ten final relevant browser scenarios passed; exact repeated sampling, <0.005-pixel position parity, cancellation and actual resource failure are covered. Actual Adobe import/render remains unverified. Details: `docs/phases/phase-6/AFTER_EFFECTS.md`.
 
 - [x] Phase 7C: actual installed Codex CLI JSON proposals with source validation, explicit review, atomic apply/history, scoped cancellation and bounded read-only execution. 120 unit/integration tests, four module/foundation browser scenarios and ten broader regressions passed; actual generated 1080p/30 FPS MP4 has 60 frames and PNG is pixel-identical to preview. Evidence: `docs/phases/phase-6/CODEX_AI.md`.

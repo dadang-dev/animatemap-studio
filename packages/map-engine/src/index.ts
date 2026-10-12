@@ -10,9 +10,12 @@ import type {
   Anchor,
 } from '@animatemap/project-schema';
 import { drawCaptions } from './captions';
+import { TerrainAdapter } from './terrainAdapter';
 import {
   admin1CountriesForRegions,
   ADMIN1_RELEASE,
+  TERRAIN_CREDIT,
+  terrainCameraSupported,
 } from '@animatemap/project-schema';
 import { ImageResources } from './images';
 import { Admin1Resources } from './admin1Resources';
@@ -132,6 +135,10 @@ export class MapRenderer {
   private captionHost = document.createElement('div');
   private captions: CaptionCue[] = [];
   readonly map: maplibregl.Map;
+  private terrain: TerrainAdapter;
+  private vectorOrderSignature = '';
+  private geometrySignatures = new Map<string, string>();
+  private geometryTypes = new Map<string, RenderLayer['type']>();
   private overlays: HTMLDivElement;
   private layerIds: string[] = [];
   private project?: Project;
@@ -203,6 +210,7 @@ export class MapRenderer {
       canvasContextAttributes: { preserveDrawingBuffer: true },
       fadeDuration: 0,
     });
+    this.terrain = new TerrainAdapter(this.map);
     this.overlays = document.createElement('div');
     this.overlays.className = 'map-overlays';
     container.append(this.overlays);
@@ -321,6 +329,18 @@ export class MapRenderer {
       };
       check();
     });
+    if (this.project?.map.terrain) {
+      this.drawOverlays();
+      await resourceReady(
+        Promise.all(
+          Array.from(this.overlays.querySelectorAll('img')).map((image) =>
+            image.decode(),
+          ),
+        ),
+        'Terrain image overlays',
+        timeoutMs,
+      );
+    }
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
     );
@@ -348,6 +368,11 @@ export class MapRenderer {
     this.blend = blend;
     this.captions = captions;
     if (!this.map.getLayer('countries-fill')) return;
+    if (project.map.terrain && !terrainCameraSupported(camera))
+      throw new Error(
+        'Terrain preview is outside the verified Sa Pa pack; return to the supported region at zoom 10 or greater',
+      );
+    this.terrain.use(project.map.terrain);
     const regionCountries = [
       ...new Set([
         ...project.map.admin1Countries,
@@ -460,13 +485,23 @@ export class MapRenderer {
           l.type === 'countryHighlight',
       )
       .map((l) => l.id);
-    for (const id of this.layerIds.filter((id) => !ids.includes(id))) {
+    for (const id of this.layerIds.filter(
+      (id) =>
+        !ids.includes(id) ||
+        this.geometryTypes.get(id) !==
+          layers.find((layer) => layer.id === id)?.type,
+    )) {
       for (const suffix of ['fill', 'line'])
         if (this.map.getLayer(`ams-${id}-${suffix}`))
           this.map.removeLayer(`ams-${id}-${suffix}`);
       if (this.map.getSource(`ams-${id}`)) this.map.removeSource(`ams-${id}`);
+      this.geometrySignatures.delete(id);
+      this.geometryTypes.delete(id);
+      this.vectorOrderSignature = '';
     }
     this.layerIds = ids;
+    for (const layer of layers)
+      if (ids.includes(layer.id)) this.geometryTypes.set(layer.id, layer.type);
     const dim = layers.reduce(
       (max, l) =>
         (l.type === 'countryHighlight' || l.type === 'admin1Highlight') &&
@@ -676,6 +711,9 @@ export class MapRenderer {
         );
       }
       if (layer.type === 'route' || layer.type === 'shape') {
+        const signature = JSON.stringify(
+          layer.renderCoordinates ?? layer.coordinates,
+        );
         const data: FeatureCollection = {
           type: 'FeatureCollection',
           features: [
@@ -698,10 +736,13 @@ export class MapRenderer {
             layout: { 'line-cap': 'round', 'line-join': 'round' },
             paint: { 'line-color': layer.style.color },
           });
-        } else
+          this.geometrySignatures.set(layer.id, signature);
+        } else if (this.geometrySignatures.get(layer.id) !== signature) {
           (this.map.getSource(`ams-${layer.id}`) as GeoJSONSource).setData(
             data,
           );
+          this.geometrySignatures.set(layer.id, signature);
+        }
         this.map.setPaintProperty(
           `ams-${layer.id}-line`,
           'line-color',
@@ -724,6 +765,9 @@ export class MapRenderer {
           layer.style.dash ? [3, 2] : [1, 0],
         );
       }
+    }
+    // Moving identical layers each frame invalidates terrain render-to-texture stacks.
+    const ordered = layers.flatMap((layer) => {
       if (
         layer.type === 'route' ||
         layer.type === 'shape' ||
@@ -731,9 +775,16 @@ export class MapRenderer {
         layer.type === 'admin1Highlight' ||
         layer.type === 'countryHighlight'
       )
-        for (const suffix of ['fill', 'line'])
-          if (this.map.getLayer(`ams-${layer.id}-${suffix}`))
-            this.map.moveLayer(`ams-${layer.id}-${suffix}`);
+        return ['fill', 'line']
+          .map((suffix) => `ams-${layer.id}-${suffix}`)
+          .filter((id) => !!this.map.getLayer(id));
+      return [];
+    });
+    if (project.map.terrain) ordered.push('ams-terrain-shade');
+    const orderSignature = JSON.stringify(ordered);
+    if (orderSignature !== this.vectorOrderSignature) {
+      for (const id of ordered) this.map.moveLayer(id);
+      this.vectorOrderSignature = orderSignature;
     }
     this.drawOverlays();
     this.applyBlend();
@@ -920,8 +971,10 @@ export class MapRenderer {
         else {
           const box = this.map.getContainer().getBoundingClientRect();
           const point = this.map.unproject([
-            event.clientX - box.left,
-            event.clientY - box.top,
+            ((event.clientX - box.left) * this.map.getContainer().clientWidth) /
+              box.width,
+            ((event.clientY - box.top) * this.map.getContainer().clientHeight) /
+              box.height,
           ]);
           this.onPoint?.([wrap(point.lng), point.lat]);
         }
@@ -1072,6 +1125,8 @@ export class MapRenderer {
     const credit = document.createElement('div');
     credit.className = 'map-credit';
     const credits = new Set<string>();
+    if (this.project.map.terrain)
+      credits.add(`${TERRAIN_CREDIT} · Sa Pa coverage`);
     for (const asset of this.project.audioAssets)
       if (
         this.project.audioTracks.some(
