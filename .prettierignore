@@ -8,3 +8,4 @@ dist/
 test-results/
 playwright-report/
 apps/web/public/assets/flags/*.svg
+apps/web/public/data/history/*.json

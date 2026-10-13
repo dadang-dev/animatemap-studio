@@ -6,3 +6,6 @@
 *.yml text eol=lf
 apps/web/public/data/buildings/*.geojson -text
 data/buildings/vancouver-source.json -text
+data/history/dc-*-source.geojson -text
+data/history/dc-*-item.json -text
+apps/web/public/data/history/*.json -text

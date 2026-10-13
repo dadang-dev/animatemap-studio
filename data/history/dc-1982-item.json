@@ -1,0 +1,119 @@
+{
+  "id": "428a021728d94d96abb774ecdde9b8e4",
+  "owner": "DCGISopendata",
+  "ownerId": "4f3d52f996aaf85a3376f7ee520d9c35",
+  "orgId": "neT9SoYxizqTHZPH",
+  "created": 1640099791000,
+  "modified": 1725554906000,
+  "guid": null,
+  "name": null,
+  "title": "Wards from 1982",
+  "type": "Feature Service",
+  "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Feature Access",
+    "Feature Service",
+    "Metadata",
+    "Service",
+    "Singlelayer"
+  ],
+  "description": "<div style='text-align:Left;'><div><div><p><span>This dataset contains polygons representing boundaries of District of Columbia's election wards, used from 1982 to 1991.<\/span><\/p><\/div><\/div><\/div>",
+  "tags": [
+    "government jurisdiction",
+    "ward",
+    "Washington DC",
+    "location",
+    "District of Columbia",
+    "political jurisdiction",
+    "boundary",
+    "political"
+  ],
+  "snippet": "The ward boundaries for the District of Columbia created after the 1980 U.S. Census.",
+  "thumbnail": "thumbnail/thumbnail1643991180176.png",
+  "documentation": null,
+  "extent": [
+    [
+      -77.13,
+      38.78
+    ],
+    [
+      -76.9,
+      39.01
+    ]
+  ],
+  "categories": ["/Categories/Administrative"],
+  "spatialReference": null,
+  "accessInformation": "DC Office of Planning (https://planning.dc.gov/); DC OCTO (https://octo.dc.gov/)",
+  "classification": null,
+  "licenseInfo": "<div style='text-align:Left;'><div><div><p><span>This work is licensed under a <\/span><a href='https://creativecommons.org:443/licenses/by/4.0/' style='text-decoration:underline;' rel='nofollow ugc'><span>Creative Commons Attribution 4.0 International License<\/span><\/a><span>.<\/span><\/p><\/div><\/div><\/div>",
+  "culture": "en-us",
+  "properties": {
+    "location": {
+      "type": "custom",
+      "extent": [
+        [
+          -77.13,
+          38.78
+        ],
+        [
+          -76.9,
+          39.01
+        ]
+      ],
+      "geometries": [{
+        "xmin": -77.13,
+        "ymin": 38.78,
+        "xmax": -76.9,
+        "ymax": 39.01,
+        "spatialReference": {"wkid": 4326},
+        "type": "extent"
+      }],
+      "spatialReference": {"wkid": 4326}
+    },
+    "downloads": {
+      "flowType": "paging",
+      "formats": [
+        {
+          "key": "csv",
+          "hidden": false
+        },
+        {
+          "key": "shapefile",
+          "hidden": false
+        },
+        {
+          "key": "geojson",
+          "hidden": false
+        },
+        {
+          "key": "kml",
+          "hidden": false
+        }
+      ]
+    }
+  },
+  "advancedSettings": null,
+  "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator/MapServer/51",
+  "proxyFilter": null,
+  "access": "public",
+  "size": 114,
+  "subInfo": 0,
+  "appCategories": [],
+  "industries": [],
+  "languages": [],
+  "largeThumbnail": null,
+  "banner": null,
+  "screenshots": [],
+  "listed": false,
+  "commentsEnabled": true,
+  "numComments": 0,
+  "numRatings": 0,
+  "avgRating": 0,
+  "numViews": 4193,
+  "scoreCompleteness": 93,
+  "groupDesignations": null,
+  "apiToken1ExpirationDate": -1,
+  "apiToken2ExpirationDate": -1,
+  "lastViewed": 1791885600000
+}

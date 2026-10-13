@@ -1,0 +1,44 @@
+[
+  {
+    "year": 1982,
+    "toYear": 1991,
+    "item": "428a021728d94d96abb774ecdde9b8e4",
+    "layer": 51,
+    "fields": "OBJECTID,NAME,WARDID,GIS_ID",
+    "sha": "ac7b9540bdb379764010feacfe174338f94fc49779d9ee47e3e1cc75527c0509",
+    "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator/MapServer/51/query?where=1%3D1&outFields=OBJECTID%2CNAME%2CWARDID%2CGIS_ID&outSR=4326&returnGeometry=true&orderByFields=OBJECTID+ASC&f=geojson",
+    "itemURL": "https://www.arcgis.com/sharing/rest/content/items/428a021728d94d96abb774ecdde9b8e4?f=pjson",
+    "bytes": 516353,
+    "vertices": 12634,
+    "licenseInfo": "<div style='text-align:Left;'><div><div><p><span>This work is licensed under a </span><a href='https://creativecommons.org:443/licenses/by/4.0/' style='text-decoration:underline;' rel='nofollow ugc'><span>Creative Commons Attribution 4.0 International License</span></a><span>.</span></p></div></div></div>",
+    "accessedAt": "2026-10-13T16:40:11.410Z"
+  },
+  {
+    "year": 1992,
+    "toYear": 2001,
+    "item": "37a6ecfe6ed3412abbae967ec957582c",
+    "layer": 33,
+    "fields": "OBJECTID,NAME,WARD,GIS_ID",
+    "sha": "9e68eeeb88ff52210cb08354ddb51b17558c2581b86c4ef59b815e87512fea91",
+    "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator/MapServer/33/query?where=1%3D1&outFields=OBJECTID%2CNAME%2CWARD%2CGIS_ID&outSR=4326&returnGeometry=true&orderByFields=OBJECTID+ASC&f=geojson",
+    "itemURL": "https://www.arcgis.com/sharing/rest/content/items/37a6ecfe6ed3412abbae967ec957582c?f=pjson",
+    "bytes": 822214,
+    "vertices": 20132,
+    "licenseInfo": "<div style='text-align:Left;'><div><div><p><span>This work is licensed under a </span><a href='https://creativecommons.org:443/licenses/by/4.0/' style='text-decoration:underline;' rel='nofollow ugc'><span>Creative Commons Attribution 4.0 International License</span></a><span>.</span></p></div></div></div>",
+    "accessedAt": "2026-10-13T16:40:13.321Z"
+  },
+  {
+    "year": 2002,
+    "toYear": 2011,
+    "item": "a4442c906559456eb6ef3ea0898fe994",
+    "layer": 32,
+    "fields": "OBJECTID,NAME,WARD,WARD2002",
+    "sha": "9e8c3325df644c6ca9a8ffa4cf17d1b2f0811573009aa8e18a487f521209c81a",
+    "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator/MapServer/32/query?where=1%3D1&outFields=OBJECTID%2CNAME%2CWARD%2CWARD2002&outSR=4326&returnGeometry=true&orderByFields=OBJECTID+ASC&f=geojson",
+    "itemURL": "https://www.arcgis.com/sharing/rest/content/items/a4442c906559456eb6ef3ea0898fe994?f=pjson",
+    "bytes": 835189,
+    "vertices": 20449,
+    "licenseInfo": "<div style='text-align:Left;'><div><div><p><span>This work is licensed under a </span><a href='https://creativecommons.org:443/licenses/by/4.0/' style='text-decoration:underline;' rel='nofollow ugc'><span>Creative Commons Attribution 4.0 International License</span></a><span>.</span></p></div></div></div>",
+    "accessedAt": "2026-10-13T16:40:14.923Z"
+  }
+]
