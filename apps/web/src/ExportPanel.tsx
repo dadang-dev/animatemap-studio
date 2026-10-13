@@ -92,6 +92,14 @@ export function ExportPanel() {
               on the viewer.
             </p>
           )}
+          {format === 'zip' && (
+            <p className="hint">
+              Multi-pass PNG sequence: map, transparent overlays/captions, GPU
+              window depth and full reference. Up to 600 frames / 4K pixels / 1
+              GiB. Keep source-credit overlays when compositing. Audio remains
+              available in MP4/WebM.
+            </p>
+          )}
           {s.project.canvas.width > 1920 && (
             <p className="hint">
               4K capture requires more time and temporary disk space.

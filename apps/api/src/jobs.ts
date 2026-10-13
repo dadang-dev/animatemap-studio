@@ -5,6 +5,7 @@ import {
   migrateProject,
   exportFormatSchema,
   exportFormats,
+  validateMultipassProject,
   type ExportFormat,
   type Project,
   type RenderJob,
@@ -28,6 +29,7 @@ export class JobQueue {
     if (this.stopping) throw new Error('Worker shutting down');
     const project = structuredClone(migrateProject(input));
     exportFormatSchema.parse(format);
+    if (format === 'zip') validateMultipassProject(project);
     if (
       exportFormats[format].evenDimensions &&
       (project.canvas.width % 2 || project.canvas.height % 2)

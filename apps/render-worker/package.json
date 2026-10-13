@@ -5,6 +5,8 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "@animatemap/project-schema": "workspace:*",
+    "@animatemap/animation-core": "workspace:*",
+    "fflate": "0.8.3",
     "playwright": "1.58.2"
   }
 }

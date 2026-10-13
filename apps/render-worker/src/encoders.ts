@@ -17,7 +17,7 @@ export function encodingSteps(
     join(frames, '%06d.png'),
   ];
   const length = ['-frames:v', String(count)];
-  if (format === 'png') return [];
+  if (format === 'png' || format === 'zip') return [];
   if (format === 'mp4')
     return [
       [

@@ -1,0 +1,34 @@
+{
+  "comparisons": [
+    {
+      "index": 0,
+      "timeSeconds": 0,
+      "compositionError": 0.017393904320987655,
+      "previewError": 0,
+      "incomingWeight": 1
+    },
+    {
+      "index": 12,
+      "timeSeconds": 0.5,
+      "compositionError": 0.017393904320987655,
+      "previewError": 0,
+      "incomingWeight": 0
+    },
+    {
+      "index": 18,
+      "timeSeconds": 0.75,
+      "compositionError": 0.3210268775720165,
+      "previewError": 0,
+      "incomingWeight": 0.5
+    },
+    {
+      "index": 23,
+      "timeSeconds": 0.9583333333333334,
+      "compositionError": 0.8353099279835391,
+      "previewError": 0,
+      "incomingWeight": 0.9166666666666667
+    }
+  ],
+  "pngReferenceIdentical": true,
+  "projectPreserved": true
+}

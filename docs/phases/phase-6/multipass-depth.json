@@ -1,0 +1,11 @@
+{
+  "encoding": "rgb24-window-depth",
+  "width": 1920,
+  "height": 1080,
+  "depthBits": 24,
+  "stencilBits": 8,
+  "terrainDepthValues": 59903,
+  "modelDepthValues": 4145,
+  "repeatIdentical": true,
+  "beautyUnchanged": true
+}

@@ -1,4 +1,19 @@
 import { z } from 'zod';
+export {
+  validateMultipassProject,
+  multipassManifestSchema,
+  multipassFrameSchema,
+  depthFrameMetadataSchema,
+  decodeWindowDepth,
+  MAX_MULTIPASS_FRAMES,
+  MAX_MULTIPASS_PIXELS,
+  MAX_MULTIPASS_ARCHIVE_BYTES,
+  MAX_MULTIPASS_ENTRY_BYTES,
+  type GraphicPass,
+  type GraphicPlane,
+  type MultipassFrame,
+  type MultipassManifest,
+} from './multipass';
 import {
   modelAssetSchema,
   cameraFollowSchema,
@@ -1490,7 +1505,7 @@ export const healthResponseSchema = z.object({
   status: z.literal('ok'),
   schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
 });
-export const exportFormatSchema = z.enum(['mp4', 'png', 'webm', 'gif']);
+export const exportFormatSchema = z.enum(['mp4', 'png', 'webm', 'gif', 'zip']);
 export type ExportFormat = z.infer<typeof exportFormatSchema>;
 export const exportFormats: Record<
   ExportFormat,
@@ -1504,6 +1519,11 @@ export const exportFormats: Record<
   },
   webm: { label: 'WebM · VP9', mime: 'video/webm', evenDimensions: true },
   gif: { label: 'GIF · Animated', mime: 'image/gif', evenDimensions: false },
+  zip: {
+    label: 'ZIP · Multi-pass PNG sequence',
+    mime: 'application/zip',
+    evenDimensions: false,
+  },
 };
 export const jobSchema = z.object({
   id,

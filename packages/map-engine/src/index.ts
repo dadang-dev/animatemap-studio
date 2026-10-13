@@ -8,11 +8,15 @@ import type {
   Project,
   CaptionCue,
   Anchor,
+  GraphicPass,
+  GraphicPlane,
 } from '@animatemap/project-schema';
 import { drawCaptions } from './captions';
 import { TerrainAdapter } from './terrainAdapter';
 import { applyBuildings } from './buildingsAdapter';
 import { ModelsAdapter } from './modelsAdapter';
+import { DepthCapture } from './depthCapture';
+export type { DepthFrameMetadata } from './depthCapture';
 import {
   admin1CountriesForRegions,
   ADMIN1_RELEASE,
@@ -142,6 +146,10 @@ export class MapRenderer {
   private geometrySignatures = new Map<string, string>();
   private geometryTypes = new Map<string, RenderLayer['type']>();
   private overlays: HTMLDivElement;
+  private depth: DepthCapture;
+  private passStyles: { element: HTMLElement; opacity: string }[] = [];
+  private depthImage?: HTMLCanvasElement;
+  private credits: string[] = [];
   private layerIds: string[] = [];
   private project?: Project;
   private layers: RenderLayer[] = [];
@@ -217,6 +225,7 @@ export class MapRenderer {
     });
     this.terrain = new TerrainAdapter(this.map);
     this.models = new ModelsAdapter(this.map);
+    this.depth = new DepthCapture(this.map);
     this.overlays = document.createElement('div');
     this.overlays.className = 'map-overlays';
     container.append(this.overlays);
@@ -1249,9 +1258,8 @@ export class MapRenderer {
       const asset = this.project.assets.find((asset) => asset.id === reference);
       if (asset) credits.add(asset.provenance.credit);
     }
-    credit.textContent = ['Natural Earth · Public domain', ...credits].join(
-      ' · ',
-    );
+    this.credits = ['Natural Earth · Public domain', ...credits];
+    credit.textContent = this.credits.join(' · ');
     credit.style.maxWidth = '90%';
     credit.style.fontSize = `${16 * scale}px`;
     this.overlays.append(credit);
@@ -1320,6 +1328,8 @@ export class MapRenderer {
   }
   destroy() {
     this.destroyed = true;
+    this.resetGraphicPass();
+    this.depth.dispose();
     this.models.dispose();
     this.admin1.destroy();
     this.images.dispose();
@@ -1334,5 +1344,71 @@ export class MapRenderer {
   }
   modelPlacement(id: string) {
     return this.models.placement(id);
+  }
+  async captureDepth() {
+    await this.ready();
+    return this.depth.capture();
+  }
+  sourceCredits(): string[] {
+    return [
+      ...new Set([...this.credits, ...(this.outgoing?.sourceCredits() ?? [])]),
+    ];
+  }
+  resetGraphicPass() {
+    this.depthImage?.remove();
+    this.depthImage = undefined;
+    for (const saved of [...this.passStyles].reverse())
+      saved.element.style.opacity = saved.opacity;
+    this.passStyles = [];
+  }
+  async prepareGraphicPass(
+    pass: GraphicPass,
+    plane: GraphicPlane = 'incoming',
+  ) {
+    if (
+      !['reference', 'map', 'overlay', 'captions', 'depth'].includes(pass) ||
+      !['incoming', 'outgoing'].includes(plane)
+    )
+      throw new Error('Unsupported graphic pass');
+    this.resetGraphicPass();
+    await this.ready();
+    if (pass === 'reference') return undefined;
+    const target = plane === 'outgoing' ? this.outgoing : this;
+    if (!target) throw new Error('This frame has no outgoing scene');
+    const opacity = (element: HTMLElement, value: string) => {
+      this.passStyles.push({ element, opacity: element.style.opacity });
+      element.style.opacity = value;
+    };
+    // Opacity retains layout for caption measurement and label collision.
+    // display:none/visibility are unsuitable: hidden descendants can override visibility.
+    for (const renderer of [this, this.outgoing])
+      if (renderer) {
+        opacity(renderer.map.getCanvasContainer(), '0');
+        opacity(renderer.overlays, '0');
+        opacity(renderer.captionHost, '0');
+      }
+    if (this.outgoingHost)
+      opacity(
+        this.outgoingHost,
+        plane === 'outgoing' && pass !== 'captions' ? '1' : '0',
+      );
+    if (pass === 'captions') opacity(this.captionHost, '1');
+    else if (pass === 'map') opacity(target.map.getCanvasContainer(), '1');
+    else if (pass === 'overlay') opacity(target.overlays, '1');
+    else {
+      const result = await target.captureDepth();
+      this.depthImage = result.canvas;
+      Object.assign(result.canvas.style, {
+        position: 'absolute',
+        inset: '0',
+        width: '100%',
+        height: '100%',
+        zIndex: '20',
+        pointerEvents: 'none',
+      });
+      this.map.getContainer().append(result.canvas);
+      return result.metadata;
+    }
+    return undefined;
   }
 }

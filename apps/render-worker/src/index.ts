@@ -1,6 +1,6 @@
 import { chromium, type Browser } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile, rename } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type {
   ExportFormat,
@@ -9,12 +9,17 @@ import type {
 } from '@animatemap/project-schema';
 import { encodingSteps, validateExportDimensions } from './encoders';
 import { removeTemporaryDirectory } from './cleanup';
+import { GraphicArchive } from './graphicArchive';
+import { captureGraphicFrame } from './graphicFrames';
 import { muxProjectAudio } from './audio';
 import admin1Provenance from '../../../data/admin1/PROVENANCE.json' with { type: 'json' };
 import {
   admin1CountriesForRegions,
   terrainPack,
   TERRAIN_CREDIT,
+  validateMultipassProject,
+  multipassManifestSchema,
+  type MultipassFrame,
 } from '@animatemap/project-schema';
 export type RenderOptions = {
   project: Project;
@@ -26,7 +31,12 @@ export type RenderOptions = {
   onProgress: (state: RenderJob['state'], progress: number) => void;
 };
 export async function renderProject(options: RenderOptions) {
-  const { project, format, directory, signal, onProgress } = options;
+  const { project, format, directory, onProgress } = options;
+  if (format === 'zip') validateMultipassProject(project);
+  const signal =
+    format === 'zip'
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(600000)])
+      : options.signal;
   const url = new URL(options.webURL);
   if (url.hostname !== '127.0.0.1' || url.protocol !== 'http:')
     throw new Error('Render server must be local HTTP on 127.0.0.1');
@@ -37,6 +47,12 @@ export async function renderProject(options: RenderOptions) {
   const output = join(outputDirectory, `output.${format}`);
   const start = performance.now();
   let browser: Browser | undefined;
+  let archive: GraphicArchive | undefined;
+  const graphicFrames: MultipassFrame[] = [],
+    sourceCredits = new Set<string>();
+  let archiveReport: { bytes: number; entries: number } | undefined;
+  let failed = false,
+    failure: unknown;
   const cancel = () => {
     void browser?.close();
   };
@@ -85,12 +101,25 @@ export async function renderProject(options: RenderOptions) {
       format === 'png'
         ? 1
         : Math.ceil(project.durationSeconds * project.canvas.fps);
+    if (format === 'zip') {
+      archive = await GraphicArchive.create(
+        join(frames, 'sequence.zip'),
+        signal,
+      );
+      await archive.add(
+        'project.json',
+        new TextEncoder().encode(JSON.stringify(project)),
+      );
+    }
     for (let i = 0; i < count; i++) {
       signal.throwIfAborted();
       const index = format === 'png' ? (options.frameIndex ?? 0) : i;
+      let state:
+        | Awaited<ReturnType<NonNullable<Window['renderStudio']>['frame']>>
+        | undefined;
       for (let attempt = 0; ; attempt++) {
         try {
-          await page.evaluate(
+          state = await page.evaluate(
             (index) => window.renderStudio!.frame(index),
             index,
           );
@@ -99,17 +128,30 @@ export async function renderProject(options: RenderOptions) {
           if (attempt >= 1 || signal.aborted) throw e;
         }
       }
-      await page.screenshot({
-        path:
-          format === 'png'
-            ? output
-            : join(frames, `${String(i).padStart(6, '0')}.png`),
-        type: 'png',
-        animations: 'disabled',
-      });
+      if (archive) {
+        if (!state) throw new Error('Graphic frame was not evaluated');
+        graphicFrames.push(
+          await captureGraphicFrame(
+            page,
+            index,
+            project.canvas.fps,
+            state,
+            archive,
+            sourceCredits,
+          ),
+        );
+      } else
+        await page.screenshot({
+          path:
+            format === 'png'
+              ? output
+              : join(frames, `${String(i).padStart(6, '0')}.png`),
+          type: 'png',
+          animations: 'disabled',
+        });
       onProgress('rendering', ((i + 1) / count) * 0.9);
     }
-    if (format !== 'png') {
+    if (format !== 'png' && format !== 'zip') {
       onProgress('encoding', 0.92);
       signal.throwIfAborted();
       for (const args of encodingSteps(
@@ -123,6 +165,41 @@ export async function renderProject(options: RenderOptions) {
         await runFFmpeg(args, signal);
       }
       await muxProjectAudio(project, format, frames, output, signal, runFFmpeg);
+    }
+    if (archive) {
+      onProgress('encoding', 0.92);
+      const manifest = multipassManifestSchema.parse({
+        version: 1,
+        projectId: project.id,
+        projectSchemaVersion: project.schemaVersion,
+        width: project.canvas.width,
+        height: project.canvas.height,
+        fps: project.canvas.fps,
+        durationSeconds: project.durationSeconds,
+        frameCount: count,
+        composition:
+          'incoming-map + incoming-overlay; outgoing group over incoming at 1-incomingWeight; captions over both',
+        background: '#101e2d',
+        colorSpace: 'srgb',
+        alpha: 'straight',
+        depthMeaning:
+          'Normalized GPU window depth; includes MapLibre layer ranges; not linear metres. DOM overlays have no depth.',
+        sourceCredits: [...sourceCredits],
+        frames: graphicFrames,
+      });
+      await archive.add(
+        'manifest.json',
+        new TextEncoder().encode(JSON.stringify(manifest, null, 2)),
+      );
+      await archive.add(
+        'README.txt',
+        new TextEncoder().encode(
+          'AnimateMap Studio multi-pass v1\nFrames use t = index / FPS; count = ceil(duration * FPS). Visual PNGs are sRGB with straight alpha.\nComposite incoming-map then incoming-overlay; overlay outgoing map+overlay group at opacity 1-incomingWeight; add captions last. Keep source-credit overlays in the final composition. Reference PNGs show the expected complete frame.\nDepth PNGs encode normalized GPU window depth as (R*65536+G*256+B)/16777215. They are data, not grayscale or linear metres; MapLibre layer depth ranges are included. Decode raw bytes before color conversion, use nearest samples, and do not gamma-correct or interpolate packed RGB channels. DOM overlays/captions have no 3D depth. Keep separate outgoing/incoming depth during crossfade.\nSource geometry/licensing is preserved in project.json and manifest.json. Audio remains in separately exported MP4/WebM; ZIP does not mix audio.\n',
+        ),
+      );
+      archiveReport = await archive.finish();
+      signal.throwIfAborted();
+      await rename(join(frames, 'sequence.zip'), output);
     }
     signal.throwIfAborted();
     await writeFile(
@@ -232,25 +309,45 @@ export async function renderProject(options: RenderOptions) {
             }),
           ),
           format,
-          pipeline: `Chromium fixed-frame → ${format === 'png' ? 'PNG' : `FFmpeg ${format}`}`,
+          ...(archiveReport ? { graphicArchive: archiveReport } : {}),
+          pipeline: `Chromium fixed-frame → ${format === 'zip' ? 'real PNG passes → streaming ZIP' : format === 'png' ? 'PNG' : `FFmpeg ${format}`}`,
         },
         null,
         2,
       ),
     );
-    onProgress('completed', 1);
-    return output;
+    signal.throwIfAborted();
   } catch (e) {
-    await rm(output, { force: true });
-    throw e;
+    failed = true;
+    failure = e;
   } finally {
     signal.removeEventListener('abort', cancel);
     try {
-      await browser?.close();
-    } finally {
-      await removeTemporaryDirectory(frames, outputDirectory, 'frames-');
+      try {
+        await browser?.close();
+      } finally {
+        try {
+          await archive?.close();
+        } finally {
+          await removeTemporaryDirectory(frames, outputDirectory, 'frames-');
+        }
+      }
+    } catch (error) {
+      if (!failed) {
+        failed = true;
+        failure = error;
+      }
     }
   }
+  if (failed || signal.aborted) await rm(output, { force: true });
+  if (format === 'zip' && signal.aborted && !options.signal.aborted)
+    throw new Error(
+      'Multi-pass render exceeded its ten-minute deadline; trim project or lower resolution',
+    );
+  signal.throwIfAborted();
+  if (failed) throw failure;
+  onProgress('completed', 1);
+  return output;
 }
 export function runFFmpeg(args: string[], signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

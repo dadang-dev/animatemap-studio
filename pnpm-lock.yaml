@@ -38,6 +38,9 @@ importers:
       eslint:
         specifier: 9.39.1
         version: 9.39.1(supports-color@8.1.1)
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       globals:
         specifier: 16.5.0
         version: 16.5.0
@@ -74,9 +77,15 @@ importers:
 
   apps/render-worker:
     dependencies:
+      '@animatemap/animation-core':
+        specifier: workspace:*
+        version: link:../../packages/animation-core
       '@animatemap/project-schema':
         specifier: workspace:*
         version: link:../../packages/project-schema
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       playwright:
         specifier: 1.58.2
         version: 1.58.2

@@ -9,7 +9,7 @@ import { renderProject } from './index';
 const input = process.argv[2];
 if (!input)
   throw new Error(
-    'Usage: pnpm render examples/travel-vietnam.json [output-directory] [mp4|png|webm|gif]',
+    'Usage: pnpm render examples/travel-vietnam.json [output-directory] [mp4|png|webm|gif|zip]',
   );
 if ((await stat(input)).size > MAX_PROJECT_BODY_BYTES)
   throw new Error('Project exceeds 48 MiB');

@@ -18,11 +18,11 @@ P0 Phases 0–5 passed before this work. The user explicitly confirmed the compl
 
 P2 modules:
 
-- [ ] 7A: 3D terrain/buildings/models with a separate validated asset pipeline, camera follow and multi-pass graphics.
+- [x] 7A: separate validated terrain/buildings/models pipelines, deterministic camera follow and actual compositing passes. Format/transparency/data coverage limits are documented per module.
 - [x] 7A.1 terrain: pinned offline Sa Pa DEM, native preview, ground anchors, camera/source validation and real 60-frame H.264/PNG parity. 129 unit/integration tests and 15 unique relevant browser scenarios passed; evidence/costs in TERRAIN.md.
 - [x] 7A.2 buildings: licensed original Vancouver height/footprint snapshot, bounded reviewed local GeoJSON/units/topology, deterministic actual extrusion growth and native preview/export. 139 unit/integration and 14 relevant browser scenarios passed; real 60-frame 1080p H.264/PNG/seek evidence in BUILDINGS.md. Models/follow/multi-pass remain separate gates.
 - [x] 7A.3 models/follow: v14/actual v13 migration, bounded reviewed local OBJ meshes and authored CC0 aircraft, actual custom WebGL2 poses/ground placement, deterministic geodesic motion/follow and protected manual keys. 150 unit/integration, 19 affected browser scenarios and four post-review model/foundation scenarios passed. Real 60-frame 1080p H.264/PNG parity, terrain AGL, dateline/context/cancel/GPU cleanup evidence in MODELS_FOLLOW.md.
-- [ ] 7A.4 multi-pass: deterministic beauty/depth/overlay outputs and compositing validation.
+- [x] 7A.4 multi-pass: actual streaming ZIP PNG sequences, GPU window depth, transparent overlays/global captions, separate crossfade planes, immutable snapshot and source manifest. 154 unit/integration, 15 affected and seven final browser scenarios passed, including actual CLI/portrait/cancel/retry/disposal. Evidence and unchanged tolerances in MULTIPASS.md.
 - [ ] 7B: licensed time-aware historical border import, year slider, uncertainty/source labels and topology validation before morphing.
 - [x] 7C: Actual signed-in Codex CLI proposes validated JSON, with explicit review before applying, source-resolved places, locked/stale protection and no invented polygons. 120 unit/integration, four module/foundation browser scenarios and ten broader regressions passed; real 60-frame H.264/PNG parity evidence in CODEX_AI.md.
 - [ ] 7D host gate: actual camera/anchor JSON and executable JSX artifact workflow implemented; 123 unit/integration tests and ten final relevant browser scenarios passed, with repeated 90-frame sampling and <0.005-pixel preview position error. Adobe host import/render remains unverified because the host is absent. See AFTER_EFFECTS.md.
