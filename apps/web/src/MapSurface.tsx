@@ -41,7 +41,9 @@ export function MapSurface({
   const native3D =
     !!project.map.terrain ||
     project.scenes.some((scene) =>
-      scene.layers.some((layer) => layer.type === 'buildings'),
+      scene.layers.some(
+        (layer) => layer.type === 'buildings' || layer.type === 'model',
+      ),
     );
   useLayoutEffect(() => {
     if (!native3D) return;

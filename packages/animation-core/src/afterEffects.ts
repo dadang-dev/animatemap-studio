@@ -7,6 +7,9 @@ import {
 } from '@animatemap/project-schema';
 export const MAX_AE_SAMPLES = 250000;
 const identifier = z.string().min(1).max(200);
+const interchangeCameraSchema = cameraSchema.extend({
+  targetAltitudeAboveGround: z.number().finite().min(0).max(10000).optional(),
+});
 export const aeAnchorSampleSchema = z.strictObject({
   id: identifier,
   position: z.tuple([
@@ -22,11 +25,11 @@ const frameSchema = z.strictObject({
   index: z.number().int().min(0),
   time: z.number().finite().min(0),
   sceneId: identifier.nullable(),
-  camera: cameraSchema,
+  camera: interchangeCameraSchema,
   outgoing: z
     .strictObject({
       sceneId: identifier,
-      camera: cameraSchema,
+      camera: interchangeCameraSchema,
       weight: z.number().min(0).max(1),
     })
     .optional(),
@@ -138,6 +141,7 @@ export function aeManifestBase(input: Project): Omit<AEManifest, 'frames'> {
   if (project.map.terrain)
     attribution.add(`${TERRAIN_CREDIT} · Sa Pa coverage`);
   project.assets.forEach((a) => attribution.add(a.provenance.credit));
+  project.modelAssets.forEach((a) => attribution.add(a.provenance.credit));
   project.audioAssets.forEach((a) => attribution.add(a.provenance.credit));
   project.datasets.forEach((d) => attribution.add(d.provenance.credit));
   project.buildingDatasets.forEach((d) =>
@@ -147,6 +151,8 @@ export function aeManifestBase(input: Project): Omit<AEManifest, 'frames'> {
   );
   project.scenes.forEach((scene) =>
     scene.layers.forEach((layer) => {
+      if (layer.type === 'model' && layer.motion.geographySource)
+        attribution.add(layer.motion.geographySource.credit);
       if (
         (layer.type === 'marker' || layer.type === 'route') &&
         layer.geographySource
@@ -203,9 +209,10 @@ No file/network access, project save, commands or expressions. */
     meta.startTime = 0; meta.inPoint = 0; meta.outPoint = comp.duration;
     meta.comment = "Not an AE 3D camera. Use sampled 2D anchors with the rendered footage.";
     var fields = ["lng", "lat", "zoom", "bearing", "pitch"];
+    for (i = 0; i < data.frames.length; i++) if (data.frames[i].camera.targetAltitudeAboveGround !== undefined) { fields.push("targetAltitudeAboveGround"); break; }
     for (j = 0; j < fields.length; j++) {
       var values = [];
-      for (i = 0; i < data.frames.length; i++) values.push(data.frames[i].camera[fields[j]]);
+      for (i = 0; i < data.frames.length; i++) values.push(data.frames[i].camera[fields[j]] !== undefined ? data.frames[i].camera[fields[j]] : 0);
       var effect = meta.property("ADBE Effect Parade").addProperty("ADBE Slider Control");
       effect.name = "Map " + fields[j];
       keys(effect.property("ADBE Slider Control-0001"), values, false);

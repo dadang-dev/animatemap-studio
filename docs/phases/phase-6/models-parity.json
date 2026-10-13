@@ -1,0 +1,27 @@
+{
+  "source": "Authored CC0 aircraft v1 actual OBJ triangle mesh",
+  "triangles": 64,
+  "altitudeAboveGround": 500,
+  "comparisons": [
+    {
+      "frame": 0,
+      "meanAbsoluteChannelError": 0.682110178755144,
+      "actualMeshPixels": 1526
+    },
+    {
+      "frame": 30,
+      "meanAbsoluteChannelError": 0.6834151556069958,
+      "actualMeshPixels": 1674
+    },
+    {
+      "frame": 59,
+      "meanAbsoluteChannelError": 0.6833907214506173,
+      "actualMeshPixels": 1639
+    }
+  ],
+  "repeatedSeeksIdentical": true,
+  "png": {
+    "frame": 30,
+    "identical": true
+  }
+}

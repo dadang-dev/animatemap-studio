@@ -162,6 +162,7 @@ export function normalizeProposal(
       durationSeconds: duration,
       transition: { type: 'cut' as const },
       camera: {
+        follow: null,
         keyframes: scene.camera.map(({ time, easing, ...value }) => ({
           time,
           easing,

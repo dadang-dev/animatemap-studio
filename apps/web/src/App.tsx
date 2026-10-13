@@ -35,6 +35,7 @@ import { AIPanel } from './AIPanel';
 import { AfterEffectsPanel } from './AfterEffectsPanel';
 import { TerrainPanel } from './TerrainPanel';
 import { BuildingLibrary } from './BuildingLibrary';
+import { ModelLibrary } from './ModelLibrary';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -90,6 +91,7 @@ export function App() {
   const [aeOpen, setAeOpen] = useState(false);
   const [terrainOpen, setTerrainOpen] = useState(false);
   const [buildingsOpen, setBuildingsOpen] = useState(false);
+  const [modelsOpen, setModelsOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -246,6 +248,7 @@ export function App() {
       {buildingsOpen && (
         <BuildingLibrary onClose={() => setBuildingsOpen(false)} />
       )}
+      {modelsOpen && <ModelLibrary onClose={() => setModelsOpen(false)} />}
       {aeOpen && (
         <AfterEffectsPanel
           countries={renderer.current?.countries}
@@ -433,6 +436,7 @@ export function App() {
           <button onClick={() => setBuildingsOpen(true)}>
             3D buildings · GeoJSON
           </button>
+          <button onClick={() => setModelsOpen(true)}>3D models · OBJ</button>
           <button onClick={() => setAeOpen(true)}>
             After Effects interchange
           </button>
@@ -547,7 +551,13 @@ export function App() {
               </div>
             ))}
           </div>
-          <button disabled={!s.selected} onClick={s.deleteLayer}>
+          <button
+            disabled={
+              !s.selected ||
+              !!scene.layers.find((l) => l.id === s.selected)?.locked
+            }
+            onClick={s.deleteLayer}
+          >
             Delete selected layer
           </button>
           <div className="panel-foot">
@@ -593,7 +603,7 @@ export function App() {
             >
               <MapSurface
                 project={s.project}
-                camera={s.camera}
+                camera={scene.camera.follow ? state.camera : s.camera}
                 layers={state.layers}
                 blend={state.blend}
                 captions={state.captions}

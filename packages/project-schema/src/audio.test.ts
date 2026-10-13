@@ -110,7 +110,10 @@ test('combined embedded/Unicode project JSON stays within the API request budget
     startSeconds: scene * 4,
     durationSeconds: 4,
     transition: { type: 'cut' as const },
-    camera: { keyframes: [project.scenes[0]!.camera.keyframes[0]!] },
+    camera: {
+      follow: null,
+      keyframes: [project.scenes[0]!.camera.keyframes[0]!],
+    },
     layers: Array.from({ length: 100 }, (_, layer) => ({
       ...template,
       id: `text-${scene}-${layer}`,

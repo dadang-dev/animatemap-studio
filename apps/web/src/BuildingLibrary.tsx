@@ -388,7 +388,8 @@ export function BuildingLibrary({ onClose }: { onClose: () => void }) {
           onChange={(e) => setFocus(e.target.checked)}
         />
         Replace current scene camera keys with a pitched view of these
-        footprints and disable regional terrain. Undo restores the change.
+        footprints, disable its current follow and disable regional terrain.
+        Undo restores the change.
       </label>
       <p className="hint">
         3D previews render at full project resolution. Local imports are

@@ -72,6 +72,7 @@ export function addBuildingLayer(
       ),
     );
     project.map.terrain = null;
+    scene.camera.follow = null;
     scene.camera.keyframes = [
       {
         time: 0,

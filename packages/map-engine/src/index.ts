@@ -12,6 +12,7 @@ import type {
 import { drawCaptions } from './captions';
 import { TerrainAdapter } from './terrainAdapter';
 import { applyBuildings } from './buildingsAdapter';
+import { ModelsAdapter } from './modelsAdapter';
 import {
   admin1CountriesForRegions,
   ADMIN1_RELEASE,
@@ -185,6 +186,9 @@ export class MapRenderer {
   private patternImages = new Map<string, { dataUrl: string; ratio: number }>();
   private textContext = document.createElement('canvas').getContext('2d')!;
   private fontsReady = false;
+  private appliedCamera?: Camera;
+  private followCentre = false;
+  private models: ModelsAdapter;
   private measurements = new Map<string, { width: number; height: number }>();
   constructor(
     container: HTMLElement,
@@ -212,6 +216,7 @@ export class MapRenderer {
       fadeDuration: 0,
     });
     this.terrain = new TerrainAdapter(this.map);
+    this.models = new ModelsAdapter(this.map);
     this.overlays = document.createElement('div');
     this.overlays.className = 'map-overlays';
     container.append(this.overlays);
@@ -266,6 +271,9 @@ export class MapRenderer {
             hit.layer.id === `ams-${id}-extrusion`,
         );
         if (id) this.onLayer?.(id);
+      } else {
+        const model = this.models.pick(e.point.x, e.point.y);
+        if (model) this.onLayer?.(model);
       }
       onPoint?.([wrap(e.lngLat.lng), e.lngLat.lat]);
     });
@@ -344,6 +352,33 @@ export class MapRenderer {
         timeoutMs,
       );
     }
+    if (this.appliedCamera?.targetAltitudeAboveGround !== undefined) {
+      const camera = this.appliedCamera,
+        ground = this.map.getTerrain()
+          ? this.map.queryTerrainElevation([camera.lng, camera.lat])
+          : 0;
+      if (ground === null || !Number.isFinite(ground))
+        throw new Error(
+          'Terrain elevation unavailable at camera follow target',
+        );
+      const elevation = ground + camera.targetAltitudeAboveGround!;
+      if (Math.abs(this.map.getCenterElevation() - elevation) > 1e-7) {
+        this.map.jumpTo({ elevation });
+        await new Promise<void>((resolve, reject) => {
+          const start = performance.now();
+          const check = () => {
+            if (this.destroyed || this.error)
+              reject(new Error(this.error ?? 'Renderer disposed'));
+            else if (this.map.loaded() && this.map.areTilesLoaded()) resolve();
+            else if (performance.now() - start > timeoutMs)
+              reject(new Error('Model follow resources timed out'));
+            else requestAnimationFrame(check);
+          };
+          check();
+        });
+      }
+    }
+    this.models.assertReady();
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
     );
@@ -376,6 +411,7 @@ export class MapRenderer {
         'Terrain preview is outside the verified Sa Pa pack; return to the supported region at zoom 10 or greater',
       );
     this.terrain.use(project.map.terrain);
+    this.models.use(layers, project.modelAssets);
     const regionCountries = [
       ...new Set([
         ...project.map.admin1Countries,
@@ -469,7 +505,17 @@ export class MapRenderer {
       'line-width',
       (0.7 * this.map.getContainer().clientWidth) / project.canvas.width,
     );
-    if (jump)
+    if (jump) {
+      this.appliedCamera = camera;
+      const follow = camera.targetAltitudeAboveGround !== undefined,
+        wasFollowing = this.followCentre;
+      if (follow !== wasFollowing) {
+        this.map.setCenterClampedToGround(!follow);
+        this.followCentre = follow;
+      }
+      const ground = this.map.getTerrain()
+        ? (this.map.queryTerrainElevation([camera.lng, camera.lat]) ?? 0)
+        : 0;
       this.map.jumpTo({
         center: [camera.lng, camera.lat],
         zoom:
@@ -477,7 +523,11 @@ export class MapRenderer {
           Math.log2(this.map.getContainer().clientWidth / project.canvas.width),
         bearing: camera.bearing,
         pitch: camera.pitch,
+        ...(follow || wasFollowing
+          ? { elevation: ground + (camera.targetAltitudeAboveGround ?? 0) }
+          : {}),
       });
+    }
     const ids = layers
       .filter(
         (l) =>
@@ -782,6 +832,7 @@ export class MapRenderer {
     }
     // Moving identical layers each frame invalidates terrain render-to-texture stacks.
     const ordered = layers.flatMap((layer) => {
+      if (layer.type === 'model') return [`ams-${layer.id}-model`];
       if (layer.type === 'buildings') return [`ams-${layer.id}-extrusion`];
       if (
         layer.type === 'route' ||
@@ -1181,6 +1232,14 @@ export class MapRenderer {
             `${dataset.provenance.credit}${dataset.provenance.surveyYear ? ` · ${dataset.provenance.surveyYear} survey` : ''}`,
           );
       }
+      if (layer.type === 'model') {
+        const asset = this.project.modelAssets.find(
+          (a) => a.id === layer.modelAssetId,
+        );
+        if (asset) credits.add(asset.provenance.credit);
+        if (layer.motion.geographySource)
+          credits.add(layer.motion.geographySource.credit);
+      }
       const reference =
         layer.type === 'image'
           ? layer.assetId
@@ -1261,6 +1320,7 @@ export class MapRenderer {
   }
   destroy() {
     this.destroyed = true;
+    this.models.dispose();
     this.admin1.destroy();
     this.images.dispose();
     this.outgoing?.destroy();
@@ -1271,5 +1331,8 @@ export class MapRenderer {
   }
   regionsForCountry(country: string) {
     return this.admin1.get(country);
+  }
+  modelPlacement(id: string) {
+    return this.models.placement(id);
   }
 }

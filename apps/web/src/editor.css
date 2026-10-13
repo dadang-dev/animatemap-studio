@@ -399,3 +399,9 @@ fieldset:disabled {
   padding: 10px;
   border-radius: 6px;
 }
+.camera-controls {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}

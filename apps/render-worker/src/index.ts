@@ -150,12 +150,42 @@ export async function renderProject(options: RenderOptions) {
                 : [],
             ),
           ),
+          modelMotionSources: project.scenes.flatMap((scene) =>
+            scene.layers.flatMap((layer) =>
+              layer.type === 'model' && layer.motion.geographySource
+                ? [{ layerId: layer.id, ...layer.motion.geographySource }]
+                : [],
+            ),
+          ),
           buildingSources: project.buildingDatasets.map(
             ({ id, name, heightUnit, records, provenance }) => ({
               id,
               name,
               heightUnit,
               footprints: records.length,
+              ...provenance,
+            }),
+          ),
+          modelSources: project.modelAssets.map(
+            ({
+              id,
+              name,
+              unit,
+              sourceUpAxis,
+              placementOrigin,
+              sourceSha256,
+              provenance,
+              triangles,
+              vertices,
+            }) => ({
+              id,
+              name,
+              unit,
+              sourceUpAxis,
+              placementOrigin,
+              sourceSha256,
+              triangles: triangles.length,
+              vertices: vertices.length,
               ...provenance,
             }),
           ),

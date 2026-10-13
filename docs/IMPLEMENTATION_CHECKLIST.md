@@ -1,5 +1,7 @@
 # Implementation checklist
 
+- [x] Phase 7A.3 models/follow: schema v14/actual v13 migration, reviewed bounded OBJ pipeline, authored CC0 aircraft, real custom WebGL2/DEM placement, scene-local geodesic motion, follow and protected manual camera keys. 150 unit/integration, 19 affected browser scenarios and four final model/foundation scenarios passed. Actual H.264 60-frame 1080p output, exact PNG/seeks, source credits, cancellation and GPU recovery are recorded in `docs/phases/phase-6/MODELS_FOLLOW.md`. Multi-pass remains next.
+
 - [x] Phase 7A.2 buildings: project v13 with actual v12 migration, licensed original 100-element Vancouver 2009 height-biased sample, bounded GeoJSON topology/unit/source review, actual extrusion growth and native preview. 139 unit/integration and 14 affected browser scenarios passed; real 60-frame H.264/PNG/seek parity and source failure/atomic persistence are documented in `docs/phases/phase-6/BUILDINGS.md`. Models/follow/multi-pass remain open.
 
 - [x] Phase 0: workspace, schemas, fixtures, API health, shell, CI, unit/integration/e2e checks.

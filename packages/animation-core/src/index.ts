@@ -1,4 +1,6 @@
 import { distance, bearing, destination } from '@turf/turf';
+import { modelPoseAt, type ModelPose } from './modelMotion';
+export { modelPoseAt, type ModelPose } from './modelMotion';
 export {
   aeManifestBase,
   aeManifestSchema,
@@ -116,6 +118,7 @@ export function trimRoute(
   );
 }
 export type RenderLayer = Layer & {
+  modelPose?: ModelPose;
   renderCoordinates?: [number, number][];
   data?: ChoroplethData;
 };
@@ -241,7 +244,43 @@ function evaluateSceneAt(
         local,
         result.heightScale,
       );
+    if (result.type === 'model') {
+      result.motionProgress = scalarAt(
+        layer.tracks.motionProgress,
+        local,
+        result.motionProgress,
+      );
+      result.altitude = scalarAt(layer.tracks.altitude, local, result.altitude);
+      result.transform.rotation = sample(
+        layer.tracks.rotation,
+        local,
+        result.transform.rotation,
+        (a, b, f) => wrap(a + wrap(b - a) * f),
+      );
+      result.modelPose = modelPoseAt(result);
+    }
     return result;
   });
+  const follow = scene.camera.follow;
+  if (follow) {
+    const model = layers.find((l) => l.id === follow.layerId);
+    if (model?.type !== 'model' || !model.modelPose)
+      throw new Error('Camera follow target is unavailable');
+    return {
+      sceneId: scene.id,
+      camera: {
+        lng: model.modelPose.coordinates[0],
+        lat: model.modelPose.coordinates[1],
+        zoom: follow.zoom,
+        pitch: follow.pitch,
+        bearing: wrap(
+          follow.bearing +
+            (follow.bearingMode === 'heading' ? model.modelPose.heading : 0),
+        ),
+        targetAltitudeAboveGround: model.modelPose.altitude,
+      },
+      layers,
+    };
+  }
   return { sceneId: scene.id, camera: { ...camera }, layers };
 }

@@ -37,7 +37,7 @@ interface EditorState {
   addLayer: (
     type: Exclude<
       Layer['type'],
-      'image' | 'choropleth' | 'admin1Highlight' | 'buildings'
+      'image' | 'choropleth' | 'admin1Highlight' | 'buildings' | 'model'
     >,
     point?: [number, number],
     code?: string,
@@ -50,6 +50,16 @@ interface EditorState {
   applyCameraPreset: (kind: CameraPresetKind, amount?: number) => void;
 }
 const initial = createDemo();
+function followingAt(project: Project, time: number) {
+  return project.scenes.some(
+    (scene) =>
+      !!scene.camera.follow &&
+      time >= scene.startSeconds &&
+      (time < scene.startSeconds + scene.durationSeconds ||
+        (time === project.durationSeconds &&
+          time === scene.startSeconds + scene.durationSeconds)),
+  );
+}
 function selectionAt(project: Project, time: number, selected: string) {
   const scene = project.scenes.find(
     (scene) => scene.id === evaluateProjectAt(project, time).sceneId,
@@ -86,7 +96,9 @@ export const useEditor = create<EditorState>((set, get) => ({
       set({
         project: parsed,
         time,
-        ...(time !== state.time
+        ...(time !== state.time ||
+        followingAt(parsed, time) ||
+        followingAt(state.project, state.time)
           ? { camera: evaluateProjectAt(parsed, time).camera }
           : {}),
         past: [...state.past.slice(-99), state.project],
@@ -321,11 +333,15 @@ export const useEditor = create<EditorState>((set, get) => ({
       .find((layer) => layer.id === s.selected);
     if (!selected || selected.locked) return;
     s.edit((p) => {
-      for (const scene of p.scenes)
+      for (const scene of p.scenes) {
         scene.layers = scene.layers.filter(
           (l) => l.id !== s.selected || l.locked,
         );
+        if (scene.camera.follow?.layerId === s.selected)
+          scene.camera.follow = null;
+      }
     });
+    get().seek(get().time);
     set({ selected: '' });
   },
   addCameraKey() {
@@ -334,6 +350,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       const scene =
         p.scenes.find((v) => v.id === evaluateProjectAt(p, s.time).sceneId) ??
         p.scenes[0]!;
+      if (scene.camera.follow) return;
       const time = Math.min(
         scene.durationSeconds,
         Math.max(0, s.time - scene.startSeconds),

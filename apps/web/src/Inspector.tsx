@@ -7,6 +7,9 @@ import { ChoroplethInspector } from './ChoroplethInspector';
 import { NumberField } from './NumberField';
 import { Admin1Inspector } from './Admin1Inspector';
 import { BuildingInspector } from './BuildingInspector';
+import { ModelInspector } from './ModelInspector';
+import { CameraFollowPanel } from './CameraFollowPanel';
+import { evaluateProjectAt } from '@animatemap/animation-core';
 export function Inspector({
   country,
   region,
@@ -21,6 +24,9 @@ export function Inspector({
     .flatMap((v) => v.layers)
     .find((l) => l.id === s.selected);
   const patch = s.patchLayer;
+  const following = !!s.project.scenes.find(
+    (scene) => scene.id === evaluateProjectAt(s.project, s.time).sceneId,
+  )?.camera.follow;
   return (
     <>
       <div className="panel-heading">INSPECTOR</div>
@@ -184,6 +190,7 @@ export function Inspector({
           )}
           {layer.type === 'choropleth' && <ChoroplethInspector layer={layer} />}
           {layer.type === 'buildings' && <BuildingInspector layer={layer} />}
+          {layer.type === 'model' && <ModelInspector layer={layer} />}
           {layer.type === 'admin1Highlight' && (
             <Admin1Inspector layer={layer} />
           )}
@@ -704,7 +711,8 @@ export function Inspector({
         Highlight {country}
       </button>
       <div className="panel-heading section-heading">CAMERA</div>
-      <div className="camera-grid">
+      <CameraFollowPanel />
+      <fieldset className="camera-grid camera-controls" disabled={following}>
         {(['lng', 'lat', 'zoom', 'bearing', 'pitch'] as const).map((key) => (
           <NumberField
             key={key}
@@ -719,13 +727,17 @@ export function Inspector({
             }}
           />
         ))}
-      </div>
-      <button onClick={s.addCameraKey}>Add camera keyframe · K</button>
+      </fieldset>
+      <button disabled={following} onClick={s.addCameraKey}>
+        Add camera keyframe · K
+      </button>
       <p className="hint">
-        Capture camera changes as a keyframe. Seeking restores the timeline
-        camera.
+        Capture camera changes as a keyframe. Disable follow to capture manual
+        camera keys. Seeking restores the timeline camera.
       </p>
-      <CameraPresets />
+      <fieldset className="camera-controls" disabled={following}>
+        <CameraPresets />
+      </fieldset>
     </>
   );
 }

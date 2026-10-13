@@ -46,6 +46,7 @@ export function applySceneOperation(
       startSeconds: 0,
       durationSeconds: Math.min(5, remaining),
       camera: {
+        follow: null,
         keyframes: [
           { time: 0, value: { ...operation.camera }, easing: 'linear' },
         ],
@@ -66,7 +67,12 @@ export function applySceneOperation(
     const copy = structuredClone(scene);
     copy.id = newId();
     copy.name = `${scene.name.slice(0, 195)} copy`;
-    for (const layer of copy.layers) layer.id = newId();
+    for (const layer of copy.layers) {
+      const originalId = layer.id;
+      layer.id = newId();
+      if (copy.camera.follow?.layerId === originalId)
+        copy.camera.follow.layerId = layer.id;
+    }
     project.scenes.splice(index + 1, 0, copy);
     focus = copy.id;
   } else if (operation.type === 'delete') {

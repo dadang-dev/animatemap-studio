@@ -125,9 +125,19 @@ export function Timeline() {
                         ? evaluated.heightScale
                         : 1;
                     })()
-                  : evaluateProjectAt(s.project, s.time).layers.find(
-                      (item) => item.id === layer.id,
-                    )!.transform[property],
+                  : property === 'motionProgress' || property === 'altitude'
+                    ? (() => {
+                        const evaluated = evaluateProjectAt(
+                          s.project,
+                          s.time,
+                        ).layers.find((item) => item.id === layer.id);
+                        return evaluated?.type === 'model'
+                          ? evaluated[property]
+                          : 0;
+                      })()
+                    : evaluateProjectAt(s.project, s.time).layers.find(
+                        (item) => item.id === layer.id,
+                      )!.transform[property],
           easing: 'linear',
         });
         keys.sort((a, b) => a.time - b.time);

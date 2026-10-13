@@ -15,7 +15,8 @@ export function TerrainPanel({ onClose }: { onClose: () => void }) {
         exaggeration: 1,
         hillshade: true,
       };
-      for (const scene of project.scenes)
+      for (const scene of project.scenes) {
+        scene.camera.follow = null;
         scene.camera.keyframes = [
           {
             time: 0,
@@ -29,6 +30,7 @@ export function TerrainPanel({ onClose }: { onClose: () => void }) {
             easing: 'linear',
           },
         ];
+      }
     });
     if (!useEditor.getState().error) useEditor.getState().seek(editor.time);
   };
@@ -67,8 +69,9 @@ export function TerrainPanel({ onClose }: { onClose: () => void }) {
         {!enabled && (
           <>
             <p>
-              Enable replaces camera keys in every scene with a Sa Pa view at
-              zoom 10.5/pitch 55°. Existing layers/media stay intact. Review
+              Enable replaces camera keys and disables follow in every scene
+              with a Sa Pa view at zoom 10.5/pitch 55°. Models must stay inside
+              this elevation pack. Existing layers/media stay intact. Review
               this replacement before proceeding; Undo restores it.
             </p>
             <button onClick={enable}>
