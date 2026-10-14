@@ -13,7 +13,7 @@ Local-first animated map editor. Implementation follows `PLAN_CODEX_ANIMATEMAP_S
 Prerequisites: Node 24+, pnpm 11; FFmpeg/ffprobe on PATH for video export.
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 pnpm exec playwright install chromium
 pnpm dev
 ```
@@ -69,6 +69,8 @@ The final CLI argument also accepts `webm`, `gif` and `png`. Temporary frame fol
 On Windows install FFmpeg with `winget install Gyan.FFmpeg`; on Ubuntu use `sudo apt-get install ffmpeg`. Check `ffmpeg -version` and `ffprobe -version`. If Chromium is missing, rerun `pnpm exec playwright install chromium`. On Linux use `pnpm exec playwright install --with-deps chromium`. Optional `FFMPEG_PATH` specifies an encoder executable. Installation needs network access; the default app and render pipeline do not.
 
 Run `pnpm check`, `pnpm format:check`, and `pnpm test:e2e`. Stop running dev services before E2E: Playwright launches its own services and uses an isolated `.local/e2e/` repository, with fake microphone devices for capture tests. E2E includes a real 360-frame 1080p render and takes several minutes. Golden frames use pinned Chromium/Noto Sans and allow 2% pixel difference for GPU rasterization across operating systems. `pnpm benchmark` profiles the evaluator and a 300-frame render with local services running. CI installs FFmpeg and Chromium before testing.
+
+For the current v15 release benchmark, start `pnpm dev`, then run `pnpm exec tsx scripts/benchmark-release.ts` after other exports/tests finish. It measures travel and historical-morph evaluator seeks, captures an actual 300-frame 1920×1080/30 FPS H.264 video, verifies codec/dimensions/frame count with ffprobe, and retains the video/hardware/timing report under `.local/reviewed/release-v15/`. It preserves the earlier Phase 5 report. Use `pnpm test:e2e --output .local/release-v15-full` for a fresh regression output folder if OneDrive locks previous trace directories.
 
 Codex protocol/error tests run without an account using clearly labeled authored fixtures. The actual signed-in generation/export browser test is opt-in: set `ANIMATEMAP_LIVE_CODEX=1` and run `pnpm test:e2e tests/e2e/codex.spec.ts`. It uses the installed account and verifies a real generated project, H.264 frame count and PNG/preview parity; it is skipped in ordinary CI to avoid silently consuming account usage.
 
