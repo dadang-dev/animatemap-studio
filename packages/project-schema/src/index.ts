@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import {
+  historicalDatasetSchema,
+  MAX_HISTORY_BYTES,
+  MAX_HISTORY_VERTICES,
+  historyVertexCount,
+} from './historical';
+export * from './historical';
 export {
   validateMultipassProject,
   multipassManifestSchema,
@@ -432,6 +439,7 @@ export const scalarProperties = [
   'heightScale',
   'motionProgress',
   'altitude',
+  'historyYear',
 ] as const;
 export type ScalarProperty = (typeof scalarProperties)[number];
 export const scalarLimits: Record<ScalarProperty, readonly [number, number]> = {
@@ -445,6 +453,7 @@ export const scalarLimits: Record<ScalarProperty, readonly [number, number]> = {
   heightScale: [0, 3],
   motionProgress: [0, 1],
   altitude: [0, 10000],
+  historyYear: [-10000, 10000],
 };
 const tracksV3Schema = z
   .object({
@@ -715,7 +724,7 @@ const modelLayerSchema = z.object({
     .default({ pitch: 0, roll: 0 }),
   style: z.object({ color }),
 });
-export const layerSchema = z.discriminatedUnion('type', [
+const layerV14Schema = z.discriminatedUnion('type', [
   layerV13Schema.options[0].safeExtend({ tracks: tracksV14Schema }),
   layerV13Schema.options[1].safeExtend({ tracks: tracksV14Schema }),
   layerV13Schema.options[2].safeExtend({ tracks: tracksV14Schema }),
@@ -727,21 +736,63 @@ export const layerSchema = z.discriminatedUnion('type', [
   layerV13Schema.options[8].safeExtend({ tracks: tracksV14Schema }),
   modelLayerSchema,
 ]);
+const tracksV15Schema = tracksV14Schema
+  .unwrap()
+  .extend({
+    historyYear: track(finite.min(-10000).max(10000)).default([]),
+  })
+  .default({ ...tracksV14Schema.parse(undefined), historyYear: [] });
+const historicalLayerSchema = z.object({
+  ...common,
+  type: z.literal('historical'),
+  tracks: tracksV15Schema,
+  historicalDatasetId: id,
+  regionIds: z
+    .array(id)
+    .min(1)
+    .max(500)
+    .refine(
+      (ids) => new Set(ids).size === ids.length,
+      'Duplicate historical region selection',
+    ),
+  historyYear: finite.min(-10000).max(10000),
+  mode: z.enum(['source', 'morph']).default('source'),
+  style: z.object({
+    color,
+    borderColor: color,
+    borderWidth: finite.min(0).max(20),
+  }),
+});
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV14Schema.options[0].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[1].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[2].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[3].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[4].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[5].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[6].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[7].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[8].safeExtend({ tracks: tracksV15Schema }),
+  layerV14Schema.options[9].safeExtend({ tracks: tracksV15Schema }),
+  historicalLayerSchema,
+]);
 export type Layer = z.infer<typeof layerSchema>;
 export function propertiesForLayer(layer: Layer): ScalarProperty[] {
   return layer.type === 'marker' ||
     layer.type === 'text' ||
     layer.type === 'image'
     ? ['opacity', 'scale', 'rotation', 'offsetX', 'offsetY']
-    : layer.type === 'choropleth'
-      ? ['opacity', 'dataYear']
-      : layer.type === 'buildings'
-        ? ['opacity', 'heightScale']
-        : layer.type === 'model'
-          ? ['opacity', 'scale', 'rotation', 'motionProgress', 'altitude']
-          : layer.type === 'route' || layer.type === 'shape'
-            ? ['opacity', 'reveal']
-            : ['opacity'];
+    : layer.type === 'historical'
+      ? ['opacity', 'historyYear']
+      : layer.type === 'choropleth'
+        ? ['opacity', 'dataYear']
+        : layer.type === 'buildings'
+          ? ['opacity', 'heightScale']
+          : layer.type === 'model'
+            ? ['opacity', 'scale', 'rotation', 'motionProgress', 'altitude']
+            : layer.type === 'route' || layer.type === 'shape'
+              ? ['opacity', 'reveal']
+              : ['opacity'];
 }
 const projectV3Base = z.object({
   ...projectV2Base.shape,
@@ -977,7 +1028,7 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 14;
+export const CURRENT_SCHEMA_VERSION = 15;
 const projectV9Base = projectV8Base.extend({
   schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
@@ -1276,14 +1327,14 @@ export const projectV13Schema = projectV13Base.superRefine((project, ctx) => {
       message: 'Project exceeds the embedded JSON request budget (48 MiB)',
     });
 });
-export const projectSchema = projectV13Base
+export const projectV14Schema = projectV13Base
   .extend({
-    schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+    schemaVersion: z.literal(14),
     modelAssets: z.array(modelAssetSchema).max(5).default([]),
     scenes: z
       .array(
         sceneV2Schema.extend({
-          layers: z.array(layerSchema).max(100),
+          layers: z.array(layerV14Schema).max(100),
           camera: z.object({
             keyframes: cameraTrackSchema,
             follow: cameraFollowSchema,
@@ -1381,7 +1432,7 @@ export const projectSchema = projectV13Base
           );
         if (
           ['reveal', 'offsetX', 'offsetY', 'dataYear', 'heightScale'].some(
-            (key) => layer.tracks[key as ScalarProperty].length,
+            (key) => layer.tracks[key as keyof typeof layer.tracks].length,
           )
         )
           issue('Model has an unsupported animation track');
@@ -1443,6 +1494,139 @@ export const projectSchema = projectV13Base
         message: 'Project exceeds the embedded JSON request budget (48 MiB)',
       });
   });
+export const projectSchema = z
+  .object({
+    ...projectV14Schema.shape,
+    schemaVersion: z.literal(15),
+    historicalDatasets: z.array(historicalDatasetSchema).max(5).default([]),
+    scenes: z
+      .array(
+        sceneV2Schema.extend({
+          layers: z.array(layerSchema).max(100),
+          camera: z.object({
+            keyframes: cameraTrackSchema,
+            follow: cameraFollowSchema,
+          }),
+        }),
+      )
+      .min(1)
+      .max(20),
+  })
+  .superRefine((project, ctx) => {
+    validateTiming(project, ctx);
+    const legacy = projectV14Schema.safeParse({
+      ...project,
+      schemaVersion: 14,
+      scenes: project.scenes.map((scene) => ({
+        ...scene,
+        layers: scene.layers.filter((layer) => layer.type !== 'historical'),
+      })),
+    });
+    if (!legacy.success)
+      for (const issue of legacy.error.issues)
+        ctx.addIssue({
+          code: 'custom',
+          message: issue.message,
+          path: issue.path,
+        });
+    const ids = new Set<string>();
+    let vertices = 0;
+    for (const dataset of project.historicalDatasets) {
+      if (ids.has(dataset.id))
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Duplicate historical dataset identifier',
+        });
+      ids.add(dataset.id);
+      for (const epoch of dataset.epochs)
+        for (const feature of epoch.features)
+          vertices += historyVertexCount(feature.geometry);
+    }
+    if (
+      vertices > MAX_HISTORY_VERTICES ||
+      new TextEncoder().encode(JSON.stringify(project.historicalDatasets))
+        .length > MAX_HISTORY_BYTES
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Project historical registry exceeds 10 MiB / 100000 vertices',
+      });
+    project.scenes.forEach((scene, s) => {
+      const historical = scene.layers.filter(
+        (layer) => layer.type === 'historical',
+      );
+      const work = historical.reduce((total, layer) => {
+        const dataset = project.historicalDatasets.find(
+          (d) => d.id === layer.historicalDatasetId,
+        );
+        return (
+          total +
+          Math.max(
+            0,
+            ...(dataset?.epochs.map((epoch) =>
+              epoch.features
+                .filter((f) => layer.regionIds.includes(f.regionId))
+                .reduce((n, f) => n + historyVertexCount(f.geometry), 0),
+            ) ?? []),
+          )
+        );
+      }, 0);
+      if (historical.length > 8 || work > MAX_HISTORY_VERTICES)
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Scene historical workload exceeds 8 layers / 100000 source vertices',
+          path: ['scenes', s],
+        });
+      scene.layers.forEach((layer, l) => {
+        const issue = (message: string) =>
+          ctx.addIssue({
+            code: 'custom',
+            message,
+            path: ['scenes', s, 'layers', l],
+          });
+        if (layer.type !== 'historical') {
+          if (layer.tracks.historyYear.length)
+            issue('Historical year tracks require a historical layer');
+          return;
+        }
+        const dataset = project.historicalDatasets.find(
+          (dataset) => dataset.id === layer.historicalDatasetId,
+        );
+        if (
+          !dataset ||
+          layer.regionIds.some(
+            (id) => !dataset.regions.some((region) => region.id === id),
+          )
+        )
+          issue('Missing historical dataset or region identity');
+        if (layer.mode === 'morph' && layer.regionIds.length !== 1)
+          issue('Illustrative morph supports one selected region');
+        if (
+          layer.transform.scale !== 1 ||
+          layer.transform.rotation !== 0 ||
+          layer.transform.offsetX !== 0 ||
+          layer.transform.offsetY !== 0
+        )
+          issue('Historical boundaries use original WGS84 placement');
+        for (const property of scalarProperties)
+          if (
+            property !== 'opacity' &&
+            property !== 'historyYear' &&
+            layer.tracks[property].length
+          )
+            issue('Unsupported historical animation track');
+      });
+    });
+    if (
+      new TextEncoder().encode(JSON.stringify(project)).length >
+      MAX_PROJECT_BODY_BYTES - 65536
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Project exceeds the embedded JSON request budget (48 MiB)',
+      });
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
@@ -1463,37 +1647,40 @@ export function migrateProject(input: unknown): Project {
       input.schemaVersion === 10 ||
       input.schemaVersion === 11 ||
       input.schemaVersion === 12 ||
-      input.schemaVersion === 13)
+      input.schemaVersion === 13 ||
+      input.schemaVersion === 14)
   ) {
     const legacy =
-      input.schemaVersion === 13
-        ? projectV13Schema.parse(input)
-        : input.schemaVersion === 12
-          ? projectV12Schema.parse(input)
-          : input.schemaVersion === 11
-            ? projectV11Schema.parse(input)
-            : input.schemaVersion === 10
-              ? projectV10Schema.parse(input)
-              : input.schemaVersion === 9
-                ? projectV9Schema.parse(input)
-                : input.schemaVersion === 8
-                  ? projectV8Schema.parse(input)
-                  : input.schemaVersion === 7
-                    ? projectV7Schema.parse(input)
-                    : input.schemaVersion === 6
-                      ? projectV6Schema.parse(input)
-                      : input.schemaVersion === 5
-                        ? projectV5Schema.parse(input)
-                        : input.schemaVersion === 4
-                          ? projectV4Schema.parse(input)
-                          : input.schemaVersion === 3
-                            ? projectV3Schema.parse(input)
-                            : input.schemaVersion === 1
-                              ? projectV2Schema.parse({
-                                  ...projectV1Schema.parse(input),
-                                  schemaVersion: 2,
-                                })
-                              : projectV2Schema.parse(input);
+      input.schemaVersion === 14
+        ? projectV14Schema.parse(input)
+        : input.schemaVersion === 13
+          ? projectV13Schema.parse(input)
+          : input.schemaVersion === 12
+            ? projectV12Schema.parse(input)
+            : input.schemaVersion === 11
+              ? projectV11Schema.parse(input)
+              : input.schemaVersion === 10
+                ? projectV10Schema.parse(input)
+                : input.schemaVersion === 9
+                  ? projectV9Schema.parse(input)
+                  : input.schemaVersion === 8
+                    ? projectV8Schema.parse(input)
+                    : input.schemaVersion === 7
+                      ? projectV7Schema.parse(input)
+                      : input.schemaVersion === 6
+                        ? projectV6Schema.parse(input)
+                        : input.schemaVersion === 5
+                          ? projectV5Schema.parse(input)
+                          : input.schemaVersion === 4
+                            ? projectV4Schema.parse(input)
+                            : input.schemaVersion === 3
+                              ? projectV3Schema.parse(input)
+                              : input.schemaVersion === 1
+                                ? projectV2Schema.parse({
+                                    ...projectV1Schema.parse(input),
+                                    schemaVersion: 2,
+                                  })
+                                : projectV2Schema.parse(input);
     return projectSchema.parse({
       ...legacy,
       schemaVersion: CURRENT_SCHEMA_VERSION,

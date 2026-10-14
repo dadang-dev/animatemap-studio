@@ -1,3 +1,4 @@
+import { applyHistorical } from './historicalAdapter';
 import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -545,7 +546,8 @@ export class MapRenderer {
           l.type === 'choropleth' ||
           l.type === 'admin1Highlight' ||
           l.type === 'countryHighlight' ||
-          l.type === 'buildings',
+          l.type === 'buildings' ||
+          l.type === 'historical',
       )
       .map((l) => l.id);
     for (const id of this.layerIds.filter(
@@ -587,6 +589,13 @@ export class MapRenderer {
     this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
+      if (layer.type === 'historical')
+        applyHistorical(
+          this.map,
+          layer,
+          project.canvas.width,
+          this.geometrySignatures,
+        );
       if (layer.type === 'buildings') {
         const dataset = project.buildingDatasets.find(
           (d) => d.id === layer.buildingDatasetId,
@@ -848,7 +857,8 @@ export class MapRenderer {
         layer.type === 'shape' ||
         layer.type === 'choropleth' ||
         layer.type === 'admin1Highlight' ||
-        layer.type === 'countryHighlight'
+        layer.type === 'countryHighlight' ||
+        layer.type === 'historical'
       )
         return ['fill', 'line']
           .map((suffix) => `ams-${layer.id}-${suffix}`)
@@ -970,7 +980,34 @@ export class MapRenderer {
     if (!scale) return;
     const labels: { candidate: LabelCandidate; element: HTMLElement }[] = [];
     this.overlays.replaceChildren();
+    let historicalTop = 16 * scale;
     for (const layer of this.layers) {
+      if (
+        layer.type === 'historical' &&
+        layer.visible &&
+        layer.opacity > 0 &&
+        layer.historical
+      ) {
+        const label = document.createElement('div');
+        label.dataset.historicalLayer = layer.id;
+        label.textContent = `${layer.name}: ${layer.historical.label} · ${layer.historical.uncertainty}`;
+        Object.assign(label.style, {
+          position: 'absolute',
+          left: `${16 * scale}px`,
+          top: `${historicalTop}px`,
+          maxWidth: '70%',
+          padding: `${8 * scale}px`,
+          fontSize: `${16 * scale}px`,
+          background: '#101e2de8',
+          color: '#ffffff',
+          whiteSpace: 'normal',
+          pointerEvents: 'auto',
+          opacity: String(layer.opacity),
+        });
+        label.addEventListener('click', () => this.onLayer?.(layer.id));
+        this.overlays.append(label);
+        historicalTop += label.getBoundingClientRect().height + 8 * scale;
+      }
       if (
         layer.type === 'choropleth' &&
         layer.visible &&
@@ -1240,6 +1277,12 @@ export class MapRenderer {
           credits.add(
             `${dataset.provenance.credit}${dataset.provenance.surveyYear ? ` · ${dataset.provenance.surveyYear} survey` : ''}`,
           );
+      }
+      if (layer.type === 'historical') {
+        const dataset = this.project.historicalDatasets.find(
+          (d) => d.id === layer.historicalDatasetId,
+        );
+        if (dataset) credits.add(dataset.provenance.credit);
       }
       if (layer.type === 'model') {
         const asset = this.project.modelAssets.find(

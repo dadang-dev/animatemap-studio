@@ -8,6 +8,7 @@ import { NumberField } from './NumberField';
 import { Admin1Inspector } from './Admin1Inspector';
 import { BuildingInspector } from './BuildingInspector';
 import { ModelInspector } from './ModelInspector';
+import { HistoricalInspector } from './HistoricalInspector';
 import { CameraFollowPanel } from './CameraFollowPanel';
 import { evaluateProjectAt } from '@animatemap/animation-core';
 export function Inspector({
@@ -191,6 +192,7 @@ export function Inspector({
           {layer.type === 'choropleth' && <ChoroplethInspector layer={layer} />}
           {layer.type === 'buildings' && <BuildingInspector layer={layer} />}
           {layer.type === 'model' && <ModelInspector layer={layer} />}
+          {layer.type === 'historical' && <HistoricalInspector layer={layer} />}
           {layer.type === 'admin1Highlight' && (
             <Admin1Inspector layer={layer} />
           )}

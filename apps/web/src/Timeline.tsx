@@ -125,19 +125,29 @@ export function Timeline() {
                         ? evaluated.heightScale
                         : 1;
                     })()
-                  : property === 'motionProgress' || property === 'altitude'
+                  : property === 'historyYear'
                     ? (() => {
                         const evaluated = evaluateProjectAt(
                           s.project,
                           s.time,
                         ).layers.find((item) => item.id === layer.id);
-                        return evaluated?.type === 'model'
-                          ? evaluated[property]
+                        return evaluated?.type === 'historical'
+                          ? evaluated.historyYear
                           : 0;
                       })()
-                    : evaluateProjectAt(s.project, s.time).layers.find(
-                        (item) => item.id === layer.id,
-                      )!.transform[property],
+                    : property === 'motionProgress' || property === 'altitude'
+                      ? (() => {
+                          const evaluated = evaluateProjectAt(
+                            s.project,
+                            s.time,
+                          ).layers.find((item) => item.id === layer.id);
+                          return evaluated?.type === 'model'
+                            ? evaluated[property]
+                            : 0;
+                        })()
+                      : evaluateProjectAt(s.project, s.time).layers.find(
+                          (item) => item.id === layer.id,
+                        )!.transform[property],
           easing: 'linear',
         });
         keys.sort((a, b) => a.time - b.time);
@@ -370,15 +380,17 @@ export function Timeline() {
           {(layer ? propertiesForLayer(layer) : (['opacity'] as const)).map(
             (prop) => (
               <option key={prop} value={prop}>
-                {prop === 'dataYear'
-                  ? 'Data year'
-                  : prop === 'heightScale'
-                    ? 'Building height scale'
-                    : prop === 'reveal'
-                      ? layer?.type === 'shape'
-                        ? 'Shape reveal'
-                        : 'Route reveal'
-                      : `Layer ${prop}`}
+                {prop === 'historyYear'
+                  ? 'Historical year'
+                  : prop === 'dataYear'
+                    ? 'Data year'
+                    : prop === 'heightScale'
+                      ? 'Building height scale'
+                      : prop === 'reveal'
+                        ? layer?.type === 'shape'
+                          ? 'Shape reveal'
+                          : 'Route reveal'
+                        : `Layer ${prop}`}
               </option>
             ),
           )}

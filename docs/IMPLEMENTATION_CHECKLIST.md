@@ -29,6 +29,8 @@
 
 Remaining modules and gates: `docs/phases/phase-6/ROADMAP.md`.
 
+- [x] Phase 7B: project v15 historical datasets/layers/year keys, actual v14 migration, reviewed CC BY 4.0 DC snapshots/local manifests, bounded topology and checked illustrative morph, shared source labels and atomic persistence. 162 unit/integration and 13 unique relevant browser scenarios passed; real H.264/PNG/ZIP evidence and source/format limits in `docs/phases/phase-6/HISTORICAL_BORDERS.md`.
+
 - [x] Phase 7A.1 terrain: schema v12 with actual v11 migration, nine original SHA-verified Sa Pa DEM tiles, native-resolution preview, source-aware camera limits and editable height/hillshade. 129 unit/integration and 15 unique relevant browser scenarios passed; real 60-frame 1080p MP4, exact PNG/seeks/ground anchors, cancellation and resource recovery evidence in `docs/phases/phase-6/TERRAIN.md`. Buildings/models/follow/multi-pass remain required.
 
 - [ ] Phase 7D Adobe host gate: real camera/anchor JSON and trusted executable JSX are implemented and downloaded through the editor. 123 unit/integration tests and ten final relevant browser scenarios passed; exact repeated sampling, <0.005-pixel position parity, cancellation and actual resource failure are covered. Actual Adobe import/render remains unverified. Details: `docs/phases/phase-6/AFTER_EFFECTS.md`.

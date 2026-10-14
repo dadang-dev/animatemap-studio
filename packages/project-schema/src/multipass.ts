@@ -71,7 +71,7 @@ export const multipassManifestSchema = z
   .strictObject({
     version: z.literal(1),
     projectId: id,
-    projectSchemaVersion: z.literal(14),
+    projectSchemaVersion: z.union([z.literal(14), z.literal(15)]),
     width: z.number().int().min(256).max(3840),
     height: z.number().int().min(256).max(3840),
     fps: z.union([z.literal(24), z.literal(30), z.literal(60)]),

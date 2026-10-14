@@ -36,6 +36,7 @@ import { AfterEffectsPanel } from './AfterEffectsPanel';
 import { TerrainPanel } from './TerrainPanel';
 import { BuildingLibrary } from './BuildingLibrary';
 import { ModelLibrary } from './ModelLibrary';
+import { HistoryLibrary } from './HistoryLibrary';
 import { api, useAutosave } from './persistence';
 import { usePlayback } from './usePlayback';
 declare global {
@@ -92,6 +93,7 @@ export function App() {
   const [terrainOpen, setTerrainOpen] = useState(false);
   const [buildingsOpen, setBuildingsOpen] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Admin1Properties | null>(
     null,
   );
@@ -249,6 +251,7 @@ export function App() {
         <BuildingLibrary onClose={() => setBuildingsOpen(false)} />
       )}
       {modelsOpen && <ModelLibrary onClose={() => setModelsOpen(false)} />}
+      {historyOpen && <HistoryLibrary onClose={() => setHistoryOpen(false)} />}
       {aeOpen && (
         <AfterEffectsPanel
           countries={renderer.current?.countries}
@@ -437,6 +440,9 @@ export function App() {
             3D buildings · GeoJSON
           </button>
           <button onClick={() => setModelsOpen(true)}>3D models · OBJ</button>
+          <button onClick={() => setHistoryOpen(true)}>
+            Historical boundaries
+          </button>
           <button onClick={() => setAeOpen(true)}>
             After Effects interchange
           </button>

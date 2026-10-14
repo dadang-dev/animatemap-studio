@@ -1,4 +1,6 @@
 import { distance, bearing, destination } from '@turf/turf';
+import { evaluateHistorical, type HistoricalState } from './historical';
+export { evaluateHistorical, type HistoricalState } from './historical';
 import { modelPoseAt, type ModelPose } from './modelMotion';
 export { modelPoseAt, type ModelPose } from './modelMotion';
 export {
@@ -118,6 +120,7 @@ export function trimRoute(
   );
 }
 export type RenderLayer = Layer & {
+  historical?: HistoricalState;
   modelPose?: ModelPose;
   renderCoordinates?: [number, number][];
   data?: ChoroplethData;
@@ -236,6 +239,26 @@ function evaluateSceneAt(
         dataset,
         result,
         scalarAt(layer.tracks.dataYear, local, result.dataYear),
+      );
+    }
+    if (result.type === 'historical') {
+      const dataset = project.historicalDatasets.find(
+        (dataset) => dataset.id === result.historicalDatasetId,
+      );
+      if (!dataset)
+        throw new Error(
+          `Missing historical dataset ${result.historicalDatasetId}`,
+        );
+      result.historyYear = scalarAt(
+        layer.tracks.historyYear,
+        local,
+        result.historyYear,
+      );
+      result.historical = evaluateHistorical(
+        dataset,
+        result.regionIds,
+        result.historyYear,
+        result.mode,
       );
     }
     if (result.type === 'buildings')

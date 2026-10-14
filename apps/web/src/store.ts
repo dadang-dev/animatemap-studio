@@ -37,7 +37,12 @@ interface EditorState {
   addLayer: (
     type: Exclude<
       Layer['type'],
-      'image' | 'choropleth' | 'admin1Highlight' | 'buildings' | 'model'
+      | 'image'
+      | 'choropleth'
+      | 'admin1Highlight'
+      | 'buildings'
+      | 'model'
+      | 'historical'
     >,
     point?: [number, number],
     code?: string,

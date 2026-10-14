@@ -142,6 +142,10 @@ export function aeManifestBase(input: Project): Omit<AEManifest, 'frames'> {
     attribution.add(`${TERRAIN_CREDIT} · Sa Pa coverage`);
   project.assets.forEach((a) => attribution.add(a.provenance.credit));
   project.modelAssets.forEach((a) => attribution.add(a.provenance.credit));
+  project.historicalDatasets.forEach((d) => {
+    attribution.add(d.provenance.credit);
+    attribution.add(d.provenance.uncertainty);
+  });
   project.audioAssets.forEach((a) => attribution.add(a.provenance.credit));
   project.datasets.forEach((d) => attribution.add(d.provenance.credit));
   project.buildingDatasets.forEach((d) =>
