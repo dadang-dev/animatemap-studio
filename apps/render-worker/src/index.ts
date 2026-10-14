@@ -13,6 +13,7 @@ import { GraphicArchive } from './graphicArchive';
 import { captureGraphicFrame } from './graphicFrames';
 import { muxProjectAudio } from './audio';
 import admin1Provenance from '../../../data/admin1/PROVENANCE.json' with { type: 'json' };
+import basemapProvenance from '../../web/public/data/basemap/PROVENANCE.json' with { type: 'json' };
 import {
   admin1CountriesForRegions,
   terrainPack,
@@ -212,6 +213,8 @@ export async function renderProject(options: RenderOptions) {
           fps: project.canvas.fps,
           elapsedMs: performance.now() - start,
           attribution: project.map.attribution,
+          basemapSource:
+            project.map.basemap === 'blue-marble' ? basemapProvenance : null,
           terrainSource: project.map.terrain
             ? {
                 configuration: project.map.terrain,

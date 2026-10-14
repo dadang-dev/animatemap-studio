@@ -223,6 +223,18 @@ function evaluateSceneAt(
         result.coordinates,
         scalarAt(layer.tracks.reveal, local, 1),
       );
+    if (result.type === 'text' && result.counter) {
+      const c = result.counter;
+      const progress = Math.max(
+        0,
+        Math.min(1, (local - c.start) / (c.end - c.start)),
+      );
+      const value = c.from + (c.to - c.from) * easings[c.easing](progress);
+      result.text = new Intl.NumberFormat(c.locale, {
+        minimumFractionDigits: c.decimals,
+        maximumFractionDigits: c.decimals,
+      }).format(value);
+    }
     if (result.type === 'shape')
       result.renderCoordinates = trimRoute(
         result.kind === 'bezier'

@@ -763,7 +763,7 @@ const historicalLayerSchema = z.object({
     borderWidth: finite.min(0).max(20),
   }),
 });
-export const layerSchema = z.discriminatedUnion('type', [
+export const layerV15Schema = z.discriminatedUnion('type', [
   layerV14Schema.options[0].safeExtend({ tracks: tracksV15Schema }),
   layerV14Schema.options[1].safeExtend({ tracks: tracksV15Schema }),
   layerV14Schema.options[2].safeExtend({ tracks: tracksV15Schema }),
@@ -775,6 +775,34 @@ export const layerSchema = z.discriminatedUnion('type', [
   layerV14Schema.options[8].safeExtend({ tracks: tracksV15Schema }),
   layerV14Schema.options[9].safeExtend({ tracks: tracksV15Schema }),
   historicalLayerSchema,
+]);
+export const numberCounterSchema = z
+  .object({
+    from: finite.min(0).max(1e15),
+    to: finite.min(0).max(1e15),
+    start: finite.min(0),
+    end: finite.min(0),
+    decimals: z.number().int().min(0).max(3).default(0),
+    locale: z.enum(['vi-VN', 'en-US']).default('vi-VN'),
+    easing: easingSchema.default('easeOut'),
+  })
+  .refine((v) => v.end > v.start, 'Counter end must follow start');
+export const layerSchema = z.discriminatedUnion('type', [
+  layerV15Schema.options[0].safeExtend({
+    textureFit: z.enum(['repeat', 'country']).optional(),
+  }),
+  layerV15Schema.options[1],
+  layerV15Schema.options[2],
+  layerV15Schema.options[3].safeExtend({
+    counter: numberCounterSchema.optional(),
+  }),
+  layerV15Schema.options[4],
+  layerV15Schema.options[5],
+  layerV15Schema.options[6],
+  layerV15Schema.options[7],
+  layerV15Schema.options[8],
+  layerV15Schema.options[9],
+  layerV15Schema.options[10],
 ]);
 export type Layer = z.infer<typeof layerSchema>;
 export function propertiesForLayer(layer: Layer): ScalarProperty[] {
@@ -1028,7 +1056,7 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 15;
+export const CURRENT_SCHEMA_VERSION = 16;
 const projectV9Base = projectV8Base.extend({
   schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
@@ -1494,7 +1522,7 @@ export const projectV14Schema = projectV13Base
         message: 'Project exceeds the embedded JSON request budget (48 MiB)',
       });
   });
-export const projectSchema = z
+export const projectV15Schema = z
   .object({
     ...projectV14Schema.shape,
     schemaVersion: z.literal(15),
@@ -1502,7 +1530,7 @@ export const projectSchema = z
     scenes: z
       .array(
         sceneV2Schema.extend({
-          layers: z.array(layerSchema).max(100),
+          layers: z.array(layerV15Schema).max(100),
           camera: z.object({
             keyframes: cameraTrackSchema,
             follow: cameraFollowSchema,
@@ -1627,10 +1655,96 @@ export const projectSchema = z
         message: 'Project exceeds the embedded JSON request budget (48 MiB)',
       });
   });
+export const projectSchema = z
+  .object({
+    ...projectV15Schema.shape,
+    schemaVersion: z.literal(16),
+    map: projectV15Schema.shape.map.extend({
+      basemap: z.enum(['vector', 'blue-marble']).optional(),
+    }),
+    scenes: z
+      .array(
+        sceneV2Schema.extend({
+          layers: z.array(layerSchema).max(100),
+          camera: z.object({
+            keyframes: cameraTrackSchema,
+            follow: cameraFollowSchema,
+          }),
+        }),
+      )
+      .min(1)
+      .max(20),
+  })
+  .superRefine((project, ctx) => {
+    const legacy = projectV15Schema.safeParse({
+      ...project,
+      schemaVersion: 15,
+    });
+    for (const [s, scene] of project.scenes.entries()) {
+      const count = scene.layers.reduce(
+        (n, l) =>
+          n +
+          (l.type === 'countryHighlight' &&
+          l.textureFit === 'country' &&
+          l.textureAssetId
+            ? l.countryCodes.length
+            : 0),
+        0,
+      );
+      if (count > 20)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Scene country-fit workload exceeds 20 masked textures',
+          path: ['scenes', s],
+        });
+    }
+    if (!legacy.success)
+      for (const issue of legacy.error.issues)
+        ctx.addIssue({
+          code: 'custom',
+          message: issue.message,
+          path: issue.path,
+        });
+    project.scenes.forEach((scene, s) =>
+      scene.layers.forEach((layer, l) => {
+        if (
+          layer.type === 'text' &&
+          layer.counter &&
+          layer.counter.end > scene.durationSeconds
+        )
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Counter exceeds scene duration',
+            path: ['scenes', s, 'layers', l, 'counter'],
+          });
+        if (
+          layer.type === 'countryHighlight' &&
+          layer.textureFit === 'country' &&
+          layer.countryCodes.length > 20
+        )
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              'Country-fit texture supports at most 20 countries per layer',
+            path: ['scenes', s, 'layers', l],
+          });
+      }),
+    );
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
 export function migrateProject(input: unknown): Project {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 15
+  )
+    return projectSchema.parse({
+      ...projectV15Schema.parse(input),
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+    });
   if (
     input &&
     typeof input === 'object' &&

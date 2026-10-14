@@ -310,7 +310,7 @@ test('actual historical morph H264/PNG and v15 multi-pass preserve deterministic
     manifest = multipassManifestSchema.parse(
       JSON.parse(Buffer.from(files['manifest.json']!).toString()),
     );
-  expect(manifest.projectSchemaVersion).toBe(15);
+  expect(manifest.projectSchemaVersion).toBe(16);
   expect(
     manifest.sourceCredits.some((credit) => credit.includes('DC Office')),
   ).toBe(true);

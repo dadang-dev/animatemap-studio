@@ -12,13 +12,13 @@ import { evaluateProjectAt } from '../../animation-core/src/index';
 test('actual v14 migration preserves existing content and defaults v15 history, rejecting malformed legacy projects', () => {
   const legacy = projectV14Schema.parse({ ...createDemo(), schemaVersion: 14 });
   const upgraded = migrateProject(legacy);
-  expect(upgraded.schemaVersion).toBe(15);
+  expect(upgraded.schemaVersion).toBe(16);
   expect(upgraded.historicalDatasets).toEqual([]);
   expect(projectV14Schema.parse({ ...upgraded, schemaVersion: 14 })).toEqual(
     legacy,
   );
   expect(() => migrateProject({ ...legacy, scenes: [] })).toThrow();
-  expect(() => migrateProject({ ...legacy, schemaVersion: 16 })).toThrow();
+  expect(() => migrateProject({ ...legacy, schemaVersion: 17 })).toThrow();
 });
 test('project historical refs, tracks and scene workloads are validated; shared evaluation seeks source cuts, missing years and illustrative morph deterministically', async () => {
   const dataset = historicalManifestSchema.parse(

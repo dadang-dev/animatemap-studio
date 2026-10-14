@@ -5,6 +5,7 @@ import { CameraPresets } from './CameraPresets';
 import { AnimationStyles } from './AnimationStyles';
 import { ChoroplethInspector } from './ChoroplethInspector';
 import { NumberField } from './NumberField';
+import { NumberCounterInspector } from './NumberCounterInspector';
 import { Admin1Inspector } from './Admin1Inspector';
 import { BuildingInspector } from './BuildingInspector';
 import { ModelInspector } from './ModelInspector';
@@ -52,6 +53,7 @@ export function Inspector({
         )}
       {layer && (
         <fieldset disabled={layer.locked} className="inspector-fields">
+          <NumberCounterInspector />
           <label className="field">
             Layer name
             <input
@@ -137,6 +139,22 @@ export function Inspector({
                         {asset.name}
                       </option>
                     ))}
+                </select>
+              </label>
+              <label className="field">
+                Texture placement
+                <select
+                  aria-label="Country texture fit"
+                  value={layer.textureFit ?? 'repeat'}
+                  onChange={(e) =>
+                    patch((l) => {
+                      if (l.type === 'countryHighlight')
+                        l.textureFit = e.target.value as 'repeat' | 'country';
+                    })
+                  }
+                >
+                  <option value="repeat">Repeat texture</option>
+                  <option value="country">Fit flag to country polygons</option>
                 </select>
               </label>
               <label className="field">

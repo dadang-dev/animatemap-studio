@@ -25,6 +25,7 @@ import {
   terrainCameraSupported,
 } from '@animatemap/project-schema';
 import { ImageResources } from './images';
+import { CountryTextures } from './countryTexture';
 import { Admin1Resources } from './admin1Resources';
 import { dataLegend } from './dataLegend';
 import {
@@ -153,6 +154,7 @@ export class MapRenderer {
   private credits: string[] = [];
   private layerIds: string[] = [];
   private project?: Project;
+  private countryTextures?: CountryTextures;
   private layers: RenderLayer[] = [];
   private error?: string;
   private destroyed = false;
@@ -501,6 +503,39 @@ export class MapRenderer {
       }
     }
     const p = palettes[project.map.styleId];
+    const satellite = project.map.basemap === 'blue-marble';
+    if (satellite && !this.map.getSource('ams-blue-marble')) {
+      this.map.addSource('ams-blue-marble', {
+        type: 'image',
+        url: '/data/basemap/blue-marble-mercator.jpg',
+        coordinates: [
+          [-180, 85.0511287798066],
+          [180, 85.0511287798066],
+          [180, -85.0511287798066],
+          [-180, -85.0511287798066],
+        ],
+      });
+      this.map.addLayer(
+        {
+          id: 'ams-blue-marble',
+          type: 'raster',
+          source: 'ams-blue-marble',
+          paint: { 'raster-fade-duration': 0, 'raster-brightness-max': 0.58 },
+        },
+        'countries-fill',
+      );
+    }
+    if (this.map.getLayer('ams-blue-marble'))
+      this.map.setLayoutProperty(
+        'ams-blue-marble',
+        'visibility',
+        satellite ? 'visible' : 'none',
+      );
+    this.map.setPaintProperty(
+      'countries-fill',
+      'fill-opacity',
+      satellite ? 0 : 1,
+    );
     this.map.setPaintProperty('ocean', 'background-color', p.ocean);
     this.map.setPaintProperty('countries-fill', 'fill-color', p.land);
     this.map.setPaintProperty('countries-border', 'line-color', p.border);
@@ -586,7 +621,11 @@ export class MapRenderer {
         .join('');
     this.map.setPaintProperty('ocean', 'background-color', darken(p.ocean));
     this.map.setPaintProperty('countries-fill', 'fill-color', darken(p.land));
-    this.map.setPaintProperty('countries-fill', 'fill-opacity', 1);
+    this.map.setPaintProperty(
+      'countries-fill',
+      'fill-opacity',
+      satellite ? 0 : 1,
+    );
     for (const layer of layers) {
       const opacity = layer.visible ? layer.opacity : 0;
       if (layer.type === 'historical')
@@ -771,10 +810,18 @@ export class MapRenderer {
         this.map.setPaintProperty(
           `ams-${layer.id}-fill`,
           'fill-pattern',
-          layer.textureAssetId && this.patternImages.has(layer.textureAssetId)
+          layer.textureFit !== 'country' &&
+            layer.textureAssetId &&
+            this.patternImages.has(layer.textureAssetId)
             ? `ams-image-${layer.textureAssetId}`
             : undefined,
         );
+        if (
+          layer.textureFit === 'country' &&
+          layer.textureAssetId &&
+          this.images.get(layer.textureAssetId)
+        )
+          this.map.setPaintProperty(`ams-${layer.id}-fill`, 'fill-opacity', 0);
         this.map.setPaintProperty(
           `ams-${layer.id}-line`,
           'line-color',
@@ -849,6 +896,13 @@ export class MapRenderer {
       }
     }
     // Moving identical layers each frame invalidates terrain render-to-texture stacks.
+    this.countryTextures ??= new CountryTextures(this.map);
+    const fitted = this.countryTextures.apply(
+      project,
+      layers,
+      this.countries,
+      (id) => this.images.get(id),
+    );
     const ordered = layers.flatMap((layer) => {
       if (layer.type === 'model') return [`ams-${layer.id}-model`];
       if (layer.type === 'buildings') return [`ams-${layer.id}-extrusion`];
@@ -860,8 +914,12 @@ export class MapRenderer {
         layer.type === 'countryHighlight' ||
         layer.type === 'historical'
       )
-        return ['fill', 'line']
-          .map((suffix) => `ams-${layer.id}-${suffix}`)
+        return ['fill', ...(fitted.get(layer.id) ?? []), 'line']
+          .map((suffix) =>
+            suffix.startsWith('ams-fit-')
+              ? suffix
+              : `ams-${layer.id}-${suffix}`,
+          )
           .filter((id) => !!this.map.getLayer(id));
       return [];
     });
@@ -1302,6 +1360,8 @@ export class MapRenderer {
       if (asset) credits.add(asset.provenance.credit);
     }
     this.credits = ['Natural Earth · Public domain', ...credits];
+    if (this.project.map.basemap === 'blue-marble')
+      this.credits.push('NASA Earth Observatory');
     credit.textContent = this.credits.join(' · ');
     credit.style.maxWidth = '90%';
     credit.style.fontSize = `${16 * scale}px`;

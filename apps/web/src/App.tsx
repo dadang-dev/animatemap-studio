@@ -289,6 +289,23 @@ export function App() {
             </select>
           </label>
           <label className="field">
+            Basemap imagery
+            <select
+              aria-label="Basemap imagery"
+              value={s.project.map.basemap ?? 'vector'}
+              onChange={(e) =>
+                s.edit((p) => {
+                  p.map.basemap = e.target.value as 'vector' | 'blue-marble';
+                })
+              }
+            >
+              <option value="vector">Vector geography</option>
+              <option value="blue-marble">
+                NASA Blue Marble · offline imagery
+              </option>
+            </select>
+          </label>
+          <label className="field">
             Canvas
             <select
               aria-label="Canvas preset"
