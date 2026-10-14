@@ -7,10 +7,12 @@ import {
 import { useEditor } from './store';
 import { api, downloadJSON } from './persistence';
 import { TemplateLibrary } from './TemplateLibrary';
+import { SharedProjectsPanel } from './SharedProjectsPanel';
 export function ProjectMenu() {
   const s = useEditor();
   const [open, setOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [sharedOpen, setSharedOpen] = useState(false);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const file = useRef<HTMLInputElement>(null);
   async function action(fn: () => Promise<unknown>) {
@@ -133,6 +135,14 @@ export function ProjectMenu() {
             <p className="hint">No projects saved to the local API yet.</p>
           )}
           <button onClick={() => setOpen(false)}>Close menu</button>
+          <button
+            onClick={() => {
+              setOpen(false);
+              setSharedOpen(true);
+            }}
+          >
+            Shared projects · accounts
+          </button>
         </div>
       )}
       <input
@@ -154,6 +164,9 @@ export function ProjectMenu() {
       />
       {templatesOpen && (
         <TemplateLibrary onClose={() => setTemplatesOpen(false)} />
+      )}
+      {sharedOpen && (
+        <SharedProjectsPanel onClose={() => setSharedOpen(false)} />
       )}
     </div>
   );

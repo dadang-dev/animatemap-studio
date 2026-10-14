@@ -6,6 +6,7 @@ import { createReadStream } from 'node:fs';
 import { JobQueue } from './jobs';
 import { GeographyService } from './geography';
 import { CodexService } from './codex';
+import { collaborationRoutes } from './collaborationRoutes';
 import {
   CURRENT_SCHEMA_VERSION,
   exportFormatSchema,
@@ -32,6 +33,8 @@ export function createApp(
     )
       return reply.code(403).send({ error: 'Untrusted origin' });
     reply.header('X-Content-Type-Options', 'nosniff');
+    if (request.url.startsWith('/api/shared'))
+      reply.header('Cache-Control', 'no-store');
   });
   app.get('/api/health', async () => ({
     status: 'ok',
@@ -131,6 +134,7 @@ export function createApp(
       .send({ error: e.message });
   });
   app.get('/api/projects', async () => repository.list());
+  collaborationRoutes(app, join(dirname(directory), 'collaboration'));
   app.get<{ Params: { id: string } }>('/api/projects/:id', async (request) =>
     repository.read(request.params.id),
   );
