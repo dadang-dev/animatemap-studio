@@ -12,6 +12,8 @@ test('real satellite, fitted flag and counter seek deterministically; editor con
   p.id = 'e2e-population-visuals';
   p.canvas = { width: 720, height: 1280, fps: 30 };
   p.map.basemap = 'blue-marble';
+  p.map.cameraFraming = 'project';
+  p.map.creditLayout = { bottomInset: 100, fontSize: 20, margin: 80 };
   const flag = await readFile('apps/web/public/assets/flags/population/in.png');
   p.assets = [
     {
@@ -34,7 +36,7 @@ test('real satellite, fitted flag and counter seek deterministically; editor con
   scene.camera.keyframes = [
     {
       time: 0,
-      value: { lng: 79, lat: 22, zoom: 2.8, bearing: 0, pitch: 0 },
+      value: { lng: 79, lat: 22, zoom: 0.6, bearing: 0, pitch: 0 },
       easing: 'linear',
     },
   ];
@@ -74,6 +76,21 @@ test('real satellite, fitted flag and counter seek deterministically; editor con
   });
   await expect(page.locator(`[data-layer-id="${text.id}"]`)).toHaveText('726');
   const first = await page.locator('.composition').screenshot();
+  const inset = await page
+    .locator('.map-credit')
+    .evaluate((el) => parseFloat((el as HTMLElement).style.bottom));
+  const mapWidth = await page.evaluate(
+    () => window.studio!.renderer.map.getContainer().clientWidth,
+  );
+  expect(inset).toBeCloseTo((100 * mapWidth) / 720);
+  expect(
+    await page.evaluate(() => window.studio!.renderer.map.getZoom()),
+  ).toBeCloseTo(0.6 + Math.log2(mapWidth / 720));
+  expect(
+    await page.evaluate(() =>
+      window.studio!.renderer.map.getRenderWorldCopies(),
+    ),
+  ).toBe(true);
   await page.evaluate(async () => {
     window.studio!.seek(8);
     await window.studio!.renderer.ready();

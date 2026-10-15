@@ -101,7 +101,15 @@ export function maskedCountry(
     }
     ctx.save();
     ctx.clip(path, 'evenodd');
-    ctx.drawImage(image, left, top, right - left, bottom - top);
+    const cover = flagCover(
+      image.naturalWidth,
+      image.naturalHeight,
+      left,
+      top,
+      right - left,
+      bottom - top,
+    );
+    ctx.drawImage(image, cover.x, cover.y, cover.width, cover.height);
     ctx.restore();
   }
   return {
@@ -112,6 +120,25 @@ export function maskedCountry(
       [number, number],
       [number, number],
     ],
+  };
+}
+/** Uniform scaling preserves circles, stars and seals while the country silhouette clips the flag. */
+export function flagCover(
+  sourceWidth: number,
+  sourceHeight: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const w = sourceWidth * scale,
+    h = sourceHeight * scale;
+  return {
+    x: x + (width - w) / 2,
+    y: y + (height - h) / 2,
+    width: w,
+    height: h,
   };
 }
 export class CountryTextures {

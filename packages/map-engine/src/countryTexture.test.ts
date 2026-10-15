@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { textureGeometry } from './countryTexture';
+import { textureGeometry, flagCover } from './countryTexture';
 test('country mask retains holes, disconnected islands and unwraps dateline geometry', () => {
   const geometry = {
     type: 'MultiPolygon' as const,
@@ -38,4 +38,18 @@ test('country mask retains holes, disconnected islands and unwraps dateline geom
   expect(b.coordinates[0]![1]).toBeCloseTo(4);
   expect(b.coordinates[2]![1]).toBeCloseTo(-2);
   expect(geometry.coordinates[0]![0]![1]![0]).toBe(-179);
+});
+test('fitted flag symbols retain aspect ratio across portrait and wide country silhouettes', () => {
+  for (const [width, height] of [
+    [400, 900],
+    [900, 400],
+    [800, 800],
+  ]) {
+    const cover = flagCover(512, 384, 100, 200, width!, height!);
+    expect(cover.width / cover.height).toBeCloseTo(512 / 384);
+    expect(cover.width).toBeGreaterThanOrEqual(width!);
+    expect(cover.height).toBeGreaterThanOrEqual(height!);
+    expect(cover.x + cover.width / 2).toBeCloseTo(100 + width! / 2);
+    expect(cover.y + cover.height / 2).toBeCloseTo(200 + height! / 2);
+  }
 });

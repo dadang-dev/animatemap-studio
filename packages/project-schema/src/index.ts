@@ -1056,7 +1056,7 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 16;
+export const CURRENT_SCHEMA_VERSION = 17;
 const projectV9Base = projectV8Base.extend({
   schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
@@ -1655,7 +1655,7 @@ export const projectV15Schema = z
         message: 'Project exceeds the embedded JSON request budget (48 MiB)',
       });
   });
-export const projectSchema = z
+export const projectV16Schema = z
   .object({
     ...projectV15Schema.shape,
     schemaVersion: z.literal(16),
@@ -1731,10 +1731,59 @@ export const projectSchema = z
       }),
     );
   });
+export const projectSchema = z
+  .object({
+    ...projectV16Schema.shape,
+    schemaVersion: z.literal(17),
+    map: projectV16Schema.shape.map.extend({
+      cameraFraming: z.enum(['viewport', 'project']).optional(),
+      creditLayout: z
+        .object({
+          bottomInset: finite.min(0).max(384),
+          fontSize: finite.min(16).max(40),
+          margin: finite.min(0).max(256),
+        })
+        .optional(),
+    }),
+  })
+  .superRefine((project, ctx) => {
+    const legacy = projectV16Schema.safeParse({
+      ...project,
+      schemaVersion: 16,
+    });
+    if (!legacy.success)
+      for (const issue of legacy.error.issues)
+        ctx.addIssue({
+          code: 'custom',
+          message: issue.message,
+          path: issue.path,
+        });
+    const layout = project.map.creditLayout;
+    if (
+      layout &&
+      (layout.bottomInset > project.canvas.height / 4 ||
+        layout.margin > project.canvas.width / 4)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Credit layout exceeds canvas safe placement bounds',
+        path: ['map', 'creditLayout'],
+      });
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
 export function migrateProject(input: unknown): Project {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 16
+  )
+    return projectSchema.parse({
+      ...projectV16Schema.parse(input),
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+    });
   if (
     input &&
     typeof input === 'object' &&

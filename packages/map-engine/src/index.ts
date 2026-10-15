@@ -154,6 +154,7 @@ export class MapRenderer {
   private credits: string[] = [];
   private layerIds: string[] = [];
   private project?: Project;
+  private projectFraming = false;
   private countryTextures?: CountryTextures;
   private layers: RenderLayer[] = [];
   private error?: string;
@@ -503,6 +504,21 @@ export class MapRenderer {
       }
     }
     const p = palettes[project.map.styleId];
+    const projectFraming = project.map.cameraFraming === 'project';
+    if (projectFraming !== this.projectFraming) {
+      this.projectFraming = projectFraming;
+      this.map.setTransformConstrain(
+        projectFraming
+          ? (center, zoom) => ({
+              center: new maplibregl.LngLat(
+                wrap(center.lng),
+                Math.max(-85, Math.min(85, center.lat)),
+              ),
+              zoom: Math.max(-4, Math.min(18, zoom)),
+            })
+          : null,
+      );
+    }
     const satellite = project.map.basemap === 'blue-marble';
     if (satellite && !this.map.getSource('ams-blue-marble')) {
       this.map.addSource('ams-blue-marble', {
@@ -1365,6 +1381,16 @@ export class MapRenderer {
     credit.textContent = this.credits.join(' · ');
     credit.style.maxWidth = '90%';
     credit.style.fontSize = `${16 * scale}px`;
+    const layout = this.project.map.creditLayout;
+    if (layout)
+      Object.assign(credit.style, {
+        bottom: `${layout.bottomInset * scale}px`,
+        left: `${layout.margin * scale}px`,
+        right: `${layout.margin * scale}px`,
+        maxWidth: 'none',
+        fontSize: `${layout.fontSize * scale}px`,
+        textAlign: 'center',
+      });
     this.overlays.append(credit);
   }
   /** Read-only full-project-pixel attachment samples from the same overlay projection. */

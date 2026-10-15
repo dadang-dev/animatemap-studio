@@ -684,9 +684,14 @@ test('malformed audio rejects atomically and cancellation during real encoding p
   await expect
     .poll(
       async () =>
-        (await readdir(resolve(`.local/e2e/renders/${job.id}`))).filter(
-          (name) => name.startsWith('frames-'),
-        ),
+        (
+          await readdir(
+            resolve(
+              process.env.ANIMATEMAP_E2E_RENDER_DIR ?? '.local/e2e/renders',
+              job.id,
+            ),
+          )
+        ).filter((name) => name.startsWith('frames-')),
       { timeout: 15000 },
     )
     .toEqual([]);
