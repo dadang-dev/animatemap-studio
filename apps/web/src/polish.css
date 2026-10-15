@@ -25,6 +25,7 @@
 }
 .map-surface {
   touch-action: none;
+  background: #101e2d;
 }
 .map-credit {
   font-family: 'Noto Sans', sans-serif;
