@@ -9,7 +9,49 @@ import {
   migrateProject,
   projectV5Schema,
   CURRENT_SCHEMA_VERSION,
+  MAX_PROJECT_IMAGE_ASSETS,
 } from './index';
+
+test('full-country flag projects round-trip within a bounded image registry', () => {
+  const project = createDemo();
+  const flag = testImage();
+  project.assets = Array.from({ length: 32 }, (_, i) => ({
+    ...flag,
+    id: `flag-${i}`,
+  }));
+  project.durationSeconds = 24;
+  project.scenes.push({
+    ...structuredClone(project.scenes[0]!),
+    id: 'second',
+    startSeconds: 12,
+    layers: [],
+  });
+  for (const [index, asset] of project.assets.entries()) {
+    project.scenes[Math.floor(index / 16)]!.layers.push(
+      layerSchema.parse({
+        id: `country-${asset.id}`,
+        type: 'countryHighlight',
+        name: asset.id,
+        countryCodes: ['VNM'],
+        textureAssetId: asset.id,
+        textureFit: 'country',
+        timeRange: { start: 0, end: 12 },
+        style: { color: '#ffffff', stroke: '#ffffff', width: 1, dimOutside: 0 },
+      }),
+    );
+  }
+  expect(migrateProject(JSON.parse(JSON.stringify(project)))).toEqual(project);
+  project.assets = Array.from({ length: MAX_PROJECT_IMAGE_ASSETS }, (_, i) => ({
+    ...flag,
+    id: `flag-${i}`,
+  }));
+  expect(migrateProject(project).assets).toHaveLength(MAX_PROJECT_IMAGE_ASSETS);
+  project.assets = Array.from(
+    { length: MAX_PROJECT_IMAGE_ASSETS + 1 },
+    (_, i) => ({ ...flag, id: `flag-${i}` }),
+  );
+  expect(() => migrateProject(project)).toThrow('64');
+});
 
 test('embedded static images validate PNG integrity, dimensions and source metadata', () => {
   const asset = testImage();

@@ -154,6 +154,7 @@ export {
 import {
   imageAssetSchema,
   MAX_ASSET_TOTAL_BYTES,
+  MAX_PROJECT_IMAGE_ASSETS,
   MAX_ASSET_PIXELS,
   inspectPng,
 } from './assets';
@@ -163,6 +164,7 @@ export {
   inspectPng,
   MAX_ASSET_BYTES,
   MAX_ASSET_TOTAL_BYTES,
+  MAX_PROJECT_IMAGE_ASSETS,
   MAX_ASSET_PIXELS,
   type ImageAsset,
 } from './assets';
@@ -903,7 +905,7 @@ export const projectV5Schema = projectV5Base
   .superRefine(validateTransformTracks);
 const projectV6Base = projectV5Base.extend({
   schemaVersion: z.literal(6),
-  assets: z.array(imageAssetSchema).max(20).default([]),
+  assets: z.array(imageAssetSchema).max(MAX_PROJECT_IMAGE_ASSETS).default([]),
   scenes: z
     .array(sceneV2Schema.extend({ layers: z.array(layerV6Schema).max(100) }))
     .min(1)

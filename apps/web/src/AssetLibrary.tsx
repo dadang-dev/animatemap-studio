@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ImageAsset } from '@animatemap/project-schema';
+import { MAX_PROJECT_IMAGE_ASSETS } from '@animatemap/project-schema';
 import { useEditor } from './store';
 import {
   builtInImages,
@@ -183,7 +184,10 @@ export function AssetLibrary({
             Import image overlay
           </button>
         </form>
-        <h3>Project assets ({editor.project.assets.length}/20)</h3>
+        <h3>
+          Project assets ({editor.project.assets.length}/
+          {MAX_PROJECT_IMAGE_ASSETS})
+        </h3>
         <div className="template-grid">
           {editor.project.assets.map((asset) => {
             const uses = assetReferences(editor.project, asset.id).length;

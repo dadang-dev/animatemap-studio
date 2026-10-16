@@ -3,6 +3,7 @@ import { Unzlib } from 'fflate';
 import { crc32 as crc } from './checksum';
 
 export const MAX_ASSET_BYTES = 2 * 1024 * 1024;
+export const MAX_PROJECT_IMAGE_ASSETS = 64;
 export const MAX_ASSET_TOTAL_BYTES = 3 * 1024 * 1024;
 export const MAX_ASSET_PIXELS = 24 * 1024 * 1024;
 const validated = new Map<
