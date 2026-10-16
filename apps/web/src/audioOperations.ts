@@ -74,8 +74,22 @@ export function trimProjectMedia(project: Project) {
   project.captions.cues = project.captions.cues.filter(
     (cue) => cue.startSeconds < project.durationSeconds,
   );
-  for (const cue of project.captions.cues)
+  for (const cue of project.captions.cues) {
     cue.endSeconds = Math.min(cue.endSeconds, project.durationSeconds);
+    // Structural trims retain only speech inside the shortened cue. Rebuild text
+    // from retained words so the persisted alignment cannot silently become stale.
+    if (cue.words?.some((word) => word.endSeconds > cue.endSeconds)) {
+      cue.words = cue.words
+        .filter((word) => word.startSeconds < cue.endSeconds)
+        .map((word) => ({
+          ...word,
+          endSeconds: Math.min(word.endSeconds, cue.endSeconds),
+        }));
+      if (cue.words.length)
+        cue.text = cue.words.map((word) => word.text).join(' ');
+      else delete cue.words;
+    }
+  }
 }
 export function parseCaptions(
   text: string,

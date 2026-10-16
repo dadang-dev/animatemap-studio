@@ -31,7 +31,17 @@ export function evaluateMediaAt(project: Project, time: number) {
     captions: project.captions.enabled
       ? project.captions.cues
           .filter((cue) => time >= cue.startSeconds && time < cue.endSeconds)
-          .map((cue) => ({ ...cue }))
+          .map((cue) => ({
+            ...cue,
+            ...(project.captions.style.wordHighlight && cue.words
+              ? {
+                  activeWordIndex: cue.words.findIndex(
+                    (word) =>
+                      time >= word.startSeconds && time < word.endSeconds,
+                  ),
+                }
+              : {}),
+          }))
       : [],
   };
 }

@@ -7,6 +7,7 @@ import { JobQueue } from './jobs';
 import { GeographyService } from './geography';
 import { CodexService } from './codex';
 import { collaborationRoutes } from './collaborationRoutes';
+import { VoiceService } from './voices';
 import {
   CURRENT_SCHEMA_VERSION,
   exportFormatSchema,
@@ -17,6 +18,7 @@ export function createApp(
   directory = resolve('.local/projects'),
   geography = new GeographyService(),
   codex = new CodexService(join(dirname(directory), 'ai')),
+  voices = new VoiceService(),
 ) {
   const app = Fastify({ bodyLimit: MAX_PROJECT_BODY_BYTES });
   app.addHook('onRequest', async (request, reply) => {
@@ -46,8 +48,22 @@ export function createApp(
     jobs.stop();
     geography.cancel();
     codex.cancel();
+    voices.cancel();
   });
   app.get('/api/ai/status', async () => codex.status());
+  app.get('/api/voice/status', async () => voices.status());
+  app.get('/api/voice/voices', async (request) => voices.list(request.query));
+  app.get<{ Querystring: { id: string } }>(
+    '/api/voice/sample',
+    async (request, reply) => {
+      reply.type('audio/mpeg').header('Cache-Control', 'private, max-age=300');
+      return reply.send(Buffer.from(await voices.sample(request.query.id)));
+    },
+  );
+  app.post('/api/voice/generate', { bodyLimit: 20000 }, async (request) =>
+    voices.generate(request.body),
+  );
+  app.post('/api/voice/cancel', async () => voices.cancel());
   app.post<{
     Body: { prompt: unknown; project: unknown; generationId?: string };
   }>('/api/ai/propose', async (request) => {

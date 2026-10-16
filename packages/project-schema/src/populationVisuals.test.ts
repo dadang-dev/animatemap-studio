@@ -32,5 +32,5 @@ test('real v15 migration retains content; v16 counter is scene-local, bounded an
   expect(text.text).not.toBe('1.451');
   text.counter.end = 13;
   expect(() => projectSchema.parse(p)).toThrow('Counter exceeds');
-  expect(() => migrateProject({ ...p, schemaVersion: 18 })).toThrow();
+  expect(() => migrateProject({ ...p, schemaVersion: 999 })).toThrow();
 });

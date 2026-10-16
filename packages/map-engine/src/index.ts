@@ -1391,7 +1391,8 @@ export class MapRenderer {
         fontSize: `${layout.fontSize * scale}px`,
         textAlign: 'center',
       });
-    this.overlays.append(credit);
+    if (this.project.map.creditVisibility !== 'hidden')
+      this.overlays.append(credit);
   }
   /** Read-only full-project-pixel attachment samples from the same overlay projection. */
   private projectAnchor(anchor: Anchor) {

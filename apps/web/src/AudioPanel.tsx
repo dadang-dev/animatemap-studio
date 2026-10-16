@@ -10,6 +10,7 @@ import { useEditor } from './store';
 import { NumberField } from './NumberField';
 import { addAudioTrack, importWav, parseCaptions } from './audioOperations';
 import { recordingWav } from './voiceover';
+import { VoiceLibrary } from './VoiceLibrary';
 
 export function AudioPanel({ onClose }: { onClose: () => void }) {
   const editor = useEditor(),
@@ -178,6 +179,7 @@ export function AudioPanel({ onClose }: { onClose: () => void }) {
         <button onClick={onClose}>Close audio</button>
       </header>
       {(error || editor.error) && <p role="alert">{error || editor.error}</p>}
+      <VoiceLibrary />
       <p className="hint">
         Import PCM 16-bit WAV, mono/stereo, 8–96 kHz. Maximum 16 MiB per asset /
         32 MiB total. Source rate/channels are preserved. Record up to 60
@@ -456,6 +458,52 @@ export function AudioPanel({ onClose }: { onClose: () => void }) {
       <label className="field">
         <input
           type="checkbox"
+          aria-label="Highlight spoken word"
+          checked={editor.project.captions.style.wordHighlight ?? false}
+          onChange={(event) =>
+            editor.edit((project) => {
+              project.captions.style.wordHighlight = event.target.checked;
+            })
+          }
+        />
+        Karaoke · highlight the spoken word
+      </label>
+      <label className="field">
+        Word highlight color
+        <input
+          type="color"
+          aria-label="Word highlight color"
+          value={editor.project.captions.style.highlightColor ?? '#ffe16b'}
+          onChange={(event) =>
+            editor.edit((project) => {
+              project.captions.style.highlightColor = event.target.value;
+            })
+          }
+        />
+      </label>
+      <p className="hint">
+        Karaoke requires real word timestamps. Plain SRT/VTT stays plain; its
+        timing is never guessed.
+      </p>
+      <label className="field">
+        <input
+          type="checkbox"
+          aria-label="Show source footer"
+          checked={editor.project.map.creditVisibility !== 'hidden'}
+          onChange={(event) =>
+            editor.edit((project) => {
+              project.map.creditVisibility = event.target.checked
+                ? 'full'
+                : 'hidden';
+            })
+          }
+        />
+        Show source footer · retain required credits in an end card or
+        accompanying licence file
+      </label>
+      <label className="field">
+        <input
+          type="checkbox"
           aria-label="Show captions"
           checked={editor.project.captions.enabled}
           onChange={(event) =>
@@ -604,6 +652,12 @@ export function AudioPanel({ onClose }: { onClose: () => void }) {
                 endSeconds: cueEnd,
                 text: cueText,
                 locked: false,
+                ...(cue?.words &&
+                cue.text === cueText &&
+                cue.startSeconds === cueStart &&
+                cue.endSeconds === cueEnd
+                  ? { words: cue.words }
+                  : {}),
               };
               project.captions.cues = [
                 ...project.captions.cues.filter((item) => item.id !== cueId),

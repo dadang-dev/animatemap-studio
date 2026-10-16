@@ -4,11 +4,12 @@ import {
   projectV16Schema,
   migrateProject,
   projectSchema,
+  CURRENT_SCHEMA_VERSION,
 } from './index';
 test('v16 migration preserves all content and leaves existing credit placement unchanged', () => {
   const old = projectV16Schema.parse({ ...createDemo(), schemaVersion: 16 });
   const upgraded = migrateProject(old);
-  expect(upgraded.schemaVersion).toBe(17);
+  expect(upgraded.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   expect(upgraded.map.creditLayout).toBeUndefined();
   expect(projectV16Schema.parse({ ...upgraded, schemaVersion: 16 })).toEqual(
     old,

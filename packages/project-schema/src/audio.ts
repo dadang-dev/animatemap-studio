@@ -189,13 +189,48 @@ export const audioTrackSchema = z.object({
   muted: z.boolean().default(false),
   locked: z.boolean().default(false),
 });
-export const captionCueSchema = z.object({
-  id: identifier,
+export const captionWordSchema = z.object({
+  text: z.string().trim().min(1).max(150),
   startSeconds: seconds,
   endSeconds: seconds,
-  text: z.string().trim().min(1).max(1000),
-  locked: z.boolean().default(false),
 });
+export const captionCueSchema = z
+  .object({
+    id: identifier,
+    startSeconds: seconds,
+    endSeconds: seconds,
+    text: z.string().trim().min(1).max(1000),
+    locked: z.boolean().default(false),
+    words: z.array(captionWordSchema).min(1).max(400).optional(),
+  })
+  .superRefine((cue, ctx) => {
+    const words = cue.words;
+    if (!words) return;
+    words.forEach((word, index) => {
+      if (
+        word.startSeconds < cue.startSeconds - 1e-6 ||
+        word.endSeconds > cue.endSeconds + 1e-6 ||
+        word.endSeconds <= word.startSeconds ||
+        (index > 0 && word.startSeconds < words[index - 1]!.endSeconds - 1e-6)
+      )
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Caption words require ordered, non-overlapping ranges inside their cue',
+          path: ['words', index],
+        });
+    });
+    const normalize = (text: string) => text.replace(/\s+/g, ' ').trim();
+    if (
+      normalize(words.map((word) => word.text).join(' ')) !==
+      normalize(cue.text)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Caption words must match the complete cue text',
+        path: ['words'],
+      });
+  });
 export const captionsSchema = z
   .object({
     enabled: z.boolean().default(true),
@@ -214,10 +249,18 @@ export const captionsSchema = z
         x: z.number().finite().min(0).max(1).default(0.5),
         y: z.number().finite().min(0).max(1).default(0.86),
         width: z.number().finite().min(0.1).max(1).default(0.85),
+        wordHighlight: z.boolean().optional(),
+        highlightColor: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .optional(),
       })
       .prefault({}),
   })
   .prefault({});
 export type AudioAsset = z.infer<typeof audioAssetSchema>;
 export type AudioTrack = z.infer<typeof audioTrackSchema>;
-export type CaptionCue = z.infer<typeof captionCueSchema>;
+/** activeWordIndex is evaluated render state, never persisted in the project contract. */
+export type CaptionCue = z.infer<typeof captionCueSchema> & {
+  activeWordIndex?: number;
+};

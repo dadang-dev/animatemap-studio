@@ -1,4 +1,11 @@
 import { z } from 'zod';
+export {
+  voiceProviderSchema,
+  voiceQuerySchema,
+  voiceGenerateSchema,
+  type VoiceChoice,
+  type VoiceResult,
+} from './voices';
 import {
   historicalDatasetSchema,
   MAX_HISTORY_BYTES,
@@ -1056,7 +1063,7 @@ function validateDatasetReferences(
     }),
   );
 }
-export const CURRENT_SCHEMA_VERSION = 17;
+export const CURRENT_SCHEMA_VERSION = 18;
 const projectV9Base = projectV8Base.extend({
   schemaVersion: z.literal(9),
   map: projectV8Base.shape.map.extend({
@@ -1731,7 +1738,7 @@ export const projectV16Schema = z
       }),
     );
   });
-export const projectSchema = z
+const projectV17Schema = z
   .object({
     ...projectV16Schema.shape,
     schemaVersion: z.literal(17),
@@ -1770,10 +1777,41 @@ export const projectSchema = z
         path: ['map', 'creditLayout'],
       });
   });
+export const projectSchema = z
+  .object({
+    ...projectV17Schema.shape,
+    schemaVersion: z.literal(18),
+    map: projectV17Schema.shape.map.extend({
+      creditVisibility: z.enum(['full', 'hidden']).optional(),
+    }),
+  })
+  .superRefine((project, ctx) => {
+    const legacy = projectV17Schema.safeParse({
+      ...project,
+      schemaVersion: 17,
+    });
+    if (!legacy.success)
+      for (const issue of legacy.error.issues)
+        ctx.addIssue({
+          code: 'custom',
+          message: issue.message,
+          path: issue.path,
+        });
+  });
 export type Project = z.infer<typeof projectSchema>;
 export type Anchor = z.infer<typeof anchorSchema>;
 export type ScalarKeyframe = Layer['tracks']['opacity'][number];
 export function migrateProject(input: unknown): Project {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 17
+  )
+    return projectSchema.parse({
+      ...projectV17Schema.parse(input),
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+    });
   if (
     input &&
     typeof input === 'object' &&
