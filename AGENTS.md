@@ -63,6 +63,8 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 ## 6. Căn lời đọc và phụ đề karaoke
 
 - Đo audio thật trước khi chốt thời lượng cảnh. Giữ đủ phụ âm/âm tiết cuối, khoảng nghỉ và đuôi tiếng; không cắt ở duration dự đoán từ số ký tự. Nếu quá dài, sửa script trong phạm vi được phép hoặc tăng cảnh có kiểm soát; thay đổi tốc độ đáng kể cần phù hợp lựa chọn giọng đã duyệt.
+- Khi dùng project cũ làm template, xóa caption/audio/timing và layer tham chiếu cũ trước khi đổi duration/scene rồi import. Caption của video dài hơn có thể khiến schema từ chối template ngay cả khi cảnh mới đã đúng. Validate cả bản trung gian dùng để đo callout; không bỏ qua lỗi import rồi chờ browser timeout.
+- Timestamp do TTS trả về vẫn có thể kèm transcript sai số năm hoặc nhầm tên gần âm (đã gặp BRIC/BRICS và 2010/2011). Kiểm tra script đầy đủ trước render; viết lại năm thành chữ/câu rõ hơn và tạo lại đoạn có lỗi, giữ cache/bản cũ. Không chuẩn hóa hai năm khác nhau thành một để cho audit qua.
 - Cắt/nối/resample/đổi tempo phải dịch timestamp theo đúng phép biến đổi. Thêm silence cũng phải dịch các từ phía sau. Phụ đề dùng project time, keyframe dùng scene-local time; không nhầm hai hệ thời gian.
 - Highlight từ đang nói bằng timestamp thực từ TTS hoặc ASR đã được phép. Không chia đều thời lượng câu, không tự tách timestamp cụm “năm 1945” thành từng từ rồi gọi là chính xác. Nếu provider gộp cụm, giữ cụm hoặc xin quyền xử lý alignment thích hợp.
 - So sánh toàn bộ lời đọc/transcript với script. Có thể chuẩn hóa hoa/thường, dấu câu và các cách viết số thực sự tương đương, ví dụ “Điều năm”/“Điều 5”; không dùng chuẩn hóa để che từ bị thiếu hoặc thông tin sai.
@@ -111,15 +113,16 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 
 ## Hồ sơ cần đọc theo loại công việc
 
-| Hồ sơ                                                                 | Kinh nghiệm chính                                                   |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [Population video](docs/phases/phase-6/POPULATION_VIDEO.md)           | Video đầu, camera dọc, flag cover, counter, world wrap, music/SFX   |
-| [Area video](docs/phases/phase-6/AREA_VIDEO.md)                       | Cùng bộ số liệu, định nghĩa diện tích, nền ngoài Mercator, parity   |
-| [Voice và subtitles](docs/phases/phase-6/VOICE_SUBTITLES.md)          | TTS thật, cache task, căn lời, ducking và decoded audio             |
-| [Neighbor conflicts](docs/phases/phase-6/NEIGHBOR_CONFLICTS_VIDEO.md) | Kiểm chứng mẫu, lịch sử/tranh chấp, phạm vi quyền gửi audio         |
-| [Karaoke và voice picker](docs/phases/phase-6/KARAOKE_VOICE_NOTES.md) | Timestamp thật, lựa chọn/review/apply giọng, SRT, test storage      |
-| [NATO voice variants](docs/phases/phase-6/NATO_VIDEO.md)              | Hook, thử giọng thật, Anh Khôi, cụm số và timing dưới một frame     |
-| [NATO đủ thành viên](docs/phases/phase-6/NATO_ALL_MEMBERS.md)         | Coverage 32 nước, năm gia nhập, thời lượng và ngân sách scene/audio |
-| [NATO flags/callouts](docs/phases/phase-6/NATO_FLAGS_CALLOUTS.md)     | Đủ cờ, pointer đúng polygon, map anchor, leader, registry 64        |
+| Hồ sơ                                                                 | Kinh nghiệm chính                                                                                              |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Population video](docs/phases/phase-6/POPULATION_VIDEO.md)           | Video đầu, camera dọc, flag cover, counter, world wrap, music/SFX                                              |
+| [Area video](docs/phases/phase-6/AREA_VIDEO.md)                       | Cùng bộ số liệu, định nghĩa diện tích, nền ngoài Mercator, parity                                              |
+| [Voice và subtitles](docs/phases/phase-6/VOICE_SUBTITLES.md)          | TTS thật, cache task, căn lời, ducking và decoded audio                                                        |
+| [Neighbor conflicts](docs/phases/phase-6/NEIGHBOR_CONFLICTS_VIDEO.md) | Kiểm chứng mẫu, lịch sử/tranh chấp, phạm vi quyền gửi audio                                                    |
+| [Karaoke và voice picker](docs/phases/phase-6/KARAOKE_VOICE_NOTES.md) | Timestamp thật, lựa chọn/review/apply giọng, SRT, test storage                                                 |
+| [NATO voice variants](docs/phases/phase-6/NATO_VIDEO.md)              | Hook, thử giọng thật, Anh Khôi, cụm số và timing dưới một frame                                                |
+| [NATO đủ thành viên](docs/phases/phase-6/NATO_ALL_MEMBERS.md)         | Coverage 32 nước, năm gia nhập, thời lượng và ngân sách scene/audio                                            |
+| [NATO flags/callouts](docs/phases/phase-6/NATO_FLAGS_CALLOUTS.md)     | Đủ cờ, pointer đúng polygon, map anchor, leader, registry 64                                                   |
+| [BRICS](docs/phases/phase-6/BRICS_VIDEO.md)                           | Phân biệt danh sách có dẫn nguồn, tư cách Saudi, Nam Phi 2010/2011, Việt Nam đối tác và transcript TTS sai năm |
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
