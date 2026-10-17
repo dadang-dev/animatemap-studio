@@ -1,6 +1,6 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
-Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, video các nước láng giềng và các bản NATO. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
+Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, các nước láng giềng, NATO, BRICS và các bản Belarus–Ukraina đến V4, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
 
@@ -10,6 +10,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - “Tiếp tục” là tiếp tục công việc đang làm, kiểm tra tiến trình hiện có; không tự tạo lại job, gọi lại TTS đã hoàn thành hoặc bỏ dở mục tiêu trước đó.
 - Nếu video mẫu có chủ đề khác video đang làm và ý định chưa rõ, xác định người dùng muốn làm lại chủ đề hay chỉ lấy phong cách. Không tự chọn nhầm một trong hai.
 - Giữ project và MP4 đã giao. Mỗi bản sửa đáng kể dùng thư mục, project ID và tên file riêng; ghi bản nào là bản mới nhất. Chỉ thay thế bản cũ khi được yêu cầu.
+- Khi chỉ sửa hình theo script đã duyệt, khóa lời đọc, voice, tốc độ, audio master và timestamp phụ đề; kiểm hash/diff trước và sau. Không tự viết lại nội dung, gọi lại TTS/ASR hoặc đổi thời lượng ngoài phạm vi được phép. Nếu người dùng yêu cầu giữ nguyên script và không kiểm chứng, ghi rõ nội dung do người dùng cung cấp; không báo là đã xác minh sự kiện.
 
 ## 2. Nội dung và storyboard trước hình ảnh
 
@@ -24,6 +25,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Với tranh chấp/lịch sử: không biến “đối tác” thành “thành viên”, hỗ trợ thành tự động tuyên chiến, hiện trạng thành yêu sách chủ quyền, hay xung đột hiện đại thành mâu thuẫn liên tục hàng nghìn năm. Kiểm tra mốc ngày/năm và cách gọi quốc gia vào thời điểm được nói tới.
 - Storyboard cần ghi thứ tự cảnh, lời đọc, thông tin hiện trên hình, vùng bản đồ, chuyển cảnh, cờ/callout và nguồn. Điều chỉnh độ dài theo nội dung; không nhét danh sách dài vào 45/65 giây bằng cách cắt lời hoặc tăng tốc quá mức. Các bản 45 giây và NATO 147 giây là ví dụ đã làm, không phải giới hạn chung.
 - Khi người dùng yêu cầu minh họa một hành động cụ thể, đối chiếu hành động trong lời đọc với hình: cảnh UAV tấn công cần có UAV bay tới mục tiêu và diễn biến va chạm phù hợp, không coi cờ/callout/mũi tên là đủ. Kiểm tra khung bắt đầu, giữa và kết thúc theo timestamp thật; ảnh chụp cố định đầu cảnh có thể bỏ lỡ toàn bộ hoạt cảnh ngắn.
+- Khi dựng lại theo mẫu, xem hết timeline và lấy mẫu dày ở các hoạt cảnh nhanh. Lập bảng đối chiếu lời đọc → đối tượng → hành động → thời điểm: loại UAV phù hợp mẫu, bay tới/va chạm/khói, văn bản xuất hiện/đóng dấu, mũi tên và vật thể minh họa. Không sao chép footage, soundtrack hoặc watermark của mẫu khi chưa có quyền. Countryball và biểu cảm là lựa chọn phong cách đã duyệt cho bản tương ứng, không phải mặc định bắt buộc cho mọi video.
 
 ## 3. Bản đồ, quốc kỳ và callout
 
@@ -82,6 +84,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Preview và export dùng cùng audio tracks, source offset, gain, fades và mix model. Chuyển audio sang PCM hợp lệ bằng công cụ hiện có; giữ stem voice/music/SFX có thể chỉnh khi ngân sách cho phép.
 - Đo loudness, true peak, RMS và clipping, kiểm nghe phần có lời và chuyển cảnh. Không áp nguyên gain của clip cũ lên giọng mới; yêu cầu không có mẫu PCM bị clip và lời đọc nghe rõ. Chừa headroom phù hợp.
 - Kiểm tra AAC/Opus đã mã hóa bằng giải mã và so với shared PCM mix: thời lượng, lệch đầu, RMS, peak, correlation và SNR. Dùng profile/tolerance được xác định trước; âm tonal và noise whoosh không dùng một ngưỡng SNR tùy tiện giống nhau. Không nới ngưỡng sau khi thấy lỗi mà chưa giải thích nguyên nhân.
+- Kiểm tra endpoint của cả container, video và audio: AAC từng làm file Remotion dài thêm khoảng 19 ms, remux stream-copy đơn thuần không sửa được. Nếu cần, giữ nguyên video và encode lại từ PCM master đã duyệt bằng FFmpeg với endpoint đúng project; chứng minh packet hash, DTS/PTS và decoder configuration của video không đổi. Phân biệt codec padding ngoài endpoint với lệch tiếng trong project; đối chiếu PCM trong cửa sổ thời gian đã xác nhận và giữ kiểm tra speech tail, không che lệch timing bằng cách cắt mẫu tùy tiện.
 
 ## 8. Pipeline, giới hạn và vận hành
 
@@ -94,7 +97,11 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - API dev hiện không tự watch mọi thay đổi schema: nếu CLI/frontend nhận project nhưng API vẫn báo giới hạn cũ, kiểm tra phiên bản tiến trình. Chỉ restart đúng service của workspace khi không có job cần giữ, xác minh port/PID và giữ nguyên storage. Không kill diện rộng.
 - Khi sửa draft sau audit, lưu lại đúng snapshot rồi chạy lại kiểm tra liên quan. Điểm Croatia đã sửa local nhưng API còn bản cũ từng làm round-trip fail; đó không phải lý do bỏ kiểm tra persistence.
 - Khi phối hợp nhiều engine theo yêu cầu, chỉ rõ công cụ nào thực sự dựng phần nào; khóa snapshot source/asset/timing giữa preflight và export. Phân biệt JSON nguồn native với project compositing cuối, không hứa JSON native tái hiện các layer chỉ có ở Remotion/HyperFrames. Map plate và các neo cần cùng chịu phép reframe.
+- Với tích hợp local hiện có: Vox Director dùng managed Codex CLI để lập shot plan JSON theo schema nghiêm ngặt; MapLibre tạo nền bản đồ và neo; Remotion dựng composition/đối tượng/phụ đề; HyperFrames tạo đồ họa seek/render được. Phải có đầu ra thật của từng công cụ được yêu cầu, không coi cài repo là đã dùng. Codex không thay thế API tạo ảnh/video/voice của Atlas hoặc provider khác; không đọc file đăng nhập hay lấy token riêng của Codex để giả API. Giữ local fork, upstream, commit/runtime và giấy phép riêng; xem `integrations/README.md`.
+- Remotion dùng frame và FPS của composition cho animation, không dùng wall clock hoặc CSS animation tự chạy. Tách scene/đối tượng thành component, dùng chung timeline và media trim; chờ font/ảnh thật sẵn sàng. HyperFrames dùng timeline GSAP paused có ID khớp composition, asset local và cơ chế timing của framework; tránh bọc timed video trong plain wrapper có timing lồng. Chạy lint/runtime/layout trước render; chuỗi PNG alpha nhập sang Remotion phải giữ đúng FPS, số frame, offset và alpha.
+- Lưu fingerprint source, asset và lockfile tại preflight; thay đổi bất kỳ đầu vào liên quan nào phải chạy lại gate tương ứng trước export. Không dùng kết quả kiểm tra của snapshot cũ để giao bản mới.
 - Remotion Studio có thể bind mọi interface theo mặc định; `--ipv4` không có nghĩa là loopback. Kiểm tra LocalAddress thực và giới hạn `127.0.0.1`; dòng URL Network được in ra không xác nhận cấu hình bind.
+- Trên Windows, kiểm tra Chromium GUI bằng `--version` từng bị treo; dùng Playwright headless shell tương thích và vẫn giữ kiểm tra browser readiness. Biểu thức FFmpeg `select` quá dài có thể vượt giới hạn parser; chia batch chọn frame mà không giảm coverage đã định.
 - Khi E2E reuse API đang chạy, đặt `ANIMATEMAP_E2E_RENDER_DIR` đúng thư mục render của API đó; không kiểm cleanup ở một storage directory khác. Không đồng thời chạy test server mặc định đè lên dịch vụ đang phục vụ render.
 - FFmpeg dùng argv/shell-free, loopback cho dịch vụ local, đường dẫn storage an toàn, request/provider allowlist và giới hạn hiện có. Cancellation/failure chỉ dọn thư mục tạm thuộc job, không xóa project hoặc bản giao trước.
 
@@ -102,13 +109,13 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 
 1. **Nội dung:** đối chiếu coverage, nguồn/năm/đơn vị/thứ hạng, đủ lời và đúng tên/cờ/năm của từng nước. Hook thật sự kết thúc trong khung đã hứa.
 2. **Project:** schema, ID/thời gian/tham chiếu hợp lệ; evaluator lặp lại cho kết quả giống nhau; JSON API round-trip và restore sau refresh đúng bản mới nhất.
-3. **Preflight native:** xem mọi cảnh, mọi trang phụ đề, mọi nước/callout, các mốc camera-flight, qua antimeridian nếu có, đầu/cuối và source card. Kiểm tra overflow, overlap, cờ méo, leader sai nước, vùng ngoài Mercator và browser errors. Không chỉ chọn vài screenshot đẹp.
-4. **Preview/export parity:** cùng viewport/canvas/DPR và font thực. Ngưỡng đã dùng: mean RGBA error < 0,05/255 cho editor/native render. Chỉ gọi “pixel-identical” khi sai khác thực sự bằng 0; rasterization nhỏ trong tolerance không phải bằng chứng phải nới ngưỡng.
+3. **Preflight native:** xem mọi cảnh, mọi trang phụ đề, mọi nước/callout, các mốc camera-flight, qua antimeridian nếu có, đầu/cuối và source card. Với composite, kiểm cả biên shot và giữa hoạt cảnh nhanh: UAV, khói, giấy, đường nối, projectile và chữ trang trí; dấu hỏi từng che tên Nga. Đo hình SVG thực sự được vẽ thay vì viewport toàn canvas khi audit overflow/collision; bỏ mũi tên chưa có tiến độ để tránh hình thừa. Kiểm tra overflow, overlap, cờ méo, leader sai nước, vùng ngoài Mercator và browser errors. Không chỉ chọn vài screenshot đẹp.
+4. **Preview/export parity:** cùng viewport/canvas/DPR và font thực; với Studio, kiểm native zoom 100%, cùng Chromium executable, GL mode, color profile sRGB và cờ render có ảnh hưởng. Sai launch defaults từng làm lệch màu/raster dù cùng source; sửa harness trước, không nới ngưỡng. Ngưỡng đã dùng: mean RGBA error < 0,05/255 cho editor/native render. Chỉ gọi “pixel-identical” khi sai khác thực sự bằng 0; ghi số đo raster khác nhỏ nếu có, không đổi golden để che lỗi.
 5. **File xuất thật:** `ffprobe` kiểm codec, kích thước, FPS, thời lượng, số frame và audio. MP4 hiện dùng H.264/yuv420p/faststart, kích thước chẵn, AAC stereo 48 kHz. Ví dụ 45 giây/30 fps = 1.350 frame; 147 giây = 4.410 frame; không suy từ con số progress.
 6. **Giải mã đối chiếu:** so các frame đúng chỉ số từ MP4 với native reference, gồm trang phụ đề, cảnh, callout, chuyển camera, hook và frame cuối. Ngưỡng đã dùng: mean RGB error < 3/255 và < 2% pixel có chênh bất kỳ kênh > 30. Không thay golden/threshold để giấu lỗi.
 7. **Âm thanh:** đủ speech tail, đúng voice, không bị cắt/đè, không clipping; kiểm decoded audio như mục 7. Sửa voice/timing thì kiểm cả phụ đề/hình đã xuất tương ứng.
 8. **Code và bằng chứng:** nếu sửa app/schema, chạy typecheck, lint, test cần thiết và build trước render; có test unit/integration/E2E phù hợp. Chỉ authoring thì tập trung kiểm artifact, không lặp suite không liên quan. Giữ audit/verification/nguồn và ghi rõ pass/fail, giới hạn thực tế; không gọi protocol fixture là live provider test.
-9. **Bàn giao:** chỉ báo hoàn tất khi MP4 cuối qua kiểm tra, không dừng ở preview hoặc encoding 92%. Giao media bằng đường dẫn tuyệt đối, kèm JSON chỉnh sửa, SRT, word timing, nguồn/credit/license khi phù hợp. Ghi filename, SHA-256, thời lượng, độ phân giải và FPS trong delivery report; giữ bản cũ. Mở đúng project mới trong editor nếu hữu ích.
+9. **Bàn giao:** chỉ báo hoàn tất khi MP4 cuối qua kiểm tra, không dừng ở preview hoặc encoding 92%. Giao media bằng đường dẫn tuyệt đối, kèm JSON chỉnh sửa, SRT, word timing, nguồn/credit/license khi phù hợp. Với composite, giao thêm source Remotion/HyperFrames, shot plan, media và lockfile tái lập, hướng dẫn mở/sửa; ghi rõ JSON native chỉ tái hiện phần nào. Kiểm các entry của ZIP nguồn, loại `node_modules`, `.git`, `.env`, key và frame QA; giữ asset/font/giấy phép cần để dựng lại. Không mặc định mọi dependency dùng MIT. Ghi filename, SHA-256, thời lượng, độ phân giải và FPS trong delivery report; giữ bản cũ. Mở đúng project mới trong editor nếu hữu ích.
 
 ## 10. Lưu trữ và ghi nhớ
 
@@ -131,6 +138,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 | [BRICS](docs/phases/phase-6/BRICS_VIDEO.md)                           | Phân biệt danh sách có dẫn nguồn, tư cách Saudi, Nam Phi 2010/2011, Việt Nam đối tác và transcript TTS sai năm |
 | [Belarus–Ukraine](docs/phases/phase-6/BELARUS_UKRAINE_VIDEO.md)       | Script trước TTS, xe biển Belarus ở Bryansk/Nga, phản hồi hai bên, locator vùng, Crimea và tương phản chữ      |
 | [UAV animation](docs/phases/phase-6/BELARUS_UAV_V3.md)                | Có đối tượng chuyển động theo lời đọc, kiểm khung giữa hoạt cảnh, giữ nguyên voice và timing                   |
+| [Local director integration](docs/phases/phase-6/LOCAL_DIRECTOR.md)   | Local fork, managed Codex CLI, JSON schema, runtime HyperFrames riêng, kiểm browser và render thật             |
 | [Reference re-edit V4](docs/phases/phase-6/BELARUS_DIRECTOR_V4.md)    | Vai trò Vox/Remotion/HyperFrames, map plate và neo chung, snapshot gate, loopback và kiểm raster thực          |
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
