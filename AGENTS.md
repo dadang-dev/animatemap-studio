@@ -1,6 +1,6 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
-Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, video các nước láng giềng và các bản NATO. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
+Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, video các nước láng giềng và các bản NATO. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
 
@@ -93,6 +93,8 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Chạy một render nặng tại một thời điểm. Kiểm tra dung lượng trống và tiến trình hiện có; không tạo lại job chỉ vì chưa có output mới. Không rebuild/restart production preview đang phục vụ một render.
 - API dev hiện không tự watch mọi thay đổi schema: nếu CLI/frontend nhận project nhưng API vẫn báo giới hạn cũ, kiểm tra phiên bản tiến trình. Chỉ restart đúng service của workspace khi không có job cần giữ, xác minh port/PID và giữ nguyên storage. Không kill diện rộng.
 - Khi sửa draft sau audit, lưu lại đúng snapshot rồi chạy lại kiểm tra liên quan. Điểm Croatia đã sửa local nhưng API còn bản cũ từng làm round-trip fail; đó không phải lý do bỏ kiểm tra persistence.
+- Khi phối hợp nhiều engine theo yêu cầu, chỉ rõ công cụ nào thực sự dựng phần nào; khóa snapshot source/asset/timing giữa preflight và export. Phân biệt JSON nguồn native với project compositing cuối, không hứa JSON native tái hiện các layer chỉ có ở Remotion/HyperFrames. Map plate và các neo cần cùng chịu phép reframe.
+- Remotion Studio có thể bind mọi interface theo mặc định; `--ipv4` không có nghĩa là loopback. Kiểm tra LocalAddress thực và giới hạn `127.0.0.1`; dòng URL Network được in ra không xác nhận cấu hình bind.
 - Khi E2E reuse API đang chạy, đặt `ANIMATEMAP_E2E_RENDER_DIR` đúng thư mục render của API đó; không kiểm cleanup ở một storage directory khác. Không đồng thời chạy test server mặc định đè lên dịch vụ đang phục vụ render.
 - FFmpeg dùng argv/shell-free, loopback cho dịch vụ local, đường dẫn storage an toàn, request/provider allowlist và giới hạn hiện có. Cancellation/failure chỉ dọn thư mục tạm thuộc job, không xóa project hoặc bản giao trước.
 
@@ -129,5 +131,6 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 | [BRICS](docs/phases/phase-6/BRICS_VIDEO.md)                           | Phân biệt danh sách có dẫn nguồn, tư cách Saudi, Nam Phi 2010/2011, Việt Nam đối tác và transcript TTS sai năm |
 | [Belarus–Ukraine](docs/phases/phase-6/BELARUS_UKRAINE_VIDEO.md)       | Script trước TTS, xe biển Belarus ở Bryansk/Nga, phản hồi hai bên, locator vùng, Crimea và tương phản chữ      |
 | [UAV animation](docs/phases/phase-6/BELARUS_UAV_V3.md)                | Có đối tượng chuyển động theo lời đọc, kiểm khung giữa hoạt cảnh, giữ nguyên voice và timing                   |
+| [Reference re-edit V4](docs/phases/phase-6/BELARUS_DIRECTOR_V4.md)    | Vai trò Vox/Remotion/HyperFrames, map plate và neo chung, snapshot gate, loopback và kiểm raster thực          |
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
