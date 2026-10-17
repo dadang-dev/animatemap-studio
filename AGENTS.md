@@ -23,6 +23,7 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Khi mẫu không có phụ đề đầy đủ, lấy script/transcript trước khi chốt sự kiện và gọi TTS trả phí cho những cảnh phụ thuộc sự kiện đó. Không tự gán một vụ tương tự ở năm cũ dựa vào vài biểu tượng trên bản đồ. Phân biệt quốc tịch/biển số xe với địa điểm sự cố: vụ xe biển Belarus trong mẫu tháng 10/2026 được phía Belarus nêu xảy ra ở Bryansk, Nga. Đối chiếu đúng ngày, địa điểm, mô tả nạn nhân và phản hồi bên bị cáo buộc trước khi dựng.
 - Với tranh chấp/lịch sử: không biến “đối tác” thành “thành viên”, hỗ trợ thành tự động tuyên chiến, hiện trạng thành yêu sách chủ quyền, hay xung đột hiện đại thành mâu thuẫn liên tục hàng nghìn năm. Kiểm tra mốc ngày/năm và cách gọi quốc gia vào thời điểm được nói tới.
 - Storyboard cần ghi thứ tự cảnh, lời đọc, thông tin hiện trên hình, vùng bản đồ, chuyển cảnh, cờ/callout và nguồn. Điều chỉnh độ dài theo nội dung; không nhét danh sách dài vào 45/65 giây bằng cách cắt lời hoặc tăng tốc quá mức. Các bản 45 giây và NATO 147 giây là ví dụ đã làm, không phải giới hạn chung.
+- Khi người dùng yêu cầu minh họa một hành động cụ thể, đối chiếu hành động trong lời đọc với hình: cảnh UAV tấn công cần có UAV bay tới mục tiêu và diễn biến va chạm phù hợp, không coi cờ/callout/mũi tên là đủ. Kiểm tra khung bắt đầu, giữa và kết thúc theo timestamp thật; ảnh chụp cố định đầu cảnh có thể bỏ lỡ toàn bộ hoạt cảnh ngắn.
 
 ## 3. Bản đồ, quốc kỳ và callout
 
@@ -127,5 +128,6 @@ Cập nhật: 17/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 | [NATO flags/callouts](docs/phases/phase-6/NATO_FLAGS_CALLOUTS.md)     | Đủ cờ, pointer đúng polygon, map anchor, leader, registry 64                                                   |
 | [BRICS](docs/phases/phase-6/BRICS_VIDEO.md)                           | Phân biệt danh sách có dẫn nguồn, tư cách Saudi, Nam Phi 2010/2011, Việt Nam đối tác và transcript TTS sai năm |
 | [Belarus–Ukraine](docs/phases/phase-6/BELARUS_UKRAINE_VIDEO.md)       | Script trước TTS, xe biển Belarus ở Bryansk/Nga, phản hồi hai bên, locator vùng, Crimea và tương phản chữ      |
+| [UAV animation](docs/phases/phase-6/BELARUS_UAV_V3.md)                | Có đối tượng chuyển động theo lời đọc, kiểm khung giữa hoạt cảnh, giữ nguyên voice và timing                   |
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
