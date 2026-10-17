@@ -17,7 +17,10 @@
     "test:e2e": "playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "render": "tsx apps/render-worker/src/cli.ts",
-    "benchmark": "tsx scripts/benchmark.ts"
+    "benchmark": "tsx scripts/benchmark.ts",
+    "director:setup": "node scripts/setup-director.mjs",
+    "director": "tsx scripts/director.ts",
+    "hyperframes": "node scripts/hyperframes.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",

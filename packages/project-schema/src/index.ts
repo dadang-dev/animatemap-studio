@@ -1,5 +1,12 @@
 import { z } from 'zod';
 export {
+  directorPlanSchema,
+  directorPlanJsonSchema,
+  validateDirectorPlan,
+  directorContext,
+  type DirectorPlan,
+} from './director';
+export {
   voiceProviderSchema,
   voiceQuerySchema,
   voiceGenerateSchema,

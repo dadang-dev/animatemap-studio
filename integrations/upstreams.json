@@ -1,0 +1,13 @@
+{
+  "vox-director": {
+    "url": "https://github.com/Alisa0808/vox-director.git",
+    "commit": "6a85a7c341610442a6a5b1885e6e0217ab82a11f",
+    "license": "MIT"
+  },
+  "hyperframes": {
+    "url": "https://github.com/heygen-com/hyperframes.git",
+    "commit": "5e7ba0be944b076d514fc082c25a0b7e35eeb42f",
+    "license": "Apache-2.0",
+    "runtimeVersion": "0.8.168"
+  }
+}

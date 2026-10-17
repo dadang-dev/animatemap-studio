@@ -51,6 +51,19 @@ export function createApp(
     voices.cancel();
   });
   app.get('/api/ai/status', async () => codex.status());
+  app.post<{
+    Body: { prompt: unknown; project: unknown; generationId?: string };
+  }>('/api/director/plan', async (request) => {
+    const aborted = () => {
+      if (request.body?.generationId) codex.cancel(request.body.generationId);
+    };
+    request.raw.once('aborted', aborted);
+    try {
+      return await codex.planShots(request.body);
+    } finally {
+      request.raw.removeListener('aborted', aborted);
+    }
+  });
   app.get('/api/voice/status', async () => voices.status());
   app.get('/api/voice/voices', async (request) => voices.list(request.query));
   app.get<{ Querystring: { id: string } }>(

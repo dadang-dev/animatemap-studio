@@ -25,6 +25,9 @@ import {
   projectProposalJsonSchema,
   projectProposalSchema,
   proposalRequestSchema,
+  directorPlanJsonSchema,
+  validateDirectorPlan,
+  directorContext,
   type Project,
 } from '@animatemap/project-schema';
 import { normalizeProposal, proposalContext } from './proposals';
@@ -243,6 +246,47 @@ export class CodexService {
     project: unknown;
     generationId?: unknown;
   }) {
+    return this.generateStructured(input, {
+      schema: projectProposalJsonSchema,
+      prompt: (original, prompt) =>
+        `You generate AnimateMap Studio JSON proposals. No tools, commands, browsing, files, external messages or executable content. Use only the supplied country/place references. Marker/route IDs must exist in the catalog. Routes are illustrative geographic connections, never driving routes. Do not invent historical borders or polygon geometry. If unsupported, supported=false with empty scenes and explain. Camera/layer times are scene-local and within duration; camera keys strictly ordered. Return only schema JSON.\nVerified context: ${JSON.stringify(proposalContext(original, prompt))}\nUser request: ${prompt}`,
+      parse: (value, original) => {
+        const proposal = projectProposalSchema.parse(value);
+        return {
+          project: normalizeProposal(proposal, original),
+          summary: proposal.summary,
+          proposal,
+        };
+      },
+    });
+  }
+  async planShots(input: {
+    prompt: unknown;
+    project: unknown;
+    generationId?: unknown;
+  }) {
+    return this.generateStructured(input, {
+      schema: directorPlanJsonSchema,
+      prompt: (original, prompt) =>
+        `You are a visual shot director for a local Vox-inspired/HyperFrames workflow. Return schema JSON only. No tools, code, HTML, new URLs, external calls or narration changes. All narration/audio/captions and scene order/durations are locked. Cover EVERY scene with contiguous ordered shots from 0 to its duration; each shot <=7 seconds. Vary wide/detail/action framing when appropriate; use existing asset IDs only. Do not turn an illustrative map into verified military footage. This is visual direction, not factual validation.\nProject context: ${JSON.stringify(directorContext(original))}\nUser request: ${prompt}`,
+      parse: (value, original) => {
+        const plan = validateDirectorPlan(value, original);
+        return { plan, summary: plan.summary };
+      },
+    });
+  }
+  private async generateStructured<T extends object>(
+    input: {
+      prompt: unknown;
+      project: unknown;
+      generationId?: unknown;
+    },
+    adapter: {
+      schema: unknown;
+      prompt: (project: Project, prompt: string) => string;
+      parse: (value: unknown, project: Project) => T;
+    },
+  ) {
     const request = proposalRequestSchema.parse({
       ...input,
       generationId: input?.generationId ?? randomUUID(),
@@ -283,7 +327,7 @@ export class CodexService {
       directory = await mkdtemp(join(this.root, 'run-'));
       const schema = join(directory, 'schema.json'),
         output = join(directory, 'proposal.json');
-      await writeFile(schema, JSON.stringify(projectProposalJsonSchema));
+      await writeFile(schema, JSON.stringify(adapter.schema));
       active.controller.signal.throwIfAborted();
       const child = this.launch(
         executable,
@@ -383,10 +427,7 @@ export class CodexService {
         );
         child.once('close', ok);
       });
-      const context = proposalContext(original, prompt);
-      child.stdin.end(
-        `You generate AnimateMap Studio JSON proposals. No tools, commands, browsing, files, external messages or executable content. Use only the supplied country/place references. Marker/route IDs must exist in the catalog. Routes are illustrative geographic connections, never driving routes. Do not invent historical borders or polygon geometry. If unsupported, supported=false with empty scenes and explain. Camera/layer times are scene-local and within duration; camera keys strictly ordered. Return only schema JSON.\nVerified context: ${JSON.stringify(context)}\nUser request: ${prompt}`,
-      );
+      child.stdin.end(adapter.prompt(original, prompt));
       const code = await closed;
       partial += decoder.end();
       acceptLine(partial);
@@ -410,11 +451,9 @@ export class CodexService {
           502,
         );
       }
-      let project: Project,
-        proposal: ReturnType<typeof projectProposalSchema.parse>;
+      let decoded: T;
       try {
-        proposal = projectProposalSchema.parse(value);
-        project = normalizeProposal(proposal, original);
+        decoded = adapter.parse(value, original);
       } catch (error) {
         throw new CodexError(
           error instanceof Error &&
@@ -425,10 +464,8 @@ export class CodexService {
         );
       }
       return {
+        ...decoded,
         generationId: active.id,
-        project,
-        summary: proposal.summary,
-        proposal,
         provider: {
           name: 'Codex CLI',
           model: 'Installed CLI default',

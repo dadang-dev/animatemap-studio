@@ -9,6 +9,7 @@ import { createApp } from './app';
 import { GeographyService } from './geography';
 import { createDemo } from '@animatemap/project-schema';
 import { proposalFixture } from '../../../packages/project-schema/src/proposals.fixture';
+import { directorFixture } from '../../../packages/project-schema/src/director.fixture';
 
 // A real owned child process implements CLI protocol failure cases; it never counts as live Codex.
 async function harness(mode = 'normal', timeout = 3000) {
@@ -20,9 +21,11 @@ async function harness(mode = 'normal', timeout = 3000) {
     `import { writeFile } from 'node:fs/promises';
 const mode=process.argv[2],args=process.argv.slice(3),output=args[args.indexOf('--output-last-message')+1];
 let prompt='';for await(const chunk of process.stdin)prompt+=chunk.toString();
-if(!prompt.includes('Verified context:')||!prompt.includes('User request:'))process.exit(8);
+if(!prompt.includes(mode.startsWith('director')?'Project context:':'Verified context:')||!prompt.includes('User request:'))process.exit(8);
 if(mode==='slow'){setInterval(()=>{},1000);}else if(mode==='failure'){process.stderr.write('private diagnostic should not enter API');process.exit(3);}else{
 let proposal=${JSON.stringify(proposalFixture)};
+if(mode.startsWith('director'))proposal=${JSON.stringify(directorFixture(createDemo()))};
+if(mode==='director-invalid')proposal.shots[0].assetIds=['missing'];
 if(mode==='invalid')proposal.scenes[0].camera[0].time=50;
 if(mode==='unsupported'){proposal.supported=false;proposal.scenes=[];proposal.summary='Historical geometry unavailable';}
 await writeFile(output,mode==='bad-json'?'{oops':mode==='big-file'?' '.repeat(130*1024):JSON.stringify(proposal));
@@ -254,5 +257,36 @@ test('API proposal validation/review is read-only; saved projects survive provid
   } finally {
     await app.close();
     await h.dispose();
+  }
+});
+
+test('director endpoint uses restricted Codex runner, validates asset references and leaves projects unchanged', async () => {
+  for (const mode of ['director', 'director-invalid']) {
+    const h = await harness(mode),
+      app = createApp(h.root, new GeographyService(), h.service),
+      p = createDemo(),
+      before = JSON.stringify(p);
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/director/plan',
+        payload: {
+          project: p,
+          prompt: 'Plan visual shots only',
+          generationId: randomUUID(),
+        },
+      });
+      expect(response.statusCode).toBe(mode === 'director' ? 200 : 502);
+      if (mode === 'director') {
+        expect(response.json().plan).toEqual(directorFixture(p));
+        expect(response.json().provider.toolCalls).toBe(0);
+        expect(response.json().project).toBeUndefined();
+      }
+      expect(JSON.stringify(p)).toBe(before);
+      expect(await readdir(h.root)).toEqual([]);
+    } finally {
+      await app.close();
+      await h.dispose();
+    }
   }
 });
