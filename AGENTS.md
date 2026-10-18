@@ -81,6 +81,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Lỗi highlight sớm một từ đúng ranh giới → cộng thời gian scene dạng số thực gây lệch một ULP → tính project time từ tổng chỉ số frame nguyên chia FPS. Kiểm cả khoảng im lặng thật giữa từ; không kéo timestamp để che sai số.
 - Timestamp 20 ms có thể nằm trọn giữa hai khung 30 fps. Test phải chọn một từ có frame biểu diễn được trong cùng trang, đồng thời giữ kiểm tra toàn bộ timing. Không kéo dài timestamp giả hoặc nới test chỉ để qua lỗi.
 - Phụ đề cần chữ tiếng Việt rõ, nền tương phản và vùng an toàn, tránh tên nước, số liệu, callout và credit. Chia trang theo nghĩa/nhịp đọc; mẫu sáu đơn vị timing/khoảng 36 ký tự chỉ là điểm bắt đầu, vẫn phải đo chữ thật.
+- Video đăng TikTok: phụ đề sát đáy dễ bị mô tả/nút giao diện che → đưa lên vùng an toàn, chừa mép phải và kiểm mọi trang bằng bounding box thật. Người dùng đã yêu cầu bỏ thanh tiến độ “Các mốc tiêu biểu · Phạm vi lục địa” của video lịch sử; không mang lại vào bản sửa. Dời chú giải/callout khi cần để không đè karaoke, và dời nền bản đồ cùng mọi neo nếu reframe. Giữ hash voice/master/timing khi chỉ sửa bố cục; thông số vùng an toàn theo từng video, không đảm bảo mọi giao diện thiết bị giống nhau.
 - Khi chia trang tự động, bảo vệ trọn tên địa phương nhiều âm tiết như Phú Thọ, Ninh Bình, Bà Rịa–Vũng Tàu và Thành phố Hồ Chí Minh. Đổi điểm ngắt trang phải giữ nguyên thứ tự/timestamp từng từ và hash audio; kiểm không mất/lặp từ hay chia đôi tên.
 - SRT thường chỉ lưu câu và thời gian; không chứa hiệu ứng highlight từng từ. Giao MP4 có karaoke, JSON có word timing/style và SRT riêng. Không hứa hiệu ứng karaoke sẽ giữ nguyên khi chỉ mở file SRT.
 
@@ -150,5 +151,6 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 | [Sắp xếp tỉnh 2025](docs/phases/phase-6/VIETNAM_PROVINCE_MERGER.md)        | 64/63/34 theo thời kỳ, đủ 23 nhóm và 11 đơn vị không sắp xếp, triệt ranh giới nội bộ và thời gian frame nguyên |
 | [Diện tích Việt Nam V1](docs/phases/phase-6/VIETNAM_AREA_HISTORY_VIDEO.md) | QA kỹ thuật đạt nhưng locator chưa đáp ứng yêu cầu thấy thay đổi lãnh thổ; V2 thay thế nội dung hình           |
 | [Ranh giới lịch sử V2](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V2.md)     | Phục dựng polygon có giấy phép; cùng tỷ lệ, trước/sau, phiên thuộc/Trấn Tây, palette raster và giới hạn sai số |
+| [Phụ đề TikTok V3](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V3.md)         | Bỏ thanh mốc, nâng karaoke, chừa đáy/mép phải, khóa audio/timing khi chỉ sửa hình                              |
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
