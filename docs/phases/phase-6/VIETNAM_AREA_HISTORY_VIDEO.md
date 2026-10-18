@@ -1,5 +1,10 @@
 # Diện tích Việt Nam qua các thời kỳ lịch sử
 
+Editorial status: the user rejected V1's modern-locator approach because it did
+not show changing territorial footprints. Technical QA below remains valid for
+that preserved artifact, but does not establish editorial acceptance. Superseded
+by [historical-boundary V2](VIETNAM_AREA_HISTORY_V2.md); V1 files remain intact.
+
 Authoring date: 2026-10-18. Independent project `.local/vietnam-area-history`,
 composition `Vietnam-Area-History`, Studio loopback port 3005. Previous deliveries
 remain intact. No application/schema changes or limit increases.
