@@ -51,7 +51,8 @@ in Remotion/HyperFrames, not solely in native project JSON.
 
 ## Checks completed on the silent layout draft
 
-- `node --test .local/vietnam-thailand-gdp/authoring.test.mjs`:7/7 pass.
+- `node --test .local/vietnam-thailand-gdp/authoring.test.mjs`:8/8 pass, including
+  number equivalence and rejection of changed years or omitted forecast labels.
 - `npm run lint` in the Remotion directory: ESLint and TypeScript pass.
 - HyperFrames check and120-frame alpha render:pass.
 - Remotion preflight:130 frames pass, including scene/shot boundaries and fast
@@ -86,3 +87,27 @@ export. Final MP4, SRT/word timing, audio checks, final restore, decoded parity
 and clean source ZIP are not yet complete. Do not report delivery as finished
 until `verification.json` and `delivery.json` exist and pass for the real-voice
 snapshot. Earlier delivered videos remain intact.
+
+## Verified silent visual preview
+
+`Ban-dung-hinh-GDP-chua-voice.mp4` is explicitly a visual draft, not final
+delivery. It has no audio or karaoke and uses layout timing, not fabricated
+speech timing. Final export remains guarded against drafts.
+
+- H.264/yuv420p,1080×1920,30fps,121 seconds,3630 decoded frames.
+- 17,301,726 bytes; SHA-256
+  `21629cb60f40722361eb71d6213ccc60031ddeacdd2f46d24e7db091ee9ae0df`.
+- All3630 runtime frame audits passed, with no missing frames or browser errors.
+- 130 decoded-reference samples passed: maximum meanRGB1.498178/255;
+  maximum fraction of pixels differing by more than30 is1.535735% (<2%).
+- Studio parity20 samples passed; 8 authoring tests passed. Canvas/image child
+  bounds are audited as well as parent boxes. A rotating SVG ball receives
+  sufficient padding, rather than relaxing the overflow tolerance.
+- `visual-preview-verification.json` records `completeVideo:false`,
+  `voiceAvailable:false`, `captionsAvailable:false`.
+
+Latest provider check,19 October17:56UTC /20 October00:56 local: both existing
+hook and body tasks still `doing`, with no downloadable audio or timing URL.
+The bounded complete-pipeline attempt stopped on the provider failure. No local
+retry loop or final render is left running; remote task IDs are preserved for
+resumption. Studio3009 remains available for reviewing the draft.
