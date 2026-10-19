@@ -157,3 +157,5 @@ Cập nhật: 19/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 Chữ đè lãnh thổ và bản sửa mới nhất: [Vietnam history V4](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V4.md).
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
+
+Video kinh tế: [Vietnam–Thailand GDP](docs/phases/phase-6/VIETNAM_THAILAND_GDP.md). Không trộn GDP danh nghĩa với PPP, GDP bình quân với lương, USD hiện hành với tăng trưởng thực, hoặc năm quan sát với năm dự báo. Không kết luận thứ hạng toàn cầu từ bảng thiếu quan sát. Remotion CanvasImage là canvas: đặt kích thước trực tiếp, không dựa vào CSS chỉ nhắm `img`; kiểm cả hình thực vì audit hộp cha có thể bỏ sót ảnh tràn. Provider TTS lỗi/đang chờ thì giữ task cache và bản nháp có nhãn; không xuất bản nháp im lặng như video hoàn chỉnh.
