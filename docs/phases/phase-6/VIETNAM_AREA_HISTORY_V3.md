@@ -1,5 +1,9 @@
 # Vietnam history V3 — raised captions for TikTok
 
+Layout follow-up: user reported scope/legend over northern Vietnam. The V3 audit
+below measured text/text collisions and caption safety, not text/territory
+separation. [V4](VIETNAM_AREA_HISTORY_V4.md) fixes this omission; V3 retained.
+
 2026-10-18–19. User requested removal of the bottom milestone/progress strip and
 higher subtitles because TikTok covers low captions. New composition
 `Vietnam-Area-History-V3`, artifacts `.local/vietnam-area-history-v3`, loopback

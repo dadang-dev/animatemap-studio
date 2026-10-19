@@ -1,6 +1,6 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
-Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, các nước láng giềng, NATO, BRICS và các bản Belarus–Ukraina đến V4, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
+Cập nhật: 19/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên, video diện tích, các nước láng giềng, NATO, BRICS và các bản Belarus–Ukraina đến V4, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa và xuất video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
 
@@ -53,6 +53,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 - Không tắt world wrapping để chữa lỗi framing. Nội suy longitude/bearing theo đường ngắn và kiểm tra các đoạn qua ±180°; không cho camera hoặc tuyến đường chạy vòng cả thế giới ngoài ý muốn.
 - Chừa vùng cho hook, bản đồ chính, số liệu/callout, phụ đề và mép an toàn trên điện thoại. Kiểm tra phần đất chính có đủ lớn và phần đang nói tới nằm trong khung; tránh để map chỉ làm nền trang trí khó nhận diện.
 - Đo bằng font thật trong Chromium (`document.fonts.ready`/font load và `measureText`); ước lượng bằng số ký tự chỉ dùng cho bản nháp. Dùng font Unicode tiếng Việt đã ghim phiên bản, kiểm tra dấu, chữ dài và xuống dòng.
+- Chữ/legend không đè nhau vẫn có thể che lãnh thổ trong SVG → phải kiểm cả chữ với đường bao bản đồ thực sự được vẽ, loại geometry trong defs/mask khỏi phép đo. Dành vùng header riêng, giữ khoảng hở với vùng đất ở mọi cảnh; kiểm cả số diện tích và dòng nguồn. Bounding box toàn viewport không thay được bounds của path. Không báo “không chồng chéo” nếu mới kiểm các hộp chữ với nhau.
 - Counter không hiện số 0 vô nghĩa trước khi bắt đầu; hiển thị đúng giá trị cuối và giữ đủ lâu để đọc. Mẫu ranking bốn giây đã dùng thời gian giữ số cuối khoảng 2,7 giây; điều chỉnh có chủ đích cho storyboard khác.
 - Bố cục ranking ưu tiên tên/số rõ và bản đồ nổi bật; tránh khối nền lớn/divider làm nặng hình. Thẻ callout nhỏ có nền tối vẫn phù hợp khi giúp đọc tên và năm.
 - Người dùng đã yêu cầu bỏ footer chữ nguồn dài ở đáy hình. Chuyển credit/nguồn/giới hạn phạm vi sang end card và tài liệu kèm theo khi giấy phép cho phép; không xóa attribution bắt buộc hoặc provenance. Nội dung quan trọng cần hiểu ngay vẫn phải được thể hiện đúng lúc.
@@ -152,5 +153,7 @@ Cập nhật: 18/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 | [Diện tích Việt Nam V1](docs/phases/phase-6/VIETNAM_AREA_HISTORY_VIDEO.md) | QA kỹ thuật đạt nhưng locator chưa đáp ứng yêu cầu thấy thay đổi lãnh thổ; V2 thay thế nội dung hình           |
 | [Ranh giới lịch sử V2](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V2.md)     | Phục dựng polygon có giấy phép; cùng tỷ lệ, trước/sau, phiên thuộc/Trấn Tây, palette raster và giới hạn sai số |
 | [Phụ đề TikTok V3](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V3.md)         | Bỏ thanh mốc, nâng karaoke, chừa đáy/mép phải, khóa audio/timing khi chỉ sửa hình                              |
+
+Chữ đè lãnh thổ và bản sửa mới nhất: [Vietnam history V4](docs/phases/phase-6/VIETNAM_AREA_HISTORY_V4.md).
 
 Các số liệu lịch sử trong hồ sơ phản ánh lần kiểm chứng đã ghi; phải đối chiếu lại khi làm nội dung mới, không coi là dữ liệu luôn hiện hành. Xem thêm [README](README.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy tắc tài liệu](docs/AGENTS.md).
