@@ -96,7 +96,6 @@ caption page, flags, route branches and credits were visually reviewed.
 
 Pagination review caught “miền Tây” and “phù sa” split across pages. The final paginator protects region names and semantic compounds; audio SHA and every word timestamp remain unchanged. The earlier partial encode was stopped, then persistence, preflight/parity and final rendering repeated for the corrected snapshot. Final encoded-file results and hashes are recorded below.
 
-
 ## Final export — passed
 
 - All 2,789 runtime frames pass: no missing frames, word/flow timing failures, browser errors or layout failures. Decoded contact sheets reviewed for every scene and all 58 pages, including the dry-season reversal.
