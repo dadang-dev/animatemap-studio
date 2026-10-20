@@ -1,6 +1,6 @@
 # Vietnam–Thailand GDP video
 
-Work in progress, 20 October 2026. Artifact directory:
+Completed with real voice, 20 October 2026. Artifact directory:
 `.local/vietnam-thailand-gdp`; composition `Vietnam-Thailand-GDP`.
 The user supplied the reference script instead of authorizing an audio upload.
 No reference audio or new synthesized audio has been uploaded for ASR.
@@ -68,7 +68,7 @@ canvas, so CSS targeting `img` did not size it. Fixed explicit dimensions on
 CanvasImage and local coordinates inside SVG flag patterns. The latest draft
 preflight and parity reports refer to the corrected source snapshot.
 
-## External blocker and remaining gates
+## Historical provider blocker and pending gates before voice completion
 
 AI33 accepted a hook task but returned repeated HTTP503 “Task polling
 temporarily busy”, followed by `doing` without downloadable audio/timestamps.
@@ -111,3 +111,65 @@ hook and body tasks still `doing`, with no downloadable audio or timing URL.
 The bounded complete-pipeline attempt stopped on the provider failure. No local
 retry loop or final render is left running; remote task IDs are preserved for
 resumption. Studio3009 remains available for reviewing the draft.
+
+## Real voice update — 20 October 2026
+
+The user requested the missing voice for the previous day's video. The Global
+Brands deliverable was checked and already contains AAC narration; the GDP file
+is the remaining silent draft. Both original GDP AI33 tasks now report `done`
+with downloadable audio and provider timestamp JSON. The existing task/cache
+was resumed, without submitting duplicate paid tasks or uploading any audio.
+
+Actual Anh Khôi 1.0 narration: separate hook 1.9471875 seconds and body batch
+112.3929167 seconds. Twelve body scenes are split at real silence midpoints;
+all thirteen spoken scenes match the locked script, including the original
+number/forecast qualifiers. There are 390 real timing units and 76 protected
+caption pages. Hook speech ends at 1.66 seconds; final speech ends at 121.24
+seconds. Seven seconds of credits follow the spoken sequence. Final project
+timeline is 3,860 frames, 128.6666667 seconds, 1080×1920/30 fps.
+
+The real-audio update retimed the existing actual Vox plan to 27 validated
+shots. Map plates, country geometries, HyperFrames graphics, authored objects
+and narration text were preserved. This is a fresh complete render using the
+new timing and captions, not a mux of voice onto old silent-draft frames.
+The previous `Ban-dung-hinh-GDP-chua-voice.mp4` remains unchanged.
+
+Pre-render results: ESLint/TypeScript pass; 10/10 authoring tests (the original
+eight plus real voice/transcript and exact word interval/page coverage);
+deterministic evaluation across all 3,860 frames; API exact round-trip and
+refresh restore pass. Preflight passes 215 samples including all 76 pages,
+scene/shot boundaries and illustrative action. Three repeat seeks have zero
+pixel differences. Studio/native parity passes 20 samples, maximum mean RGBA
+0.000167583/255, maximum channel difference 1. All scenes, sources and every
+caption page were visually reviewed.
+
+### Final encoded-file gate — passed
+
+- All 3,860 runtime frame audits passed: zero missing frames, word timing
+  failures, layout failures or browser errors.
+- `ffprobe` confirms H.264/yuv420p/faststart, 1080×1920/30 fps, 3,860 frames,
+  128.6666667 seconds; AAC stereo 48 kHz. Container, video and audio endpoints
+  match the project. All video packet hashes, DTS/PTS and decoder configuration
+  are unchanged by final muxing from the approved PCM master.
+- 215 decoded-frame comparisons pass the declared thresholds: maximum mean RGB
+  error 1.551111/255; maximum fraction with any channel error above 30 is
+  1.535735%, below 2%. Decoded contact sheets cover all scenes and all 76 pages.
+- Audio: exact 12,352,000 interleaved samples; correlation 0.99982113,
+  SNR 34.39753 dB, RMS ratio 0.99745961, zero clipped samples. Integrated
+  loudness -16.4 LUFS, true peak -1.6 dBFS. Narration is present in the final
+  encoded file, not only in Studio.
+- Source ZIP: 270 entries, 38,565,046 bytes; source, media, fonts, locks,
+  real HyperFrames frames, actual Vox plans, provenance and licenses retained.
+  Entry and credential-content audits pass; no key, environment, node_modules,
+  Git or QA frame directories are included. Packaging initially referenced an
+  unused absent `remotion.config.ts`; the archive list was corrected to the
+  actual project files, without changing the frozen render inputs.
+
+Final MP4: `.local/vietnam-thailand-gdp/Viet-Nam-Thai-Lan-Cuoc-Dua-GDP.mp4`,
+23,217,623 bytes. SHA-256:
+`58749820dd949c99e19a0fd7a733a1e52e560f0ef126d839d165b335f6417c24`.
+Source ZIP SHA-256:
+`7dafcd6c767f8217898b9ab265a6432dad48031757264b56b28c022ecdfe8a81`.
+`STATUS.json`, `verification.json`, `delivery.json` and `archive.json` record
+completion. The silent draft and other delivered videos remain unchanged.
+No blocking issue remains for this voice update.
