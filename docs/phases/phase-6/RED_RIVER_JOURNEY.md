@@ -43,3 +43,7 @@ MP4: Hanh-Trinh-Song-Hong.mp4; 19502394bytes; SHA256 b4ba9a34b58028da8e186679223
 ZIP: Hanh-Trinh-Song-Hong-editable-source.zip; 48371651bytes; 542entries; SHA256 70e7e4e3cdf42d8aac5f64775c5eb2bf37e1b0933bfbd36f0a885c3129349acc. Full editable composition, immutable assets/master, 12 HyperFrames titles, real Vox output, native planning source, timing/SRT, evidence and licenses. Integrity, credential-pattern and exact local-key content scans pass. No dependencies, API credentials, raw paid response, QA frame directories or abandoned quality experiment are included.
 
 Cleanup removed 821files / 703736574bytes from this topic only, including QA images, compiled bundle and intermediate videos. Final MP4/ZIP and paid voice/source assets retain their hashes. A fresh Chromium Studio load and final source fingerprint pass after cleanup. Latest video index includes this as topic15. Preview listener verified127.0.0.1:3018. No application code/schema/dependency changes.
+
+## Superseded by V2
+
+The user requested full Vietnam context after reviewing V1. [V2](RED_RIVER_JOURNEY_V2.md) is now the delivered version, with full-country overview and persistent locators. V1 MP4/ZIP were removed only after V2 passed final gates; original source/audit and paid narration cache remain revision dependencies.
