@@ -1,5 +1,7 @@
 # Country density — silent 195-country ranking
 
+Superseded by [V2](COUNTRY_DENSITY_V2.md): the user removed the technical-credit scene. V1 MP4/ZIP were cleaned after V2 passed. The historical evidence below records the initial release.
+
 Status: completed; final MP4, editable archive and post-cleanup preview passed. Authoring root `.local/country-density`, composition `Country-Density`, Studio `http://127.0.0.1:3016/Country-Density` (verified listener `127.0.0.1`).
 
 ## Contract and content
