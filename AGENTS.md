@@ -1,6 +1,6 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
-Cập nhật: 21/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên đến các video lịch sử, kinh tế, thương hiệu, Mekong và Việt Nam xuất khẩu V3, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa, xuất và dọn dữ liệu video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
+Cập nhật: 22/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên đến các video lịch sử, kinh tế, thương hiệu, Mekong và Việt Nam xuất khẩu V3, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa, xuất và dọn dữ liệu video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
 
@@ -188,3 +188,7 @@ Video không lời đọc và xếp hạng mật độ: [Country density](docs/p
 Kiểm hàng trăm mốc có thể dùng một browser Studio thật ở 100% và cùng viewport/font/GL để tránh chi phí khởi tạo trang lặp lại; phải đối chiếu độc lập với renderer, giữ fingerprint source và kiểm tất cả frame khi xuất. Không dùng hai lượt chụp cùng một preview để thay bằng chứng preview/export parity. Clip có chủ đích khi đối tượng đi vào viewport khác với chữ hoặc geometry đã ổn định bị cắt; ghi rõ phạm vi kiểm tra.
 
 Yêu cầu ngày 21/10/2026: **không tự thêm scene credit kỹ thuật ở cuối video** (liệt kê Natural Earth/NASA, Polygon/MultiPolygon, font/cờ/giấy phép, nhạc, Remotion/HyperFrames/Vox Director hoặc source chỉnh sửa). Đưa thông tin kỹ thuật, engine, provenance và giấy phép chi tiết vào tài liệu nguồn/README và caption đăng bài. Không mang lại cảnh này trong các video sau trừ khi người dùng yêu cầu rõ. Nguồn/năm/đơn vị số liệu và ghi chú cần để hiểu nội dung vẫn xuất hiện ngắn gọn đúng lúc; attribution bắt buộc theo giấy phép vẫn được giữ ở hình thức phù hợp, không tự xóa nghĩa vụ cấp phép. Yêu cầu mới này thay thế mặc định cũ chuyển mọi credit sang một end card riêng.
+
+Video hành trình sông Hồng: [Red River journey](docs/phases/phase-6/RED_RIVER_JOURNEY.md). Với cảnh cận, kiểm cả giới hạn zoom của helper lẫn độ phân giải nền: bỏ trần zoom thấp không tự làm ảnh toàn cầu sắc hơn. Có thể cache tile NASA GIBS có nguồn/checksum để chụp plate chi tiết hơn; ghi đúng tháng ảnh tổng hợp, chiếu lại neo/đường sông trong cùng camera và chạy lại preflight/parity. Không tự vẽ tuyến phụ lưu thiếu trong geodata; phân biệt pin hợp lưu khái quát với centerline khảo sát. Giữ riêng các vị trí hợp lưu gần nhau, không gom thành một điểm cho thuận bố cục.
+
+Khi so PNG với frame giải mã bằng FFmpeg select, phải sắp tăng dần và loại trùng danh sách frame trước cả extraction lẫn ghép kết quả: FFmpeg trả theo thứ tự thời gian, không theo thứ tự các biểu thức select. Đối chiếu sai cặp có thể tạo báo động sai về màu/karaoke; kiểm đúng chỉ số frame trước khi sửa encoder hoặc nới tolerance.
