@@ -1,5 +1,7 @@
 # Red River journey V2 — retain full Vietnam context
 
+Superseded by the completed [V3 geographic camera revision](RED_RIVER_JOURNEY_V3.md),22 October2026. V2 MP4/ZIP were removed after V3 gates passed, per the latest-only policy; dependent source/evidence remain.
+
 User correction, 22 October 2026: the original close views did not sufficiently show the river's position within Vietnam from start to finish. This is a visual-only revision; script, voice, speed, master audio, duration, caption words/timestamps, SRT, original Vox plan and HyperFrames title frames are locked.
 
 ## Implementation and scope
