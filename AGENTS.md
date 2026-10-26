@@ -1,6 +1,6 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
-Cập nhật: 22/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên đến các video lịch sử, kinh tế, thương hiệu, Mekong và Việt Nam xuất khẩu V3, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa, xuất và dọn dữ liệu video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
+Cập nhật: 27/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên đến các video lịch sử, kinh tế, thương hiệu, Mekong và Việt Nam xuất khẩu V3, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa, xuất và dọn dữ liệu video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
 
@@ -258,3 +258,20 @@ Hồ sơ bản ngang hoàn chỉnh, nguồn và bằng chứng kiểm tra: [NATO
 - Capture JPEG đạt benchmark ngắn vẫn có thể lưu bóng chữ hoặc sai hình ở những frame khác trong video dài. Kiểm MP4 giải mã trên toàn bộ tập QA, gồm ngay trước/đúng/sau cue và frame đổi tiêu đề; nếu vượt ngưỡng thì giữ nguyên tolerance, kiểm đường capture và chuyển PNG khi cần. Audit DOM/log đúng không chứng minh pixel đã được compositor cập nhật đúng. Không bàn giao dựa trên render-audit nếu kiểm MP4 cuối còn fail.
 
 Hồ sơ sửa bản đồ thành phim chuyển động, gate MP4 cuối và dọn V1: [Global Groups Map Film V2](docs/phases/phase-6/GLOBAL_GROUPS_MAP_FILM_V2.md).
+
+### Review hoạt cảnh lặp — Global Groups V3
+
+- V2 vẫn bị người dùng nhận xét lặp khiên NATO/người/vòng tròn dù có nhiều cue. Một beat/shot mới, đổi chữ, camera hay màu không tạo thành một diễn biến mới. Rà theo đối tượng → hành động → kết quả và thời lượng thực trên timeline, không dùng số cue để chứng minh đa dạng.
+- Chỉ dùng lại biểu tượng khi giúp nối ý hoặc so sánh; không phát lại nguyên một hoạt cảnh stock cho các câu có mục đích khác. Tổng kết phải cho trạng thái/kết quả mới, không mặc định tua lại mọi actor trước đó. Tránh thay lặp khiên bằng lặp giấy hoặc tiền.
+- Với nội dung cơ chế, dựng quan hệ cụ thể: tham vấn rồi lựa chọn hỗ trợ, hàng hóa vượt biên, vốn tới dự án minh họa, tuyên bố qua quy trình riêng, tàu tới cảng. Chuỗi nên đi tới kết quả và giữ đọc, không tự chạy vòng theo timer. Đồ họa minh họa phải phân biệt với sự kiện/tuyến thực.
+- Khi dùng GSAP với SVG đã có translate, không đặt x/y về0 nếu việc đó xóa vị trí gốc; dùng wrapper cố định hoặc tween theo đúng tọa độ. Kiểm đầu/giữa/cuối và hộp chữ thật, không chỉ source trông đúng. Bài học V3: ba tài liệu từng tụ vào cùng x do tween transform; sửa vị trí rồi render và kiểm lại, không thêm allow-overlap để bỏ lỗi.
+
+- Kiểm MP4 V3 tìm thấy Chromium giữ đồ họa SVG của beat trước dù PNG capture và audit DOM đúng. Khi thay nội dung SVG theo cảnh/beat, dùng identity/remount phù hợp và kiểm video thật quanh biên chuyển. PNG không tự bảo đảm tránh compositor cache; giữ tolerance, chạy regression ngắn rồi kiểm toàn MP4. Hồ sơ: [Global Groups Narrative V3](docs/phases/phase-6/GLOBAL_GROUPS_NARRATIVE_V3.md).
+
+- Remount SVG theo beat có thể vượt regression ngắn nhưng vẫn giữ hình cũ trong render dài với ANGLE mặc định của máy. Khi gặp lỗi này, kiểm profile phần mềm SwANGLE trên các đoạn tái hiện, đồng bộ capture/still/Studio và đưa GL/browser/color profile vào fingerprint. Chỉ kết luận sửa xong khi MP4 toàn phim vượt gate; không thay golden hoặc nới tolerance để bỏ lỗi.
+
+- Với render dài có nguy cơ gián đoạn, có thể xuất các frameRange tuyệt đối thành đoạn có audit/hash và ghép sau. Chỉ reuse khi fingerprint gồm source và renderer profile trùng; chứng minh codec configuration, packet payload, PTS và hình quanh biên ghép. Không coi concat stream-copy là tự bảo đảm đúng frame, hoặc kiểm PTS theo thứ tự packet H.264 có B-frame. Helper Global Groups V3 là triển khai riêng, chưa phải cache chung toàn ứng dụng.
+
+- Trước render, dùng browser do phiên bản Remotion đang ghim cung cấp/kiểm thử qua ensureBrowser(), hoặc kiểm chứng tương thích rõ ràng. Không mặc định reuse đường dẫn Chromium của Playwright từ video cũ. Khóa cả version và SHA256 browser trong renderer profile; regression ngắn đạt vẫn phải qua kiểm MP4 toàn phim. Global Groups V3 đã phát hiện binary cũ còn sót hình dù đổi GL và remount.
+
+- Ảnh tham chiếu cũng có thể bị compositor giữ lớp cũ. Khi MP4 lệch golden, đối chiếu evaluator, DOM và các capture độc lập trước khi kết luận phía nào sai. Chỉ sửa reference sau khi có bằng chứng trạng thái mong đợi, capture lặp khớp và kiểm Studio; giữ ảnh/hash cũ, lý do và ngưỡng cũ. Không chép khung MP4 sang golden để làm test qua.

@@ -1,6 +1,6 @@
 # Video đã giao — đường dẫn local
 
-Danh mục bản giao mới nhất; mục Global Groups được cập nhật sau gate V2 ngày 25/10/2026. Không gồm bản nháp/MP4 đã dọn. Source/giấy phép nằm trong thư mục tương ứng.
+Danh mục bản giao mới nhất; mục Global Groups được cập nhật sau gate V3 ngày 27/10/2026. Không gồm bản nháp/MP4 đã dọn. Source/giấy phép nằm trong thư mục tương ứng.
 
 - [195-Quoc-Gia-Tu-Thua-Den-Dong-Dan-V2.mp4](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/country-density-v2/195-Quoc-Gia-Tu-Thua-Den-Dong-Dan-V2.mp4>)
 - [APEC-Phu-Quoc-2027-V2.mp4](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/apec/APEC-Vanh-Dai-Thai-Binh-Duong.mp4>)
@@ -15,4 +15,4 @@ Danh mục bản giao mới nhất; mục Global Groups được cập nhật sa
 
 - [Nhung-Cay-Cau-Noi-Tieng-Viet-Nam.mp4](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/vietnam-bridges/Nhung-Cay-Cau-Noi-Tieng-Viet-Nam.mp4>)
 
-- [NATO-EU-BRICS-G7-APEC-V2.mp4](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/global-groups-v2/NATO-EU-BRICS-G7-APEC-V2.mp4>) — 16:9,4:50.6; [sourceZIP](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/global-groups-v2/Global-Groups-V2-editable-source.zip>)
+- [NATO-EU-BRICS-G7-APEC-V3.mp4](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/global-groups-v3/NATO-EU-BRICS-G7-APEC-V3.mp4>) — 16:9,4:50.6; [source ZIP](<C:/Users/PC/OneDrive/Desktop/VIBECODE/AnimateMap Studio/.local/global-groups-v3/Global-Groups-V3-editable-source.zip>)

@@ -41,4 +41,12 @@ Học cấu trúc diễn đạt, quan hệ camera–đối tượng–lời nói
 
 ## Khi sửa hình của video đã có
 
+### Không nhầm nhiều cue với nhiều diễn biến
+
+Global Groups V2 vẫn bị nhận xét lặp chiếc khiên dù có81 beat. Rà các đoạn cạnh nhau theo vật thể, hành động và kết quả: đổi nhãn hoặc restart cùng timeline không tạo cảnh mới. Giữ một chuỗi liên tục khi nó giải thích cùng quá trình; sang ý mới thì thay quan hệ/hành động. Đoạn tổng kết dùng trạng thái kết quả hoặc cách so sánh mới, tránh phát lại nguyên bộ actor.
+
+V3 bỏ renderer tám actor stock, dùng chuỗi cụ thể như tham vấn → hỗ trợ, bốn làn qua biên giới, vốn → dự án, tuyên bố → quy trình riêng và tàu → dỡ hàng. Các hình này vẫn phải kiểm đúng cue, độ dài đọc, đầu/giữa/cuối và không tự loop. Không thay một motif lặp bằng motif giấy/tiền khác lặp tương tự. Drawing primitive có thể dùng chung; cảnh hoàn chỉnh cần đúng mục đích nội dung.
+
+Khi minh họa trong SVG, cờ/ảnh vẫn phải tham gia readiness của renderer. Không coi việc href đã có trong DOM là asset đã decode; ưu tiên cơ chế ảnh chung đã dùng cho preview/export và kiểm lại snapshot.
+
 Khóa hash script, voice, master, từng word timing, SRT và thời lượng trước/sau. Không tự gọi lại TTS/ASR. Tạo bản mới riêng, giữ bản cũ tới khi MP4 mới vượt gate. Báo thực tế Remotion, HyperFrames và Vox Director đã tạo/điều khiển gì; số lượng hiệu ứng không là bằng chứng chất lượng. Áp dụng [quy trình sản xuất](VIDEO_PRODUCTION_WORKFLOW.md) và [AGENTS.md](../AGENTS.md), gồm parity, hình/tiếng giải mã, giấy phép và dọn dữ liệu sau gate.
