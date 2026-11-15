@@ -1,0 +1,374 @@
+{
+  "scope": "Portable video-production workshop, not individual video products",
+  "sourceCommit": "7b705ea",
+  "files": [
+    {
+      "path": ".env.example",
+      "status": "A",
+      "reason": "Expose portable CLI commands or link restoration instructions; existing app logic preserved."
+    },
+    {
+      "path": ".gitattributes",
+      "status": "M",
+      "reason": "Preserve checksum bytes or exclude generated/local environment files from tracking and scans."
+    },
+    {
+      "path": ".gitignore",
+      "status": "M",
+      "reason": "Preserve checksum bytes or exclude generated/local environment files from tracking and scans."
+    },
+    {
+      "path": ".prettierignore",
+      "status": "M",
+      "reason": "Preserve checksum bytes or exclude generated/local environment files from tracking and scans."
+    },
+    {
+      "path": "AGENTS.md",
+      "status": "M",
+      "reason": "Expose portable CLI commands or link restoration instructions; existing app logic preserved."
+    },
+    {
+      "path": "README.md",
+      "status": "M",
+      "reason": "Expose portable CLI commands or link restoration instructions; existing app logic preserved."
+    },
+    {
+      "path": "config/asr-model.json",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "config/python-video-constraints.txt",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "config/reference-environment.json",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "config/video-quality.json",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "config/voice-defaults.json",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "docs/NEW_MACHINE_SETUP.md",
+      "status": "A",
+      "reason": "Audit, source inventory and new-machine restoration instructions."
+    },
+    {
+      "path": "docs/PORTABILITY_AUDIT.md",
+      "status": "A",
+      "reason": "Audit, source inventory and new-machine restoration instructions."
+    },
+    {
+      "path": "docs/portability/source-inventory.json",
+      "status": "A",
+      "reason": "Audit, source inventory and new-machine restoration instructions."
+    },
+    {
+      "path": "eslint.config.js",
+      "status": "M",
+      "reason": "Preserve checksum bytes or exclude generated/local environment files from tracking and scans."
+    },
+    {
+      "path": "integrations/remotion/loopback.cjs",
+      "status": "A",
+      "reason": "Pin reusable Remotion runtime and browser loopback configuration."
+    },
+    {
+      "path": "integrations/remotion/package-lock.json",
+      "status": "A",
+      "reason": "Pin reusable Remotion runtime and browser loopback configuration."
+    },
+    {
+      "path": "integrations/remotion/package.json",
+      "status": "A",
+      "reason": "Pin reusable Remotion runtime and browser loopback configuration."
+    },
+    {
+      "path": "package.json",
+      "status": "M",
+      "reason": "Expose portable CLI commands or link restoration instructions; existing app logic preserved."
+    },
+    {
+      "path": "requirements-video.txt",
+      "status": "A",
+      "reason": "Pin reference quality, voice/model or Python dependency versions."
+    },
+    {
+      "path": "scripts/setup-machine.ps1",
+      "status": "A",
+      "reason": "Portable setup, render/verify/package worker or smoke-test entry point."
+    },
+    {
+      "path": "scripts/video-integration-smoke.mjs",
+      "status": "A",
+      "reason": "Portable setup, render/verify/package worker or smoke-test entry point."
+    },
+    {
+      "path": "scripts/video-runtime.mjs",
+      "status": "A",
+      "reason": "Portable setup, render/verify/package worker or smoke-test entry point."
+    },
+    {
+      "path": "scripts/video-smoke.mjs",
+      "status": "A",
+      "reason": "Portable setup, render/verify/package worker or smoke-test entry point."
+    },
+    {
+      "path": "scripts/video.mjs",
+      "status": "A",
+      "reason": "Portable setup, render/verify/package worker or smoke-test entry point."
+    },
+    {
+      "path": "shared/assets/NOTICES.md",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/basemap/world.jpg",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/fonts/latin-700.woff2",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/fonts/vietnamese-700.woff2",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/COUNTRIES-PROVENANCE.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/NASA-WORLD-PROVENANCE.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/island-source-checksums.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/reference.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/vietnam-islands.geojson",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/geo/world-raster-reuse.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/licenses/LICENSE-GSAP.txt",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/licenses/LICENSE-HYPERFRAMES.txt",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/licenses/LICENSE-NOTO-SANS.txt",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/licenses/LICENSE-REMOTION.md",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/licenses/LICENSE-VOX-DIRECTOR.txt",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/manifest.json",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/smoke/master.wav",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/smoke/test-a.svg",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/assets/smoke/test-b.svg",
+      "status": "A",
+      "reason": "Common reusable asset, license/provenance or checksum; preserve exact bytes."
+    },
+    {
+      "path": "shared/video-components/Actors.tsx",
+      "status": "A",
+      "reason": "Extract existing reusable rendering primitive; replace product imports with props."
+    },
+    {
+      "path": "shared/video-components/CaptionWords.tsx",
+      "status": "A",
+      "reason": "Extract existing reusable rendering primitive; replace product imports with props."
+    },
+    {
+      "path": "shared/video-components/FontReady.tsx",
+      "status": "A",
+      "reason": "Extract existing reusable rendering primitive; replace product imports with props."
+    },
+    {
+      "path": "shared/video-components/Geo.tsx",
+      "status": "A",
+      "reason": "Extract existing reusable rendering primitive; replace product imports with props."
+    },
+    {
+      "path": "shared/video-components/PhotoSequence.tsx",
+      "status": "A",
+      "reason": "Extract existing reusable rendering primitive; replace product imports with props."
+    },
+    {
+      "path": "skills/animatemap-video/SKILL.md",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "skills/animatemap-video/references/project-format.md",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "skills/animatemap-video/references/quality-gates.md",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "skills/animatemap-video/scripts/audio_tools.py",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "skills/animatemap-video/scripts/requirements.txt",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "skills/animatemap-video/scripts/video_tool.py",
+      "status": "A",
+      "reason": "Repository-local reusable skill, Python CLI and original audio helper."
+    },
+    {
+      "path": "templates/hyperframes-starter/index.html",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "templates/video-starter/public/project.json",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "templates/video-starter/src/Film.tsx",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "templates/video-starter/src/index.tsx",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "templates/video-starter/src/style.css",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "templates/video-starter/tsconfig.json",
+      "status": "A",
+      "reason": "Neutral editable starter; no product media or mandated creative style."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/README.md",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/audio/baseline.json",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/audio/timeline.json",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/audio/voice.wav",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/golden/0.png",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/golden/121.png",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/fixtures/video-smoke/golden/61.png",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "tests/video-tool-portability.test.mjs",
+      "status": "A",
+      "reason": "Normal/error fixtures, original mixer baseline and neutral golden-frame regression tests."
+    },
+    {
+      "path": "docs/portability/changes.json",
+      "status": "A",
+      "reason": "Final explicit change inventory or sanitized verification receipt."
+    },
+    {
+      "path": "docs/portability/verification.json",
+      "status": "A",
+      "reason": "Final explicit change inventory or sanitized verification receipt."
+    }
+  ],
+  "deleted": [],
+  "mergedOrDeletedSourceFiles": [],
+  "unchangedOutOfScope": [
+    "docs/cleanup-2026-10-27/manifest.json",
+    "docs/cleanup-2026-10-27/receipt.json",
+    "docs/cleanup-2026-10-27/saved-projects-manifest.json",
+    "docs/cleanup-2026-10-27/saved-projects-receipt.json",
+    "docs/phases/phase-6/VIETNAM_CAPITALS_SERIES_PLAN.json",
+    "scripts/plan-video-purge.py",
+    "scripts/purge-video-sources.ps1"
+  ],
+  "testedSourceCommits": ["7b705ea", "cf96605"],
+  "assetByteCorrection": "Three source/license files and the manifest were restaged without newline conversion; exact asset checksums preserved."
+}

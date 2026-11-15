@@ -27,3 +27,11 @@ Trước khi tách component đã chụp sáu frame bằng engine hiện có và
 - Không tự gọi TTS/planner, upload audio, sao chép credential hoặc cài skill toàn hệ thống.
 - Starter sáu giây chỉ kiểm khả năng kỹ thuật. Storyboard/camera/ảnh/diễn biến cho nội dung mới vẫn phải được tác giả dựng và duyệt theo quy tắc.
 - Chỉ gọi setup/doctor/smoke là đã kiểm khi có log thực. Checkout sạch trên cùng máy không đồng nghĩa thử mọi OS/GPU hoặc kiểm dịch vụ AI live.
+
+## Kết quả bàn giao ngày 15/11/2026
+
+Đã chạy cài đặt trên bản export source sạch với dependency và Python venv riêng: doctor, năm test CLI, render/giải mã đủ180frame cùng33frame đối chiếu và HyperFrames check/hai snapshot đều đạt. Hồi quy app185test/73file, typecheck và build đạt. Lần cài sạch đầu phát hiện ba file bị Git đổi xuống dòng; đã sửa thuộc tính byte và restage, không đổi checksum chuẩn hoặc nới ngưỡng.
+
+Cấu trúc bổ sung: `config/`, `integrations/remotion/`, `shared/{assets,video-components}/`, `templates/{video-starter,hyperframes-starter}/`, `skills/animatemap-video/{SKILL.md,scripts,references}/`, các entry point `scripts/video*.mjs`, `scripts/setup-machine.ps1`, fixture/test và tài liệu phục hồi. Không xóa hoặc gộp file source cũ.
+
+Danh sách từng file thêm/sửa và lý do: [changes.json](portability/changes.json). Lệnh kiểm tra, baseline, số đo, phạm vi đã thử và giới hạn: [verification.json](portability/verification.json). Hướng dẫn máy mới: [NEW_MACHINE_SETUP.md](NEW_MACHINE_SETUP.md).

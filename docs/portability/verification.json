@@ -1,0 +1,221 @@
+{
+  "date": "2026-11-15",
+  "status": "pass-with-stated-limits",
+  "scope": "Equivalent portable production capability; no individual product, credentials or model weights backed up",
+  "testedSourceCommits": ["7b705ea", "cf96605"],
+  "referenceEnvironment": {
+    "platform": "Windows x64",
+    "node": "24.19.0",
+    "pnpm": "11.25.0",
+    "python": "Python 3.12.14",
+    "ffmpeg": "9.0-full_build-www.gyan.dev",
+    "remotion": "4.0.536",
+    "react": "19.2.3",
+    "chromeHeadlessShell": "157.0.8080.0",
+    "playwright": "1.58.2",
+    "hyperframes": "0.8.168",
+    "gsap": "3.14.2",
+    "note": "Reference profile, not a claim that every OS/GPU produces identical pixels. Accept a new machine only after doctor + neutral smoke + a pilot shot for the intended project."
+  },
+  "originalFrameBaseline": {
+    "pass": true,
+    "thresholdSource": "Existing video production comparison profile, fixed before extraction: meanRGB<3, fractionAbove30<.02; not changed to make test pass",
+    "strictPixelEquality": false,
+    "originalRepeatWasNotPixelIdentical": true,
+    "notes": "Original renderer itself varied in one label on repeated capture. Explicit Vietnamese font barrier stabilizes measurement. Residual PNG image raster differences remain, so no pixel-identical/cross-GPU promise. Original app/product sources unchanged.",
+    "checks": [
+      {
+        "frame": 0,
+        "pixelIdentical": true,
+        "meanRGB": 0.0,
+        "fractionAbove30": 0.0,
+        "pass": true
+      },
+      {
+        "frame": 1017,
+        "pixelIdentical": false,
+        "meanRGB": 0.03610226980452675,
+        "fractionAbove30": 0.0,
+        "pass": true
+      },
+      {
+        "frame": 1209,
+        "pixelIdentical": true,
+        "meanRGB": 0.0,
+        "fractionAbove30": 0.0,
+        "pass": true
+      },
+      {
+        "frame": 1397,
+        "pixelIdentical": true,
+        "meanRGB": 0.0,
+        "fractionAbove30": 0.0,
+        "pass": true
+      },
+      {
+        "frame": 1524,
+        "pixelIdentical": true,
+        "meanRGB": 0.0,
+        "fractionAbove30": 0.0,
+        "pass": true
+      },
+      {
+        "frame": 4830,
+        "pixelIdentical": false,
+        "meanRGB": 0.08828687628600823,
+        "fractionAbove30": 1.9290123456790124e-6,
+        "pass": true
+      }
+    ]
+  },
+  "originalMixerBaseline": {
+    "pass": true,
+    "checks": [
+      {
+        "file": "master.wav",
+        "byteIdentical": true,
+        "sha256": "ea51fdd17a183713b9ba6b3be7b01dca12c794839566ac84ea3ccdd6a375764c"
+      },
+      {
+        "file": "audio-stems/voice.wav",
+        "byteIdentical": true,
+        "sha256": "cf4141b2e7eb7edb8f43ad74ca393356bdb35ce11e2f68e788df0716e5f3d749"
+      },
+      {
+        "file": "audio-stems/music.wav",
+        "byteIdentical": true,
+        "sha256": "8ccb903509bf717ad773df468d608bb7b90b115c963fedc980c961829c8bc277"
+      },
+      {
+        "file": "audio-stems/sfx.wav",
+        "byteIdentical": true,
+        "sha256": "90e94117f5db4af4a8101eeef39daa1f080c1bc34fbb9aa81c5e926001ea7a5e"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "pnpm typecheck",
+      "pass": true
+    },
+    {
+      "command": "pnpm build",
+      "pass": true,
+      "note": "Existing bundle-size warning; build succeeds."
+    },
+    {
+      "command": "pnpm test",
+      "pass": true,
+      "testFiles": 73,
+      "tests": 185,
+      "environment": "Host permission context; managed-sandbox attempt hit temporary-file EPERM, not assertion failures."
+    },
+    {
+      "command": "pnpm video:test",
+      "pass": true,
+      "tests": 5,
+      "scope": "Both original repo and clean exported source, own fresh Python venv."
+    },
+    {
+      "command": "scoped eslint + prettier checks for new JS/TS/config/docs",
+      "pass": true
+    },
+    {
+      "command": "TypeScript tsc on initialized starter with explicit pinned-runtime module paths",
+      "pass": true
+    },
+    {
+      "command": "python -X utf8 quick_validate.py skills/animatemap-video",
+      "pass": true
+    },
+    {
+      "command": "pnpm video align --audio <authorized local 5-second clip> --script <approved local script> --cache-dir <existing model cache> --output <local JSON>",
+      "pass": true,
+      "wordGroups": 16,
+      "modelDownloaded": false,
+      "audioUploaded": false
+    },
+    {
+      "command": "pnpm video package --project <verified neutral starter> --render-dir <verified render> --output <new ZIP>",
+      "pass": true,
+      "zipEntries": 32,
+      "sha256": "5d21cc9fb085fc8e761628b208a0e9f3843c208954391ec3e922d0d76949e88c"
+    }
+  ],
+  "cleanSourceTest": {
+    "method": "git archive of source commit, apply committed asset-byte correction, install dependencies into the exported tree; no copied node_modules, venv, .local, private product assets or keys",
+    "samePhysicalHost": true,
+    "differentPhysicalMachineTested": false,
+    "setupCommand": "./scripts/setup-machine.ps1 -Python <installed Python 3.12> -Smoke",
+    "pass": true,
+    "assetManifestEntries": 17,
+    "gitBlobHashesMatchManifest": true,
+    "doctorPass": true,
+    "cliTests": 5,
+    "smoke": {
+      "pass": true,
+      "goldenChecks": [
+        {
+          "frame": 0,
+          "meanRGB": 0,
+          "fractionAbove30": 0,
+          "pass": true
+        },
+        {
+          "frame": 61,
+          "meanRGB": 0,
+          "fractionAbove30": 0,
+          "pass": true
+        },
+        {
+          "frame": 121,
+          "meanRGB": 0.14201051311728394,
+          "fractionAbove30": 0,
+          "pass": true
+        }
+      ],
+      "verification": "render/verification.json",
+      "scope": "Neutral fixture: common map/islands/font/image identity/karaoke/actions, full MP4 decoded references and audio. No paid calls, no real speech or creative-content approval. Not a cross-GPU pixel identity guarantee."
+    },
+    "video": {
+      "pass": true,
+      "frames": 180,
+      "referenceFrames": 33,
+      "duration": 6,
+      "sha256": "2f2bc2192ad99f2bd3a880b1b345c4ac7a324263210863b12a594dd1248909b4",
+      "bytes": 659128,
+      "sound": {
+        "correlation": 0.9999378575350983,
+        "snrDB": 39.01219508833606,
+        "samples": 576000,
+        "clipped": 0
+      }
+    },
+    "hyperframes": {
+      "pass": true,
+      "snapshotFiles": ["frame-00-at-0s.png", "frame-01-at-1s.png"],
+      "snapshotSHA256": [
+        "1a2c96cd0c96f5ed0315766e26efff0626be3099672654852008a927b3bee761",
+        "9ba8246fd9f5af1d92c2088ff1282e646456e17c0bb87ae85d554c2f83bc412a"
+      ],
+      "scope": "Actual published HyperFrames check + two rendered paused-GSAP frames. Vox adapter presence/identity is covered by doctor; no live AI planning, generated media, external vision or paid call."
+    },
+    "firstAttemptFailure": "Three source/license files were initially normalized by Git and failed checksum checks. Fixed with -text attributes and git add --renormalize; no thresholds relaxed."
+  },
+  "skillArchive": {
+    "path": "dist/animatemap-video.skill",
+    "entries": 6,
+    "crcPass": true,
+    "sha256": "3171ef7a817c41c580c0aec990e3b2ddd8df5e937b57c0a7ccc60210dd4788fa",
+    "trackedSource": "skills/animatemap-video/"
+  },
+  "sourceFilesDeleted": 0,
+  "livePaidCalls": 0,
+  "limits": [
+    "Clean export tested on the same Windows host, not a different physical machine or Linux/macOS.",
+    "Original frame baseline is not strictly pixel-identical in two of six frames; unchanged production thresholds pass. Mixer baseline is byte-identical for all four WAV files.",
+    "Smoke fixture proves technical plumbing, not the creative quality or factual correctness of future projects.",
+    "AI planning/TTS/live catalogue and paid services were not called. Login, API keys and optional public ASR model must be provisioned separately.",
+    "Do not expect AI generation or raster output across GPU/OS environments to be 100 percent byte-identical."
+  ]
+}
