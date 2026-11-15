@@ -1,5 +1,20 @@
 # AnimateMap Studio — hướng dẫn làm video và tránh lỗi lặp lại
 
+## Trạng thái ưu tiên sau audit series ngày 01/11/2026
+
+Đọc [đề cương chuẩn 12 tập](docs/phases/phase-6/VIETNAM_CAPITALS_SERIES_MASTER.md) và [audit toàn series](docs/phases/phase-6/VIETNAM_CAPITALS_SERIES_AUDIT_2026_11_01.md) trước khi làm tiếp. Đây là trạng thái mới nhất, thay các ghi chú “hoàn chỉnh” về mức đạt đề cương ở bên dưới; bằng chứng media cũ vẫn giữ nguyên.
+
+Tập 1 cần sửa phạm vi “9 địa điểm”; tập 3 sửa thuyền ngoài nét sông/timeline và thời lượng; tập 5 rút thời lượng; tập 7 sửa teaser. Bản xuất 8–10 hiện **lệch đề cương 12 tập**, chưa đạt nội dung series. Tập 9 đúng phải gộp Lam Kinh/Dương Kinh; tập 10 Tây Sơn; tập 11 Phượng Hoàng Trung Đô; tập 12 Huế. Không tự đánh số tập theo mục Word.
+
+Đã tìm lại và đọc trực tiếp Word gốc tại `C:/Users/PC/OneDrive/TIKTOK/Kich_ban_lich_su_cac_kinh_do_Viet_Nam_APA7.docx`, hash trùng bản trước. Không tiếp tục báo chỉ có cache hoặc Word bị mất trong các lượt sau. Các receipt cũ ghi thiếu Downloads là lịch sử của thời điểm trước khi tìm lại.
+
+Sau mỗi lần làm, lưu câu hỏi/đáp án/mục Word/hình/kết luận/teaser, phiên bản và hash, thời lượng thực tế, mức đạt nội dung, mức đạt media, việc còn lại và tập tiếp theo. Xuất MP4 thành công không tự là hoàn thành tập theo đề cương.
+
+
+Quy tắc bắt buộc về bản đồ Việt Nam: đọc [Skill_rules.MD](Skill_rules.MD). Mọi video có bản đồ Việt Nam phải thể hiện các đảo/quần đảo, đặc biệt có quần đảo Hoàng Sa và quần đảo Trường Sa ở bản đồ tổng quan và locator; kiểm nguồn, phạm vi và hình xuất thực tế.
+
+Hồ sơ áp dụng cho GDP và bảy dòng sông: [Vietnam island rule updates](docs/phases/phase-6/VIETNAM_ISLAND_RULE_UPDATES.md). Locator mới phải tránh cả vật thể chuyển động và leader line, không chỉ tránh hộp chữ. Khi đổi ảnh theo scene, dùng identity/remount phù hợp và kiểm pixel thật để bắt trường hợp trình duyệt giữ ảnh cảnh trước dù chữ/DOM đã đổi; không nới tolerance để bỏ lỗi.
+
 Cập nhật: 27/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu tiên đến các video lịch sử, kinh tế, thương hiệu, Mekong và Việt Nam xuất khẩu V3, gồm tích hợp local Vox Director, Remotion và HyperFrames. Áp dụng cho việc nghiên cứu, dựng, sửa, xuất và dọn dữ liệu video trong repository này. Yêu cầu hiện tại của người dùng được ưu tiên; các thông số của một video cũ không tự trở thành yêu cầu cho mọi video mới.
 
 ## 1. Đọc bối cảnh và thực hiện đúng phạm vi
@@ -147,6 +162,8 @@ Cập nhật: 27/10/2026. Tổng hợp kinh nghiệm từ video dân số đầu
 
 ## 10. Lưu trữ và ghi nhớ
 
+- Studio parity: seek qua WebMCP có thể thoát fullscreen. Đo lại canvas bounds sau mỗi seek và khôi phục fullscreen trước capture; không dùng crop cũ hoặc nới tolerance để che sai cặp hình. Nếu công cụ trả JPEG, ghi rõ phép so theo profile ảnh nén, không gọi lossless pixel-identical. Hồ sơ: [Du lịch núi Việt Nam](docs/phases/phase-6/VIETNAM_MOUNTAIN_TOURISM.md).
+
 - Người dùng chốt ngày 21/10/2026: sau khi hoàn thành, chỉ giữ video hoàn chỉnh mới nhất của mỗi chủ đề; xóa MP4/ZIP phiên bản cũ, bản nháp, bản render trùng và dữ liệu kiểm thử có thể tạo lại để tiết kiệm dung lượng. Chọn theo bản giao hoàn chỉnh có voice, không chỉ theo số V hoặc ngày sửa file. Quy tắc này thay thế yêu cầu giữ mọi bản cũ trong các ghi chú lịch sử.
 - Trước khi dọn, lập danh sách xóa cụ thể, kiểm video/source cuối và hash, kiểm render đang chạy, source tham chiếu chéo và junction runtime. Giữ source thực sự còn được bản mới dùng, voice/timestamp, cache task trả phí, nguồn/giấy phép, báo cáo kiểm chứng và thư viện dùng chung. Có thể còn thư mục mang tên phiên bản cũ để cung cấp đầu vào; phải ghi rõ đó là dữ liệu phụ thuộc, không phải video giao cũ. Không xóa source phụ thuộc chỉ để thư mục trông gọn.
 - Xóa trên Windows bằng đường dẫn tuyệt đối đã kiểm trong workspace, không đi xuyên junction/symlink; OneDrive cloud placeholder không đồng nghĩa với junction. Lưu manifest/biên nhận, kiểm hash file giữ lại và chạy kiểm tra phụ thuộc sau dọn. Không tự xóa video mẫu trong Downloads hay dữ liệu ngoài phạm vi đã được phép. Hồ sơ lần dọn đầu: [VIDEO_DATA_CLEANUP.md](docs/phases/phase-6/VIDEO_DATA_CLEANUP.md).
@@ -275,3 +292,136 @@ Hồ sơ sửa bản đồ thành phim chuyển động, gate MP4 cuối và d�
 - Trước render, dùng browser do phiên bản Remotion đang ghim cung cấp/kiểm thử qua ensureBrowser(), hoặc kiểm chứng tương thích rõ ràng. Không mặc định reuse đường dẫn Chromium của Playwright từ video cũ. Khóa cả version và SHA256 browser trong renderer profile; regression ngắn đạt vẫn phải qua kiểm MP4 toàn phim. Global Groups V3 đã phát hiện binary cũ còn sót hình dù đổi GL và remount.
 
 - Ảnh tham chiếu cũng có thể bị compositor giữ lớp cũ. Khi MP4 lệch golden, đối chiếu evaluator, DOM và các capture độc lập trước khi kết luận phía nào sai. Chỉ sửa reference sau khi có bằng chứng trạng thái mong đợi, capture lặp khớp và kiểm Studio; giữ ảnh/hash cũ, lý do và ngưỡng cũ. Không chép khung MP4 sang golden để làm test qua.
+
+### Dọn toàn bộ source video — 27/10/2026
+
+- Theo yêu cầu riêng ngày 27/10/2026, các video đã hoàn tất chỉ giữ MP4 mới nhất của mỗi chủ đề; đã cho phép xóa cả source dựng, ZIP, audio/ảnh rời và cache riêng. Quyết định này thay thế quy tắc giữ source/cache trả phí đối với đợt dọn này. Các bản MP4 được kiểm ffprobe và SHA-256 trước/sau; danh sách hiện hành ở docs/VIDEO_LIBRARY.md. Không hứa còn source hoặc Studio để sửa các bản đã dọn.
+- Giữ mã ứng dụng, dữ liệu/thư viện dùng chung, cấu hình API và tác vụ đang chạy. Không xóa ngoài workspace hay đi xuyên junction. Biên nhận và manifest ở docs/cleanup-2026-10-27/.
+
+### Rà soát toàn timeline khi nhận phản hồi thiết kế — 29/10/2026
+- Khi người dùng chỉ ra lỗi ở một khung, kiểm cả các cảnh cùng loại và toàn bộ phần tiếp theo; không chỉ vá khung được gửi. Kiểm tên địa danh theo thời kỳ, cue xuất hiện, hình trang trí rời vị trí, nhãn/tuyến còn sót, thẻ rỗng chờ cue và thông tin lặp.
+- Minh họa di tích dùng ảnh có nguồn gắn rõ với địa điểm; biểu tượng triều đình chỉ di chuyển trên đường nối ở đúng cảnh dời đô. Callout và đổi tên xuất hiện theo lời đọc. Không báo hoàn tất trước khi kiểm MP4 cuối.
+
+### Kinh đô Việt Nam tập 1 V2 — quy tắc đã chốt ngày 29/10/2026
+
+- Callout địa danh nằm ngang hàng với pin thật, dùng đường nối ngang ngắn. Không gom tên ở một góc cố định rồi kéo đường chéo dài xuyên bản đồ. Tên, ảnh và đầu nối phải cùng bám phép chiếu/camera; kiểm cả lúc bay camera và đổi địa điểm.
+- Loạt kinh đô: đặt ảnh di tích thực tế dưới tên từng kinh đô; tự tìm và đối chiếu đúng địa điểm, tác giả, giấy phép. Kết quả đúng tên có thể chỉ chụp hiện vật/góc hẹp hoặc gán sai công trình → xem ảnh thật trước khi dùng. Chú thích đúng công trình hiện nay; ảnh liên hệ/di vật không được gọi là ảnh cung điện cổ.
+- Vox Director lập cảnh; Remotion dựng map/ảnh/chữ/karaoke; HyperFrames làm đồ họa có mặt thực trong composition. Theo yêu cầu của loạt này, ImageGen tham gia tạo minh họa cung đình, hoàng đế, triều đình, binh lính. Ghi “Minh họa”, không nhận là chân dung xác thực hay phục dựng khảo cổ. Không áp đặt phong cách cung đình cho chủ đề khác.
+- Chữ có 3 cấp: tiêu đề ngắn → tên địa danh/từ khóa → phụ đề. Tăng độ đọc của tên trên điện thoại, giảm viền chữ dày và thông tin lặp. Chữ/ảnh xuất hiện theo cue lời đọc; không cho tên nhân vật, kết luận số hoặc tập tiếp theo hiện sớm khi lời còn kể ý trước.
+- Phụ đề dùng chữ số cho năm/số lượng/số lần, ví dụ “1959”, “10 lần”, “2 thời kỳ”, “1 địa điểm”. Không chia đôi tên riêng, cụm nghĩa hoặc số kèm đơn vị; bảo vệ “kinh đô”, “tiêu chí”, “thời kỳ”, “địa điểm”, “Tập tiếp theo”. Chia theo câu/ý, tối đa 2 dòng khi phù hợp, không máy móc cắt mỗi 5 đơn vị timing. Không tự sửa timestamp từ để kéo dài trang.
+- Khi sửa hình: khóa script, voice, audio master, word text/order/timestamps và thời lượng. Có thể đổi cách chia trang/SRT trong phạm vi sửa phụ đề; không tuyên bố SRT giữ nguyên khi trang đã đổi. Không gọi lại TTS/ASR không cần thiết.
+- Cảnh cận giữ locator đủ biển đảo và nhãn Hoàng Sa/Trường Sa không cắt/che. Có thể ẩn nhãn trùng bị cắt trên bản đồ chính khi locator đã thể hiện đủ; giữ geometry. Locator tránh ảnh, tên, đường nối và hành động.
+- Gate kỹ thuật và mắt thẩm mỹ là hai việc khác nhau: MP4 đạt parity không chứng minh trình bày chữ tốt. Rà cả timeline khi sửa text/callout, gồm mọi trang phụ đề và trước/đúng/sau cue; kiểm file MP4 giải mã, không chỉ source/DOM.
+
+Hồ sơ, nguồn ảnh và giới hạn kiểm tra: [Kinh đô Việt Nam tập 1 V2](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V2.md).
+
+### Không đọc trên ảnh tĩnh — yêu cầu ngày 30/10/2026
+
+- Tuân thủ [quy tắc diễn giải lời đọc bằng hình](Skill_rules.MD): **không cho phép có các đoạn chỉ thay chữ và giữ ảnh tĩnh, chưa diễn giải được lời đọc**. Áp dụng cho mọi video mới và bản sửa.
+- Rà toàn bộ script thành bảng lời đọc → đối tượng/vị trí → hành động/quan hệ → kết quả → cue. Đổi tên, subtitle, highlight hoặc zoom nhẹ không thay diễn giải. Phản hồi ở vài khung phải dẫn tới rà cả timeline.
+- Ảnh tư liệu được giữ để quan sát kết quả, nhưng phải thêm diễn biến/quan hệ phù hợp khi lời chuyển sang ý mới. Không gắn một ảnh Đền Hùng vào mọi ý về địa lý và kinh tế của Phong Châu.
+- Kiểm chất lượng kể hình trước render dài; xem chuyển động thật và khung đầu/giữa/cuối. Technical pass không thay gate này. Khi chỉ sửa hình, khóa voice/timestamp/thời lượng và dùng lại cache.
+- Bài học, nguồn và bằng chứng: [Kinh đô tập 2 V2](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP02_V2.md).
+
+### Kinh đô tập 1 V3 — áp dụng quy tắc ngày 30/10/2026
+
+- Tích lũy các pin của danh sách tiêu biểu; giải thích 2 thời kỳ → 1 địa điểm bằng hai đoạn nối về một pin; hai tên hội về cùng đơn vị đếm; giữ cả Lam Kinh/Dương Kinh tới hết ý vai trò; sơ đồ kế hoạch chuyển đô nét đứt phải dừng, không giả đã hoàn tất. Tổng kết tái dùng kết quả các ví dụ thay cho ba dòng chữ trên ảnh tĩnh.
+- Nhãn biển đảo/locator tránh ảnh và sơ đồ; Lam Kinh không biến mất trước lời giải thích vai trò chung. Ảnh thật được giữ làm tư liệu nhưng không thay diễn giải ý mới.
+- Hồ sơ và giới hạn kiểm tra: [Kinh đô tập 1 V3](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V3.md). V3 là bản sửa hình trước đây; V4 thay thế về nội dung theo gate câu hỏi–câu trả lời. Không làm mất bằng chứng lịch sử V2.
+
+### Kinh đô tập 3 — kiểm ảnh và fallback transcript, 30/10/2026
+
+- Tên/category Commons không thay mô tả công trình: Citadelle de Cổ Loa là ảnh đình Ngự Triều Di Quy, không tự gọi là đền An Dương Vương. Đọc description, đối chiếu và xem ảnh thật; lấy đúng ảnh đền cho lời nói về đền.
+- Có audio nhưng transcript cloud còn processing: giữ cùng task/cache, không trả phí lại; được dùng ASR local đã cài trong phạm vi căn lời, không tự upload audio sang dịch vụ khác. Giữ interval thô, correction log, phân biệt timing ước lượng với phoneme xác thực.
+- Đồ họa 3 vòng/cửa lệch/mặt cắt có nhãn khái quát; không đặt vòng tưởng tượng lên vệ tinh hoặc gán mọi vòng cùng tuổi. Giữ ảnh tư liệu và minh họa tách vai trò; nền phải liên tục khi chuyển crop địa lý.
+- Hồ sơ và bằng chứng: [Cổ Loa tập 3](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP03.md).
+
+### Chủ đề, câu hỏi và kết luận của loạt kinh đô — 30/10/2026
+
+- Triệu chứng: nội dung có tên địa danh nhưng chưa trả lời hook; kết thúc chuyển thẳng sang teaser. Nguyên nhân: kiểm các ý/đồ họa riêng lẻ mà chưa kiểm lời hứa của toàn tập. Sửa: khóa câu hỏi → đáp án → bằng chứng → kết luận trực tiếp trước teaser; đối chiếu tài liệu gốc trước TTS. Không đổi câu hỏi theo asset/teaser cũ.
+- Tập 1 V4 đọc trực tiếp Word, trả lời 9 địa điểm/khu vực tiêu biểu trong phạm vi loạt, không tổng số tuyệt đối; đầu nêu đáp án, giữa giải thích khác cách đếm, cuối chốt lại. Đã thay script/voice/timing, không phải bản chỉ sửa hình. [Hồ sơ V4](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V4.md).
+- Áp dụng [Skill_rules.MD](Skill_rules.MD), mục Câu mở đầu phải được trả lời. Gate nội dung khác gate minh họa và gate kỹ thuật; không coi media pass là đã bám chủ đề.
+- Tập 2 đã có V3 sửa câu trả lời/kết luận; tập 3 bản thành–hào còn cần sửa mạch theo phản hồi. Tập 3 thiếu Ngô Quyền cho câu hỏi đã chốt, không tự nhận đã đạt. Nếu sửa câu hỏi Cổ Loa, phân biệt hai trường hợp An Dương Vương/Ngô Quyền với khẳng định chỉ có đúng hai lần trong toàn lịch sử (bản gốc còn nhắc Lý Phật Tử).
+
+### Kinh đô tập 2 V3 — vị trí, phạm vi và coverage crop, 30/10/2026
+
+- Trả lời đúng câu hỏi ở đâu bằng Phong Châu–Phú Thọ–Việt Trì/Bạch Hạc theo truyền thống, rồi chốt giới hạn về vị trí cung điện; không kết bằng lời chung về nguồn cội. Đọc trực tiếp phần tương ứng trong Word trước TTS. [Hồ sơ tập 2 V3](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP02_V3.md).
+- Nhãn hai điểm rất gần sẽ chồng khi zoom xa: chỉ hiện khi đủ mức cận, chuyển sang biểu diễn vùng khái quát ở góc rộng. Callout vùng có thể đổi phía với leader ngang ngắn, kiểm chữ/qualifier còn trong safe bounds.
+- Không crossfade crop thiếu coverage bằng một ngưỡng zoom tùy ý: tính viewport nằm trọn worldBounds theo camera/tỷ lệ khung. Khi chuyển sang crop/góc rộng khác, giữ plate trước tới khi nền sau hình thành; delay pin/ảnh của vùng mới để không neo nhầm lên nền cũ.
+- Tập 1 V4 và tập 2 V3 đã sửa gate câu hỏi–kết luận. Tập 3 còn chờ sửa theo câu hỏi về hai trường hợp An Dương Vương/Ngô Quyền, không tự xem bản thành–hào là đã đạt.
+
+
+### Cổ Loa tập 3 V2 — câu hỏi về hai trường hợp, 30/10/2026
+
+Đã sửa tập 3 thành câu hỏi An Dương Vương và Ngô Quyền cùng chọn Cổ Loa, có đáp án sớm và kết trực tiếp trước teaser. Hai trường hợp không phải tổng số tuyệt đối; nguồn còn Lý Phật Tử. Giữ ranh giới giữa ý nghĩa lịch sử và động cơ cá nhân chưa thể khẳng định đầy đủ. Khi teaser quay về năm 40 sau 939, phải nói rõ trở về quá khứ và mũi tên đi lùi. Năm ASR 1938/1939 bị nhận sai phải đối chiếu script/nguồn và sửa thành 938/939, giữ interval atom gộp thay vì tự bịa timing cho từ năm bị mất; giữ tên riêng Hai Bà Trưng. Hồ sơ: [Tập 3 V2](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP03_V2.md).
+
+Trạng thái hiện tại: cả 3 tập đầu đã sửa gate câu hỏi–đáp án–kết luận: tập 1 V4, tập 2 V3, tập 3 V2. Những ghi chú còn chờ sửa tập 3 bên trên là lịch sử trước V2.
+
+
+### Kinh đô tập 4–6 — lời hứa, cụm nghĩa và coverage,31/10/2026
+
+Đã hoàn thành tập 4 Mê Linh/Trưng Vương,5 Vạn Xuân trước Thăng Long,6 lợi thế Hoa Lư. Đọc bản toàn văn đã trích trực tiếp từ Word ở lượt trước và lưu hash; file Downloads hiện không còn nên không báo là vừa đọc lại trực tiếp. Hồ sơ: [tập 4](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP04.md),[tập 5](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP05.md),[tập 6](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP06.md).
+
+- Đáp án và kết luận phải cùng phạm vi: Mê Linh là nơi đóng đô theo truyền thống, chưa biết rõ kinh thành; vùng Hà Nội là trung tâm Vạn Xuân trước 1010, không đồng nghĩa cung điện đã tìm thấy/liên tục; Hoa Lư phòng thủ phù hợp củng cố chính quyền nhưng còn có triều đình/cung điện.
+- Caption đạt 1–2 dòng vẫn chưa đủ nếu tách hiện/đại,tưởng/niệm,đầy/đủ hoặc để 1 từ lẻ. Chia theo nghĩa và bảo vệ cụm; khi chỉ regroup, khóa voice và từng interval, cập nhật hash pages và kiểm lại DOM.
+- Crop địa phương cũ không tự phủ được góc gần đó: kiểm cả 4 mép viewport theo worldBounds. Tập 5 phải lấy crop Hà Nội riêng và đổi identity asset để UI không giữ ảnh Mê Linh.
+- Bản đồ toàn cảnh không để panel che Hoàng Sa/Trường Sa ngay từ khung đầu; cho khung toàn cảnh rõ rồi chuyển crop, giữ locator có marker đúng phép chiếu.
+- Ảnh hiện nay không thành bằng chứng cung điện cổ; sơ đồ cơ chế không thành GIS/địa giới/số đo khảo cổ. Kết luận trước teaser, không chỉ đổi chữ trên hình tĩnh.
+- Tách bằng chứng Studio playback 1x với độ mượt: xuất nặng có thể làm tụt FPS; không nhận là benchmark hoặc parity Studio độc lập. Giữ các gate kỹ thuật cũ và xem MP4 giải mã cuối.
+
+
+### Thăng Long tập 7 — 01/11/2026
+
+[Tập 7 — Thăng Long](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP07.md). Câu hỏi vì sao dời đô 1010 được trả lời sớm và kết trước teaser Tây Đô: đất rộng, địa hình và kết nối phục vụ phát triển lâu dài. Truyền thuyết rồng vàng giải thích tên gọi, không thay lý do địa lý. Sơ đồ dòng nước/di chuyển không tự thành tuyến cổ có nguồn. Khi số năm đứng lẻ dòng, bảo vệ cả cụm “năm 1010”, giữ voice/interval, kiểm lại chữ thật.
+
+
+
+
+### Bản xuất 8–10 trước audit — đạt media, chưa đạt đề cương
+
+Tập 8 Thành nhà Hồ, tập 9 Lam Kinh và tập 10 Dương Kinh đã có MP4, lời đọc, phụ đề và source, đã vượt các kiểm tra media. Trạng thái này thay thế ghi chú storyboard trước đây. Hồ sơ: [tập 8](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP08.md), [tập 9](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP09.md), [tập 10](docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP10.md).
+
+Người dùng đã xác nhận rõ việc gửi chỉ văn bản lời đọc tập 8–10 tới AI33/Vbee. Không hỏi lại trong phạm vi này và không tự mở rộng sự đồng ý sang cả series. Giữ cache lời đọc, không tạo lại tác vụ trả phí đã hoàn thành.
+
+Cue dự thảo phải được căn lại từ audio thật. Có thể điều chỉnh thời điểm các shot của Director theo độ dài từng đoạn, nhưng phải giữ bản provider gốc và hồ sơ điều chỉnh. Phụ đề dùng chữ số, bảo vệ cụm số và tên riêng. Cân dòng vẫn cần giữ liền các cụm “sử dụng”, “quan hệ”, “điều hành”, “quê hương” và “2 trung tâm”.
+
+Dương Kinh có hoạt động chính trị, không chỉ mang chức năng nghi lễ như Lam Kinh. Tượng Mạc Thái Tông tại Đại Trà không phải Mạc Đăng Dung hoặc cung điện Cổ Trai. Phân biệt 1397 xây Tây Đô, 1398 giữ vai trò kinh đô và 1400 lập nhà Hồ. Ghi chú thời điểm xuất trước audit: lúc đó mới dùng cache. Audit sau đã tìm lại và đọc trực tiếp Word gốc tại OneDrive/TIKTOK.
+
+Studio seek và metadata không tự chứng minh playback. Lệnh Play qua WebMCP từng báo playing nhưng frame đứng; bấm nút Play trực tiếp đã phát được. Ghi phạm vi đoạn đã xem trong studio-review.json, không tự nhận đã đo độ mượt hoặc pixel parity Studio độc lập.
+
+
+### Hoàn tất tập 1 V5 — 02/11/2026
+
+Tập 1 V5 hiện hành: 84,8 giây, video SHA256 ab3391e30e1bc2a937c233a315876a1815b11d770d8411e8913f5de84306471e. Xem docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V5.md. Đã sửa phạm vi số 9, kết luận theo tiêu chí, 12 chủ đề không đồng nghĩa12 kinh đô; đã kiểm43trang caption và197mẫu pixel.3/5/7 vẫn đang kiểm bản sửa;8–10 chưa có MP4 mới đúng đề cương;11/12 chưa sản xuất.
+
+
+
+Tiếp tục02/11/2026: xem docs/phases/phase-6/VIETNAM_CAPITALS_REPAIR_CHECKPOINT_2026_11_02.md và work/series-progress.json tại workspace series.1V5 đã kiểm;3V3 đang xuất lại;5/7draft chờ;8/9/10 có source hình mới nhưng chưa MP4 sửa đạt;11/12 có script+voice, chưa media. Không đánh dấu source/voice là hoàn thành video. VoxDirector8 còn chờ quyền gửi phần chữ kế hoạch tớiOpenAI sau auto-review từ chối; không chạy lại khi chưa có trả lời.
+
+
+Cập nhật tiếp 02/11/2026: tập 3 V3 đã hoàn tất; xem docs/phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP03_V3.md. Tập 5/7 đã rà caption/draft/clip 1x, đang xuất lần lượt. Tập 8–12 có source hình mới nhưng chưa QA/export đạt. Quyền gửi kế hoạch chữ tập 8 qua VoxDirector/OpenAI vẫn đang chờ sau auto-review từ chối. Đọc checkpoint mới, không dùng các ghi chú cũ để hạ trạng thái tập 3 về chưa xuất.
+
+
+Cập nhật 02/11/2026: tập 1 V5, 3 V3, 5 V2 và 7 V2 đã xuất và qua kiểm ghi trong hồ sơ; tập 8–12 có voice/timing và draft hình, chưa MP4 mới đạt. Xem docs/phases/phase-6/VIETNAM_CAPITALS_REPAIR_CHECKPOINT_2026_11_02.md và work/series-progress.json của workspace. VoxDirector8 chờ quyền gửi chữ kế hoạch tới OpenAI sau automatic approval review từ chối; không chạy lại khi chưa có quyền.
+
+
+Cập nhật tiếp 02/11/2026: người dùng đã cho phép chỉ chữ kế hoạch VoxDirector8–12 tới OpenAI; đủ5plan đã nhận/tích hợp (17/18/16/18/19shot). Trở ngại auto-review cũ đã được giải quyết. Tập8 đang xuất;9–12 còn kiểm sau tích hợp và xuất. Không hỏi lại quyền cùng phạm vi; không gửi Word/ảnh/audio. Receipt workspace: work/vox-authorization-812.json.
+
+
+Tập8V2 đã hoàn tất84,033giây,241mẫu native/decoded và20khung giải mã chọn lọc; xem VIETNAM_CAPITALS_SHORTS_EP08_V2.md. Tập9V2 đang xuất sau kiểm clip;10–12 chưa MP4 mới đạt. Quyền VoxDirector8–12 đã có, không còn chờ xác nhận.
+
+
+
+## Chốt đợt sửa series — 02/11/2026
+
+Đã chọn đủ 12 MP4 theo đúng bảng 12 chủ đề. 1 V5, 3 V3, 5 V2, 7 V2, 8–10 V2, 11–12 V1 đã qua kiểm ghi trong hồ sơ; 2 V3, 4 và 6 giữ theo audit trước, không nhận đã render lại. Tập 12 đã hoàn tất 109,467 giây. Xem docs/phases/phase-6/VIETNAM_CAPITALS_FINAL_AUDIT_2026_11_02.md và VIETNAM_CAPITALS_DELIVERY_12_EPISODES.md.
+
+Nguồn trạng thái hiện tại: C:/Users/PC/Documents/Codex/2026-10-29/ti-p-t-c-trao-i/work/series-progress.json; hash và file đúng bản: work/series-delivery-manifest.json trong cùng workspace. Không lấy MP4 cũ lệch đề cương 8–10 thay bản mới. Các trạng thái “đang xuất/chờ quyền” ở ghi chú trước là lịch sử. Quyền chỉ chữ kế hoạch VoxDirector 8–12 tới OpenAI đã được cấp và thực hiện; không hỏi lại cùng phạm vi. Chưa có lệnh phát hành ra nền tảng ngoài.
+
+Không chạy lại các helper queue_export912.py, render_finish8.py, finalize_selected_review.py hoặc helper complete cũ trên bản đã chốt chỉ để tiếp tục chat. Đọc trạng thái và hồ sơ trước; muốn sửa tiếp phải có lý do cụ thể, giữ bản đã kiểm và khóa lại input cho bản mới.
+
+### Ảnh thực tế theo lời đọc — Trường Giang V2, 13/11/2026
+
+- Mỗi ảnh phải khớp địa điểm/cue đang nói; ảnh Tuotuo không kéo sang câu Kim Sa. Khi sửa cue ảnh, khóa voice/master/timing/SRT, vô hiệu hóa snapshot/cache hình cũ và kiểm lại biên ảnh, toàn caption, Studio và MP4.
+- Readiness audit phải chờ ảnh decode thật cùng font; audit sớm có thể báo ảnh chưa sẵn sàng dù Remotion đã chờ trước capture. Không bỏ check. Đặt credit ngoài vùng ảnh và kiểm crop giữ chủ thể; thẻ ảnh đủ bounds không tự bảo đảm còn thấy dòng nước/công trình.
+- Hồ sơ, nguồn ảnh và hash: [Trường Giang V2](docs/phases/phase-6/YANGTZE_JOURNEY_VI_V2.md). V2 là bản mới nhất có ảnh thực tế; media cũ dọn theo biên nhận, source/voice/runtime phụ thuộc được giữ.

@@ -173,3 +173,6 @@ Source ZIP SHA-256:
 `STATUS.json`, `verification.json`, `delivery.json` and `archive.json` record
 completion. The silent draft and other delivered videos remain unchanged.
 No blocking issue remains for this voice update.
+
+
+Bản mới nhất sau yêu cầu bổ sung biển đảo: [V2 theo Skill_rules.MD](VIETNAM_ISLAND_RULE_UPDATES.md). Bản cũ vẫn được giữ; danh mục mới nhất ở docs/VIDEO_LIBRARY.md.

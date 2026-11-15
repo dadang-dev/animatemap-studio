@@ -49,3 +49,63 @@ Không cài thêm repo, nâng runtime hoặc mua phần cứng trước khi xác
 [Hồ sơ G7](phases/phase-6/G7_VIDEO.md) lưu snapshot, parity, render và media verification. Mốc file G7 cho thấy voice có lúc 19:20, build/timing lúc 19:27, preflight cuối lúc 21:36 và render hoàn tất lúc 21:47; chưa có log đủ để quy toàn bộ khoảng cách này cho một tác vụ cụ thể.
 
 Tài liệu chính thức: [Remotion performance](https://www.remotion.dev/docs/performance), [benchmark](https://www.remotion.dev/docs/cli/benchmark). Kiểm phiên bản runtime cài thực tế trước khi dùng tùy chọn mới.
+
+## Bổ sung từ tập 1 kinh đô V2 — 29/10/2026
+
+1. Khóa hash lời đọc, audio và word timing trước khi sửa hình. Phân biệt thay pagination/SRT với thay timestamp hoặc nội dung lời.
+2. Chuẩn bị ảnh thật và minh họa AI trước render: xem ảnh thật, kiểm đúng địa điểm/di vật, chú thích, quyền dùng và provenance; giữ prompt/đầu ra ImageGen. Không coi kết quả tìm kiếm đúng tên là ảnh đúng.
+3. Rà shot plan theo cue thực: tên → pin → ảnh bên dưới → diễn biến/kết luận. Callout ngang pin, leader ngắn; kiểm camera giữa các vùng và ảnh theo scene identity.
+4. Kiểm nháp ở kích thước điện thoại rồi mới khóa snapshot: thứ bậc chữ, ngắt phụ đề theo nghĩa, số kèm đơn vị, số năm viết bằng chữ số, locator và ảnh không che nhau.
+5. Bằng chứng của snapshot cuối phải gồm trang phụ đề, cue chữ/ảnh, camera flight và MP4 giải mã. Mở Studio chưa chứng minh parity; ghi rõ nếu chưa đo Studio độc lập.
+6. Resume job/TTS có cache, lưu PID/log của đúng job nếu cần chạy dài; không tạo lại vì chat gián đoạn. Chỉ một render nặng tại một thời điểm.
+
+Lỗi gặp: FFmpeg 9 không còn nhận `-vsync` → dùng `-fps_mode passthrough`, giữ nguyên số frame kiểm và ngưỡng. Báo cáo fingerprint dùng đường dẫn phù hợp cho dependency ở thư mục cha; lỗi ghi báo cáo không đồng nghĩa lỗi MP4 và không cần render lại hình.
+
+Hồ sơ: [Kinh đô tập 1 V2](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V2.md).
+
+## Bổ sung gate diễn giải toàn bộ lời đọc — 30/10/2026
+
+1. Đọc [Skill_rules.MD](../Skill_rules.MD). Không cho phép có các đoạn chỉ thay chữ và giữ ảnh tĩnh, chưa diễn giải được lời đọc.
+2. Trước dựng, lập bảng từng ý → đối tượng/vị trí → hành động/quan hệ → kết quả → cue. Địa danh cần định vị; kết nối cần tuyến và chuyển động; lợi thế/cơ chế cần quá trình; ý trừu tượng cần sơ đồ phù hợp.
+3. Trước export dài, rà toàn timeline và render đoạn khó ở tốc độ thật. Không chấp nhận chỉ thêm text/icon, đổi subtitle hoặc zoom nhẹ; ảnh tư liệu được giữ để quan sát kết quả đã giải thích, không thay minh họa ý mới.
+4. Khi nhận phản hồi vài khung, rà cả các đoạn tương tự và phần còn lại. Sửa chồng lớp, nhãn, chuyển động và cue trước khi khóa snapshot.
+5. Khi chỉ sửa hình, xác nhận WAV/script/word timing/pages/thời lượng giữ nguyên theo phạm vi; không gọi lại TTS/ASR. Chạy lại kiểm hình/MP4 của snapshot mới, giữ ngưỡng kỹ thuật. Chỉ cập nhật tài liệu thì không render lại video.
+
+Bằng chứng và ví dụ: [Kinh đô tập 2 V2](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP02_V2.md).
+
+## Gate câu hỏi và câu trả lời — 30/10/2026
+
+Trước TTS: đối chiếu tài liệu gốc và đề cương, viết rõ câu hỏi → đáp án ngắn → bằng chứng → câu kết luận. Không coi các kiến thức liên quan là đã trả lời câu hỏi. Kết mỗi tập phải chốt đáp án cùng phạm vi/đơn vị trước teaser; không dùng giới thiệu tập sau thay kết luận. Loạt kinh đô cần nêu đáp án sớm, giải thích bằng hình rồi chốt lại. Đọc riêng câu mở đầu và câu kết để kiểm điều hứa đã được giải quyết; media pass và nhiều animation không thay gate nội dung. Xem [tập 1 V4](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP01_V4.md).
+
+### Vị trí và coverage crop từ tập 2 V3
+
+Câu hỏi ở đâu cần kết bằng vùng/địa danh và mức độ chắc chắn, không chỉ ý nghĩa lịch sử. Trước export kiểm cả nhãn gần nhau ở góc xa và coverage viewport theo bounds raster; giữ nền trước khi đổi crop/góc rộng, trì hoãn pin mới tới khi nền tương ứng hình thành. Ví dụ: [Phong Châu V3](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP02_V3.md).
+
+
+### Cổ Loa tập 3 V2 — câu hỏi về hai trường hợp, 30/10/2026
+
+Đã sửa tập 3 thành câu hỏi An Dương Vương và Ngô Quyền cùng chọn Cổ Loa, có đáp án sớm và kết trực tiếp trước teaser. Hai trường hợp không phải tổng số tuyệt đối; nguồn còn Lý Phật Tử. Giữ ranh giới giữa ý nghĩa lịch sử và động cơ cá nhân chưa thể khẳng định đầy đủ. Khi teaser quay về năm 40 sau 939, phải nói rõ trở về quá khứ và mũi tên đi lùi. Năm ASR 1938/1939 bị nhận sai phải đối chiếu script/nguồn và sửa thành 938/939, giữ interval atom gộp thay vì tự bịa timing cho từ năm bị mất; giữ tên riêng Hai Bà Trưng. Hồ sơ: [Tập 3 V2](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP03_V2.md).
+
+Trạng thái hiện tại: cả 3 tập đầu đã sửa gate câu hỏi–đáp án–kết luận: tập 1 V4, tập 2 V3, tập 3 V2. Những ghi chú còn chờ sửa tập 3 bên trên là lịch sử trước V2.
+
+
+### Kinh đô tập 4–6 — lời hứa, cụm nghĩa và coverage,31/10/2026
+
+Đã hoàn thành tập 4 Mê Linh/Trưng Vương,5 Vạn Xuân trước Thăng Long,6 lợi thế Hoa Lư. Đọc bản toàn văn đã trích trực tiếp từ Word ở lượt trước và lưu hash; file Downloads hiện không còn nên không báo là vừa đọc lại trực tiếp. Hồ sơ: [tập 4](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP04.md),[tập 5](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP05.md),[tập 6](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP06.md).
+
+- Đáp án và kết luận phải cùng phạm vi: Mê Linh là nơi đóng đô theo truyền thống, chưa biết rõ kinh thành; vùng Hà Nội là trung tâm Vạn Xuân trước 1010, không đồng nghĩa cung điện đã tìm thấy/liên tục; Hoa Lư phòng thủ phù hợp củng cố chính quyền nhưng còn có triều đình/cung điện.
+- Caption đạt 1–2 dòng vẫn chưa đủ nếu tách hiện/đại,tưởng/niệm,đầy/đủ hoặc để 1 từ lẻ. Chia theo nghĩa và bảo vệ cụm; khi chỉ regroup, khóa voice và từng interval, cập nhật hash pages và kiểm lại DOM.
+- Crop địa phương cũ không tự phủ được góc gần đó: kiểm cả 4 mép viewport theo worldBounds. Tập 5 phải lấy crop Hà Nội riêng và đổi identity asset để UI không giữ ảnh Mê Linh.
+- Bản đồ toàn cảnh không để panel che Hoàng Sa/Trường Sa ngay từ khung đầu; cho khung toàn cảnh rõ rồi chuyển crop, giữ locator có marker đúng phép chiếu.
+- Ảnh hiện nay không thành bằng chứng cung điện cổ; sơ đồ cơ chế không thành GIS/địa giới/số đo khảo cổ. Kết luận trước teaser, không chỉ đổi chữ trên hình tĩnh.
+- Tách bằng chứng Studio playback 1x với độ mượt: xuất nặng có thể làm tụt FPS; không nhận là benchmark hoặc parity Studio độc lập. Giữ các gate kỹ thuật cũ và xem MP4 giải mã cuối.
+
+
+### Tập 7 Thăng Long — 01/11/2026
+
+Xem [hồ sơ tập 7](phases/phase-6/VIETNAM_CAPITALS_SHORTS_EP07.md). Kiểm cả quỹ đạo vật thể với đường đã vẽ; thuyền phải bám đường cong, không đi dây cung cắt ngang. Giữ cụm năm khi ngắt dòng, đo lại trên snapshot cuối. JSON qua JS có thể đổi 0.0 thành 0; trước cập nhật hash phải so toàn bộ từ và giá trị interval với dữ liệu gốc, không coi mọi hash khác là đổi timing hoặc tự bỏ qua.
+
+
+## Kiểm đề cương series sau audit kinh đô 01/11/2026
+
+Trước bước tạo voice, so tập đang làm với bảng số tập/chủ đề người dùng đã chốt, không với số mục Word. Lưu câu hỏi → đáp án → mục nguồn → hình → kết luận → teaser. Khi giao, đánh giá riêng mức đạt nội dung và media; ghi mọi lệch thời lượng/phạm vi. Sau mỗi lượt cập nhật hồ sơ tập và trạng thái master để lần “tiếp tục” sau không dựa trên một nhãn hoàn thành sai. Xem [bảng chuẩn kinh đô](phases/phase-6/VIETNAM_CAPITALS_SERIES_MASTER.md).
