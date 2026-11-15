@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .local/
+# Local reference-video extracts, transcripts and working media.
+/work/
 test-results/
 playwright-report/
 coverage/
