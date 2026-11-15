@@ -425,3 +425,10 @@ Không chạy lại các helper queue_export912.py, render_finish8.py, finalize_
 - Mỗi ảnh phải khớp địa điểm/cue đang nói; ảnh Tuotuo không kéo sang câu Kim Sa. Khi sửa cue ảnh, khóa voice/master/timing/SRT, vô hiệu hóa snapshot/cache hình cũ và kiểm lại biên ảnh, toàn caption, Studio và MP4.
 - Readiness audit phải chờ ảnh decode thật cùng font; audit sớm có thể báo ảnh chưa sẵn sàng dù Remotion đã chờ trước capture. Không bỏ check. Đặt credit ngoài vùng ảnh và kiểm crop giữ chủ thể; thẻ ảnh đủ bounds không tự bảo đảm còn thấy dòng nước/công trình.
 - Hồ sơ, nguồn ảnh và hash: [Trường Giang V2](docs/phases/phase-6/YANGTZE_JOURNEY_VI_V2.md). V2 là bản mới nhất có ảnh thực tế; media cũ dọn theo biên nhận, source/voice/runtime phụ thuộc được giữ.
+
+
+### Xưởng video portable — 15/11/2026
+
+- Khi đổi máy/clone repo, bắt đầu từ `docs/NEW_MACHINE_SETUP.md` và skill `skills/animatemap-video/SKILL.md`; không khởi tạo lại ứng dụng. Runtime/common components/assets/config/requirements có nguồn trong Git, cache sản phẩm giữ ngoài Git.
+- Kiểm `pnpm video:doctor`, `pnpm video:test`, `pnpm video:smoke` trước pilot. Các test kỹ thuật không thay kiểm nội dung/Studio parity và không xác nhận dịch vụ AI live. Giữ nguyên quyền gửi dữ liệu và cache task; setup không tự gọi TTS/planner.
+- Bản gốc có thể tự khác raster/font khi chụp lặp; dùng FontReady chứa glyph Việt trước đo Canvas, ghi số đo/giới hạn và dùng đúng profile đã chốt. Không tuyên bố pixel-identical hoặc đổi golden để che lỗi. Kết quả portability ở `docs/portability/verification.json`.

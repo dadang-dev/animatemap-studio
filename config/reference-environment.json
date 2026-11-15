@@ -1,0 +1,14 @@
+{
+  "platform": "Windows x64",
+  "node": "24.19.0",
+  "pnpm": "11.25.0",
+  "python": "Python 3.12.14",
+  "ffmpeg": "9.0-full_build-www.gyan.dev",
+  "remotion": "4.0.536",
+  "react": "19.2.3",
+  "chromeHeadlessShell": "157.0.8080.0",
+  "playwright": "1.58.2",
+  "hyperframes": "0.8.168",
+  "gsap": "3.14.2",
+  "note": "Reference profile, not a claim that every OS/GPU produces identical pixels. Accept a new machine only after doctor + neutral smoke + a pilot shot for the intended project."
+}

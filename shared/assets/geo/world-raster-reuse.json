@@ -1,0 +1,13 @@
+{
+  "file": "remotion/public/atlas/world.jpg",
+  "reusedFrom": ".local/world-extremes-vi-v3/remotion/public/atlas/world.jpg",
+  "sha256": "a3822e11185d7cb353a73d32a2545cea3b07bbaea9c7ccf2710bfdb4288e0696",
+  "dimensions": [
+    4096,
+    4096
+  ],
+  "projection": "Web Mercator raster stretched in 65536 world units",
+  "source": "NASA January 2004 Blue Marble composite, reused cached basemap",
+  "inheritedOriginalProvenance": "NASA-WORLD-PROVENANCE.json describes an earlier 8192px derivation; the actual reused asset here is 4096px. The intermediate resizing chain was not newly reconstructed in this task.",
+  "newRegionalAtlas": "asset-provenance.json provides newly fetched 256px NASA tiles/checksums, January 2004"
+}

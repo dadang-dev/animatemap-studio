@@ -1,0 +1,8 @@
+{
+  "duration": 2,
+  "beats": [
+    { "start": 0, "end": 0.8, "action": "snow" },
+    { "start": 0.8, "end": 1.5, "action": "source-water" },
+    { "start": 1.5, "end": 2, "action": "cargo" }
+  ]
+}

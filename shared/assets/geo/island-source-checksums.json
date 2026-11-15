@@ -1,0 +1,14 @@
+[
+  {
+    "file": "ne_10m_minor_islands.geojson",
+    "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_minor_islands.geojson",
+    "sha256": "8c933ca7a4760256bdc46408355706e39764b0fa01c160c28888b90b4faec29f",
+    "features": 2795
+  },
+  {
+    "file": "ne_10m_admin_0_disputed_areas_scale_rank_minor_islands.geojson",
+    "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_admin_0_disputed_areas_scale_rank_minor_islands.geojson",
+    "sha256": "146c9bced0f9b2139002e8f36e65febb4366998d9eb1598acef3b31d3ba625b4",
+    "features": 298
+  }
+]

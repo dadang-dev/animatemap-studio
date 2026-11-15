@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "id": "Portable-Video-Smoke",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 6,
+  "title": "BỘ DỰNG VIDEO DÙNG CHUNG",
+  "map": { "center": [110.5, 16], "widthDegrees": 22 },
+  "audio": "master.wav",
+  "credits": "NASA 2004 · Natural Earth · Đảo tham chiếu 1:10m",
+  "protectedNames": ["Hoàng Sa", "Trường Sa", "Việt Nam"],
+  "scenes": [
+    {
+      "id": "map",
+      "start": 0,
+      "end": 2,
+      "title": "BẢN ĐỒ & BIỂN ĐẢO",
+      "action": "boat"
+    },
+    {
+      "id": "image-a",
+      "start": 2,
+      "end": 4,
+      "title": "ẢNH & KARAOKE",
+      "image": "test-a.svg",
+      "photoLabel": "ASSET KIỂM TRA A",
+      "action": "house"
+    },
+    {
+      "id": "image-b",
+      "start": 4,
+      "end": 6,
+      "title": "ĐỔI ẢNH & HOẠT ẢNH",
+      "image": "test-b.svg",
+      "photoLabel": "ASSET KIỂM TRA B",
+      "action": "fish"
+    }
+  ],
+  "captions": [
+    {
+      "start": 0,
+      "end": 2,
+      "words": [
+        { "text": "Việt", "startSeconds": 0, "endSeconds": 0.5 },
+        { "text": "Nam", "startSeconds": 0.5, "endSeconds": 1 },
+        { "text": "biển", "startSeconds": 1, "endSeconds": 1.5 },
+        { "text": "đảo", "startSeconds": 1.5, "endSeconds": 2 }
+      ]
+    },
+    {
+      "start": 2,
+      "end": 4,
+      "words": [
+        { "text": "Kiểm", "startSeconds": 2, "endSeconds": 2.5 },
+        { "text": "tra", "startSeconds": 2.5, "endSeconds": 3 },
+        { "text": "ảnh", "startSeconds": 3, "endSeconds": 3.5 },
+        { "text": "thứ nhất", "startSeconds": 3.5, "endSeconds": 4 }
+      ]
+    },
+    {
+      "start": 4,
+      "end": 6,
+      "words": [
+        { "text": "Ảnh", "startSeconds": 4, "endSeconds": 4.5 },
+        { "text": "mới", "startSeconds": 4.5, "endSeconds": 5 },
+        { "text": "hiện", "startSeconds": 5, "endSeconds": 5.5 },
+        { "text": "đúng lúc", "startSeconds": 5.5, "endSeconds": 6 }
+      ]
+    }
+  ],
+  "notes": "Neutral test fixture, not a finished video. Word intervals match synthetic test timing, not ASR of real speech. Replace story, image provenance, word timings, geography/camera and action composition for each new topic. Never force every topic into this test layout."
+}

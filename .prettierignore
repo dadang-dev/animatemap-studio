@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 apps/web/public/assets/flags/*.svg
 apps/web/public/data/history/*.json
+
+.venv-video/
+shared/assets/

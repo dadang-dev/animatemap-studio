@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "basemap/world.jpg",
+      "bytes": 3964401,
+      "sha256": "a3822e11185d7cb353a73d32a2545cea3b07bbaea9c7ccf2710bfdb4288e0696"
+    },
+    {
+      "path": "fonts/latin-700.woff2",
+      "bytes": 13416,
+      "sha256": "e65482fd7d8cd5e24b81e2fd2cac0ad642bfea4e59c3b1052b7a3b4ffedf4465"
+    },
+    {
+      "path": "fonts/vietnamese-700.woff2",
+      "bytes": 5700,
+      "sha256": "81e42f41bb61f9d1b2004c243cf15ea4946dffb14be4888e76fb3ca3cb75cdf8"
+    },
+    {
+      "path": "geo/COUNTRIES-PROVENANCE.json",
+      "bytes": 558,
+      "sha256": "546c87f3ee466f1cfe426221c758f723cb120ae3d8ba5f56e59d053c276edefe"
+    },
+    {
+      "path": "geo/island-source-checksums.json",
+      "bytes": 636,
+      "sha256": "96671f3bf73d81a2890704c67ee2c75ab935f1132e7b5b069c05098fe807b424"
+    },
+    {
+      "path": "geo/NASA-WORLD-PROVENANCE.json",
+      "bytes": 677,
+      "sha256": "ecd39e1b640c56ab3815d15a22be5bd6676c2920074de5b26c5f860ca6adc5f1"
+    },
+    {
+      "path": "geo/reference.json",
+      "bytes": 10947522,
+      "sha256": "011f53199f62c21d2421a993bcb2426010bb4ef6da9e26cd53552ea75a190f17"
+    },
+    {
+      "path": "geo/vietnam-islands.geojson",
+      "bytes": 40901,
+      "sha256": "47a8b73dd10babae09a24e75a351e8afe30791295ba86680c06ddd6debba1765"
+    },
+    {
+      "path": "geo/world-raster-reuse.json",
+      "bytes": 736,
+      "sha256": "7186c4461e701aa19a68b233304b3fc6f87dc9a19eb0bc3eb1dae90f3344eca5"
+    },
+    {
+      "path": "licenses/LICENSE-GSAP.txt",
+      "bytes": 6199,
+      "sha256": "36224e521bdd9b79dc74ef262effc1a636d960b9be918bc2412ed69f9eee27b0"
+    },
+    {
+      "path": "licenses/LICENSE-HYPERFRAMES.txt",
+      "bytes": 10763,
+      "sha256": "4259155fb06f127687ee7b0a8a3682d45132db0f2da26cbc0b7a2d1e796436b8"
+    },
+    {
+      "path": "licenses/LICENSE-NOTO-SANS.txt",
+      "bytes": 4314,
+      "sha256": "18aabf190848725e2576eefb5c29ba06aac1029d02132252a7f312eac2e50cf3"
+    },
+    {
+      "path": "licenses/LICENSE-REMOTION.md",
+      "bytes": 2823,
+      "sha256": "bd65083b940f61904f6ef298aade918a7cad72a3e35bc406e36fab365844b673"
+    },
+    {
+      "path": "licenses/LICENSE-VOX-DIRECTOR.txt",
+      "bytes": 1088,
+      "sha256": "7e1978d0b98214db6eff98ce80f3379311059dbabc1c90577b6d06f73c37542f"
+    },
+    {
+      "path": "smoke/master.wav",
+      "bytes": 1152044,
+      "sha256": "f707015cea80abd39a7ad1dfc4cafa8b1eb3fe5b2c0142f5fd98826c9feeb026"
+    },
+    {
+      "path": "smoke/test-a.svg",
+      "bytes": 325,
+      "sha256": "54ab3186084fa7e6b775ab0ee4a9bc401f03d5cc15f24dd276ca5d223dd6b2da"
+    },
+    {
+      "path": "smoke/test-b.svg",
+      "bytes": 325,
+      "sha256": "98eb51368d39b9154d661ab582776fad9fd21db3c4bea8656d929ecd093642e5"
+    }
+  ],
+  "notes": [
+    "NASA January 2004 composite, not live imagery.",
+    "Natural Earth reference geometry; not a legal boundary or complete inventory of all rocks/reefs.",
+    "77 supplementary Vietnam features: 18 Hoang Sa, 22 Truong Sa, 37 other features; source properties remain raw, display follows Skill_rules.MD.",
+    "The inherited NASA provenance describes an earlier 8192px image; actual bundled raster is the cached 4096px derivative. Original resize chain not independently reconstructed."
+  ]
+}

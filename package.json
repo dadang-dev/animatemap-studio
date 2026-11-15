@@ -20,7 +20,12 @@
     "benchmark": "tsx scripts/benchmark.ts",
     "director:setup": "node scripts/setup-director.mjs",
     "director": "tsx scripts/director.ts",
-    "hyperframes": "node scripts/hyperframes.mjs"
+    "hyperframes": "node scripts/hyperframes.mjs",
+    "video": "node scripts/video.mjs",
+    "video:doctor": "node scripts/video.mjs doctor",
+    "video:smoke": "node scripts/video-smoke.mjs",
+    "video:test": "node --test tests/video-tool-portability.test.mjs",
+    "video:integration-smoke": "node scripts/video-integration-smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",

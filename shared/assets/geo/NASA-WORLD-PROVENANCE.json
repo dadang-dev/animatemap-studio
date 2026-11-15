@@ -1,0 +1,11 @@
+{
+  "url": "https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/january/world.topo.bathy.200401.3x21600x10800.jpg",
+  "sha256": "db7a5d1740b5ca3bead1164b94d24e60889f2074687ecf44d8c358c41286d435",
+  "credit": "NASA Earth Observatory",
+  "epoch": "January 2004 composite, shaded topography and bathymetry",
+  "license": "NASA media guidelines; credit NASA Earth Observatory",
+  "licenseURL": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "derivation": "FFmpeg scale to 10800x5400; inverse WebMercator row sampling to 8192x8192, latitude clip ±85.0511287798066; JPEG quality .91.",
+  "width": 8192,
+  "height": 8192
+}

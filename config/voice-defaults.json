@@ -1,0 +1,18 @@
+{
+  "provider": "vbee",
+  "name": "HN - Anh Khôi",
+  "voiceId": "vbee_hn_male_phuthang_news65dt_44k-fhg",
+  "speed": 1.0,
+  "apiOrigin": "https://api.ai33.pro",
+  "keyEnvironmentVariable": "AI33_API_KEY",
+  "alignment": {
+    "engine": "faster-whisper",
+    "version": "1.2.1",
+    "model": "small",
+    "device": "cpu",
+    "computeType": "int8",
+    "language": "vi",
+    "threads": 4
+  },
+  "notes": "Recheck the live voice catalogue before a new paid task. Obtain authorization for each new project's script/destination; choosing this voice does not authorize upload. Reuse a matching task/cache; never regenerate on resume."
+}

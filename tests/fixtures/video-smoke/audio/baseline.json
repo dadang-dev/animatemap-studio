@@ -1,0 +1,25 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "file": "master.wav",
+      "byteIdentical": true,
+      "sha256": "ea51fdd17a183713b9ba6b3be7b01dca12c794839566ac84ea3ccdd6a375764c"
+    },
+    {
+      "file": "audio-stems/voice.wav",
+      "byteIdentical": true,
+      "sha256": "cf4141b2e7eb7edb8f43ad74ca393356bdb35ce11e2f68e788df0716e5f3d749"
+    },
+    {
+      "file": "audio-stems/music.wav",
+      "byteIdentical": true,
+      "sha256": "8ccb903509bf717ad773df468d608bb7b90b115c963fedc980c961829c8bc277"
+    },
+    {
+      "file": "audio-stems/sfx.wav",
+      "byteIdentical": true,
+      "sha256": "90e94117f5db4af4a8101eeef39daa1f080c1bc34fbb9aa81c5e926001ea7a5e"
+    }
+  ]
+}

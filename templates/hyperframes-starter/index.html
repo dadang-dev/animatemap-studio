@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="gsap.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        background: transparent;
+      }
+      svg {
+        display: block;
+        width: 900px;
+        height: 490px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      data-composition-id="portable-effect"
+      data-width="900"
+      data-height="490"
+      data-duration="2"
+      data-fps="30"
+    >
+      <svg viewBox="0 0 900 490">
+        <rect width="900" height="490" rx="28" fill="#082b38" />
+        <path d="M100 245H800" stroke="#70e9e4" stroke-width="8" />
+        <circle class="actor" cx="100" cy="245" r="55" fill="#ffcf76" />
+        <path
+          class="check"
+          d="M680 365L715 400L800 315"
+          stroke="#fff0d5"
+          stroke-width="12"
+          fill="none"
+        />
+      </svg>
+    </div>
+    <script>
+      const timeline = gsap.timeline({ paused: true });
+      timeline.to('.actor', { x: 700, duration: 2, ease: 'none' }, 0);
+      timeline.fromTo(
+        '.check',
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4 },
+        1.2,
+      );
+      window.__timelines = { 'portable-effect': timeline };
+    </script>
+  </body>
+</html>

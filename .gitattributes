@@ -9,3 +9,5 @@ data/buildings/vancouver-source.json -text
 data/history/dc-*-source.geojson -text
 data/history/dc-*-item.json -text
 apps/web/public/data/history/*.json -text
+# Preserve the exact source/license bytes covered by the shared asset manifest.
+shared/assets/** -text

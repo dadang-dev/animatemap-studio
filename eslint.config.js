@@ -7,6 +7,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       '.local/**',
+      '.venv-video/**',
       'playwright-report/**',
       'test-results/**',
     ],

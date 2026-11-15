@@ -3,6 +3,9 @@ dist/
 .local/
 # Local reference-video extracts, transcripts and working media.
 /work/
+.venv-video/
+__pycache__/
+*.pyc
 test-results/
 playwright-report/
 coverage/

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "maxDurationSeconds": 300,
+  "capture": "png",
+  "gl": "angle",
+  "concurrency": 2,
+  "chunkFrames": 120,
+  "minFreeBytes": 681574400,
+  "encoder": {
+    "codec": "libx264",
+    "preset": "medium",
+    "crf": 16,
+    "pixelFormat": "yuv420p",
+    "colorSpace": "bt709",
+    "audioRate": 48000,
+    "audioBitrate": "192k"
+  },
+  "verification": {
+    "meanRGB": 3,
+    "fractionAbove30": 0.02,
+    "audioCorrelation": 0.99,
+    "audioSNRdB": 25,
+    "frameTimeToleranceSeconds": 0.000001
+  }
+}
